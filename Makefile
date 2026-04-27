@@ -1,3 +1,5 @@
 dev:
-	docker compose up -d
-	python3 manage.py runserver
+	docker compose up
+redev:
+	docker compose down
+	+make dev

@@ -6,10 +6,12 @@ transandance - boost creativity, self-confidence, adaptability and teamwork skil
 
 # Instructions
 
+## Dependencies
+
 You will need:
 
-- python 3.14
-- django 5.2.13
+- gnumake
+- docker with working docker-compose
 
 TODO: check what version of python, django are installed on the school computers and ensure that our project is compatible.
 
@@ -122,6 +124,9 @@ NB: I added some initial contributions from what I could remember, feel free to 
 - Setup .env file loading in django settings for DATABASE_URL
 - Create docker-compose.yml with database
 - Setup .env file with POSTGRES_* configurations
+- Setup dockerfile to create a backend image
+- Use docker-compose to run the db and backend
+- Enforce health check on db to prevent backend to start too soon
 
 ## cczerwin
 
