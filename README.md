@@ -13,9 +13,18 @@ You will need:
 
 TODO: check what version of python, django are installed on the school computers and ensure that our project is compatible.
 
+## Configuration
+
 TODO: add instructions on how to configure the project
 
+- `cp .env.example .env`
+- Change settings as desired
+
+## Running
+
 TODO: add instructions on how to build and start the project
+
+- `make dev`
 
 # Resources
 
@@ -109,6 +118,10 @@ NB: I added some initial contributions from what I could remember, feel free to 
 
 - Set up github organisation and project repository
 - Influenced technical choice of backend framework
+- Setup django project
+- Setup .env file loading in django settings for DATABASE_URL
+- Create docker-compose.yml with database
+- Setup .env file with POSTGRES_* configurations
 
 ## cczerwin
 

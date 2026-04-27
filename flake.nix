@@ -16,6 +16,8 @@
         pythonEnv = pkgs.python314.withPackages (ps:
           with ps; [
             django
+            django-environ
+            psycopg2
           ]);
       in {
         devShells.default = pkgs.mkShell {
