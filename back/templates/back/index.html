@@ -1,0 +1,17 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackhole Megalaser</title>
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+    <p><a href="/accounts/profile">{{ user.username }}</a></p>
+    {% else %}
+    <p><a href="/accounts/login">Login</a></p>
+    {% endif %}
+</body>
+
+</html>
