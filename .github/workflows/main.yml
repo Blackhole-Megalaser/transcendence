@@ -1,0 +1,19 @@
+name: Main check
+on: [ push ]
+jobs:
+  check-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: formatting
+        uses: astral-sh/ruff-action@v4.0.0
+        with:
+          args: format --diff
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: linting
+        uses: astral-sh/ruff-action@v4.0.0
