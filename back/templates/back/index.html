@@ -8,7 +8,11 @@
 
 <body>
     {% if user.is_authenticated %}
-    <p><a href="/accounts/profile">{{ user.username }}</a></p>
+    <p><a href="/accounts/profile">{{ user.username }} - see my profile</a></p>
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Log Out</button>
+    </form>
     {% else %}
     <p><a href="/accounts/login">Login</a></p>
     {% endif %}
