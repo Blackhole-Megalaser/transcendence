@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
+
+from .forms import UserRegisterForm
 
 # Create your views here.
 
@@ -24,7 +27,15 @@ def profile(request):
         { "user": user },
     )
 
-class SignUpView(CreateView):
-    form_class = UserCreationForm
-    success_url = reverse_lazy('login')
-    template_name = 'registration/signup.html'
+def signup(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
+            messages.success(request, f'Your account has been created ! You are now able to log in')
+            return redirect('login')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'registration/signup.html', {'form': form, 'title':'Sign Up for Blackhole Megalaser'})
