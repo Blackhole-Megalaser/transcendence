@@ -26,6 +26,7 @@
             pkgs.sqlite
             pkgs.postgresql
             pkgs.ruff
+            pkgs.act
           ];
         };
       }
