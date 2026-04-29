@@ -13,6 +13,7 @@
     <p>Welcome to Blackhole Megalaser</p>
     <p>Your email is: {{ user.email }}</p>
     <p><a href="/">Home</a></p>
+    <p><a href="/accounts/modify">Change my information</a></p>
     <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
         <button type="submit">Log Out</button>
