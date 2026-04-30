@@ -16,6 +16,8 @@ You will need:
 TODO: check what version of python, django are installed on the school computers and ensure that our project is compatible.
 
 Present on school computer: (hopefully the same on all PCs)
+- Docker 28.1.1
+- Docker Compose 2.36.2
 - Python 3.10.12
 - Django not installed
 - node 12.22.9
@@ -166,7 +168,9 @@ This is included in Django features, ORM (Object–relational mapping) helps for
 
 ### Minor: Server-Side Rendering (SSR) for improved performance and SEO
 
-TODO: lol
+SSR was used for pages featuring forms to autocomplete where applicable for exemple the user creation page
+
+**kcoline** worked on this module.
 
 **lvan-bre** worked on this module.
 
