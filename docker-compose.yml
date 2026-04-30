@@ -27,7 +27,6 @@ services:
         - action: sync
           path: .
           target: /app
-          initial_sync: true
           ignore:
             - .jj
             - .git
