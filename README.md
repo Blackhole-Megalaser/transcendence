@@ -170,7 +170,7 @@ This is included in Django features, ORM (Object–relational mapping) helps for
 
 SSR was used for pages featuring forms to autocomplete where applicable for exemple the user creation page
 
-**kcoline** worked on this module.
+**kcolin** worked on this module.
 
 **lvan-bre** worked on this module.
 
