@@ -4,14 +4,10 @@ from django.contrib import messages
 
 from .forms import UserRegisterForm
 
-# Create your views here.
-
-
 def index(request):
     user = request.user
     print(user)
     return render(request, "back/index.html", {"user": user})
-
 
 @login_required
 def profile(request):
@@ -21,7 +17,6 @@ def profile(request):
         "back/profile.html",
         {"user": user},
     )
-
 
 def signup(request):
     if request.method == "POST":

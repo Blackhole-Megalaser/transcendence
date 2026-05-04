@@ -26,6 +26,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+# TODO: Remove before pushing to vogsphere
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-9qnoi)x8u$_th9@*cdp8vp23!i2kgwglwrc*q^n4d=sct6rdu2"
 
@@ -38,13 +39,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+	"daphne",
+	"back",
+	"chat",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "back",
 ]
 
 MIDDLEWARE = [
@@ -75,7 +78,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "transcendence.wsgi.application"
+ASGI_APPLICATION = "transcendence.asgi.application"
 
+# Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6380)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
