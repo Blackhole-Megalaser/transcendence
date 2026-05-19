@@ -10,7 +10,7 @@ redev:
 	+make dev
 rebuild:
 	docker compose down
-	docker compose up --force-recreate
+	docker compose up --build --force-recreate
 prune:
 	docker system prune -a
 	docker volume prune -a

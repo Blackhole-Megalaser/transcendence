@@ -39,6 +39,8 @@ services:
   front:
     build: ./frontend
     restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
     ports:
       - "1080:80"
       - "1443:443"
