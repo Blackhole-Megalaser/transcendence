@@ -170,14 +170,6 @@ This is included in Django features, ORM (Object–relational mapping) helps for
 
 ### Minor: Real-time collaborative features (shared workspaces, live editing, collaborative drawing, etc.)
 
-### Minor: Server-Side Rendering (SSR) for improved performance and SEO
-
-SSR was used for pages featuring forms to autocomplete where applicable for exemple the user creation page
-
-**kcolin** worked on this module.
-
-**lvan-bre** worked on this module.
-
 ### Minor: File upload and management system
 
 - Support multiple file types (images, documents, etc.).

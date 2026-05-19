@@ -19,6 +19,7 @@ export default defineConfig({
         tplace: resolve(__dirname, 'tplace.html'),
         privacy_policy: resolve(__dirname, 'privacypolicy.html'),
         term_of_service: resolve(__dirname, 'termService.html'),
+		// chat: resolve(__dirname, 'chat.html'),
       },
     },
   },

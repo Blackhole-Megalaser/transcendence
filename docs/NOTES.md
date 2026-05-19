@@ -89,4 +89,7 @@ Au niveau des features intéressantes:
 
 ## Resume de la reunion 3
 
-placeholder 😊
+Nous avons pris la decision de drop le SSR et le module associe en faveur du MPA (Multi Page Application) pour conserver toutes les pages cote frontend pour en simplifier la gestion.
+
+Globalement toutes les parties avancent bien, le prochain enjeux est de connecter les front et le back avec les routes API qui ont ete mises en avant.
+
