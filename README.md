@@ -313,6 +313,12 @@ NB: I added some initial contributions from what I could remember, feel free to 
 
 - Created initial choice of module proposition
 - Populated the readme
+- Added ssl termination on nginx
+- Configured the websocket server
+- Tweaked the dockerfiles / docker compose
+- Added aliases in Vue
+- Worked on the project folder structure
+- Made the chat
 
 ## lvan-bre
 
