@@ -1,3 +1,5 @@
+
+export function runChat() {
     const roomName = 'chat';
 
     const chatSocket = new WebSocket(
@@ -32,3 +34,4 @@
         }));
         messageInputDom.value = '';
     };
+}
