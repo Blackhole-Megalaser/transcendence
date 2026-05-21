@@ -11,8 +11,10 @@ redev:
 rebuild:
 	docker compose down
 	docker compose up --build --force-recreate
+down:
+	docker compose down
 prune:
-	docker system prune -a
-	docker volume prune -a
+	docker system prune -af
+	docker volume prune -af
 createsuperuser:
 	docker compose run back python /app/manage.py createsuperuser
