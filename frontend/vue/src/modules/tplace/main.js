@@ -1,9 +1,9 @@
-import { createApp } from 'vue';
-import { setupPinia } from '../../shared/pinia.js';
-import App from './TplaceApp.vue';
-import { useThemeStore } from '../../storage/theme.js';
+import { createApp } 		from 'vue';
+import { setupPinia } 		from '@shared/pinia.js';
+import App 					from './TplaceApp.vue';
+import { useThemeStore } 	from '@storage/theme.js';
 
-import '../../style.css';
+import '@/style.css';
 
 const pinia = setupPinia();
 const app = createApp(App);

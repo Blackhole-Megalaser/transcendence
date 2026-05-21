@@ -36,6 +36,8 @@ export default defineConfig({
               '@modules':     path.resolve(__dirname, './src/modules'),
               '@skribbl':     path.resolve(__dirname, './src/modules/skribbl'),
               '@tplace':      path.resolve(__dirname, './src/modules/tplace'),
+			  '@shared':      path.resolve(__dirname, './src/shared/'),
+			  '@storage':     path.resolve(__dirname, './src/storage'),
               '@':            path.resolve(__dirname, './src'),
             },
     },

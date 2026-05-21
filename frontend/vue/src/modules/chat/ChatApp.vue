@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { useThemeStore }  from '../../storage/theme.js';
+import { useThemeStore }  from '@storage/theme.js';
 import { useBreakpoints } from '@vueuse/core';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 

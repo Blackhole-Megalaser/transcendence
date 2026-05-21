@@ -21,14 +21,14 @@
 
 
 <script setup>
-import { useThemeStore } from '../../storage/theme.js';
-import { useBreakpoints } from '@vueuse/core';
+import { useThemeStore } 	from '@storage/theme.js';
+import { useBreakpoints } 	from '@vueuse/core';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-import Button from '../../components/Button.vue';
-import NavBar from '../../components/NavBar.vue';
-import SideBar from '../../components/SideBar.vue';
-import SideProfile from '../../components/SideProfile.vue';
+import Button 		from '@components/Button.vue';
+import NavBar 		from '@components/NavBar.vue';
+import SideBar 		from '@components/SideBar.vue';
+import SideProfile 	from '@components/SideProfile.vue';
 
 const breakpoints = useBreakpoints({sm: 640 });{}
 const ismobile = breakpoints.smaller("sm");

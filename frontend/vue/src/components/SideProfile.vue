@@ -34,8 +34,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 
-import defaultcat from '../assets/default_cat.png';
-import Button from './Button.vue';
+import defaultcat 	from '@assets/default_cat.png';
+import Button 		from './Button.vue';
 
 const props = defineProps({open: Boolean});
 const username = ref("");
