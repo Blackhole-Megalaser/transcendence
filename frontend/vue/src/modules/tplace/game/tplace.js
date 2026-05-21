@@ -1,9 +1,13 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import selectImageUrl from './select.png'
 
-const X_MAX = 56
-const Y_MAX = 38
+const WORLD_X_MAX = 200
+const WORLD_Y_MAX = 200
 const CELL_SIZE = 16
+const DEFAULT_VIEWPORT_WIDTH = 896
+const DEFAULT_VIEWPORT_HEIGHT = 608
+const WORLD_WIDTH = WORLD_X_MAX * CELL_SIZE
+const WORLD_HEIGHT = WORLD_Y_MAX * CELL_SIZE
 
 export function runTplace() {
 const colors = [
@@ -38,9 +42,9 @@ const showGrid = ref(false)
 const selectedColor = ref(colors[0].value)
 const pointerStatus = ref('Mouse not here :(')
 const gridLabel = computed(() => (showGrid.value ? 'Grille affichee' : 'Grille cachee'))
-const pixelsLeft = ref('Pixels restants: 100/100')
+const pixelsLeft = ref('100/100')
 
-const pixels = Array.from({ length: Y_MAX }, () => Array.from({ length: X_MAX }, () => null))
+const pixels = Array.from({ length: WORLD_Y_MAX }, () => Array.from({ length: WORLD_X_MAX }, () => null))
 const undoStack = []
 const redoStack = []
 
@@ -51,9 +55,42 @@ let currentStroke = null
 let isDrawing = false
 let animationFrameId = 0
 let placed = 0
+let cameraX = 0
+let cameraY = 0
+let isPanning = false
+let lastPanX = 0
+let lastPanY = 0
+let resizeObserver = null
 
 function selectColor(color) {
 	selectedColor.value = color
+}
+
+function clamp(value, min, max) {
+	return Math.max(min, Math.min(max, value))
+}
+
+function getViewportDimensions() {
+	const canvas = canvasRef.value
+
+	if (!(canvas instanceof HTMLCanvasElement) || canvas.width === 0 || canvas.height === 0) {
+		return {
+			width: DEFAULT_VIEWPORT_WIDTH,
+			height: DEFAULT_VIEWPORT_HEIGHT,
+		}
+	}
+
+	return {
+		width: canvas.width,
+		height: canvas.height,
+	}
+}
+
+function clampCamera() {
+	const { width, height } = getViewportDimensions()
+
+	cameraX = Math.round(clamp(cameraX, 0, Math.max(0, WORLD_WIDTH - width)))
+	cameraY = Math.round(clamp(cameraY, 0, Math.max(0, WORLD_HEIGHT - height)))
 }
 
 function getCanvas() {
@@ -64,7 +101,7 @@ function getCanvas() {
 	return canvasRef.value
 }
 
-function getMousePos(event) {
+function getViewportMousePos(event) {
 	const canvas = getCanvas()
 	const rect = canvas.getBoundingClientRect()
 	const style = getComputedStyle(canvas)
@@ -79,22 +116,54 @@ function getMousePos(event) {
 	const scaleY = canvas.height / drawableHeight
 	const mouseX = (event.clientX - rect.left - borderLeft) * scaleX
 	const mouseY = (event.clientY - rect.top - borderTop) * scaleY
-	const cellX = Math.max(0, Math.min(X_MAX - 1, Math.floor(mouseX / CELL_SIZE)))
-	const cellY = Math.max(0, Math.min(Y_MAX - 1, Math.floor(mouseY / CELL_SIZE)))
+
+	return { mouseX, mouseY }
+}
+
+function getMousePos(event) {
+	const { mouseX, mouseY } = getViewportMousePos(event)
+	const worldX = mouseX + cameraX
+	const worldY = mouseY + cameraY
+	const cellX = clamp(Math.floor(worldX / CELL_SIZE), 0, WORLD_X_MAX - 1)
+	const cellY = clamp(Math.floor(worldY / CELL_SIZE), 0, WORLD_Y_MAX - 1)
 
 	pointerStatus.value = `Mouse pos (x,y): ${cellX},${cellY}`
 
 	return { cellX, cellY }
 }
 
+function syncCanvasSize(centerCamera = false) {
+	const canvas = getCanvas()
+	const nextWidth = Math.max(1, Math.floor(canvas.clientWidth))
+	const nextHeight = Math.max(1, Math.floor(canvas.clientHeight))
+
+	if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+		canvas.width = nextWidth
+		canvas.height = nextHeight
+	}
+
+	if (centerCamera) {
+		cameraX = (WORLD_WIDTH - canvas.width) / 2
+		cameraY = (WORLD_HEIGHT - canvas.height) / 2
+	}
+
+	clampCamera()
+}
+
 function drawPixel(x, y, color) {
 	ctx.fillStyle = color
-	ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+	ctx.fillRect(x * CELL_SIZE - cameraX, y * CELL_SIZE - cameraY, CELL_SIZE, CELL_SIZE)
 }
 
 function drawPixels() {
-	for (let y = 0; y < Y_MAX; y += 1) {
-		for (let x = 0; x < X_MAX; x += 1) {
+	const { width, height } = getViewportDimensions()
+	const firstX = clamp(Math.floor(cameraX / CELL_SIZE), 0, WORLD_X_MAX - 1)
+	const firstY = clamp(Math.floor(cameraY / CELL_SIZE), 0, WORLD_Y_MAX - 1)
+	const lastX = clamp(Math.ceil((cameraX + width) / CELL_SIZE), 0, WORLD_X_MAX - 1)
+	const lastY = clamp(Math.ceil((cameraY + height) / CELL_SIZE), 0, WORLD_Y_MAX - 1)
+
+	for (let y = firstY; y <= lastY; y += 1) {
+		for (let x = firstX; x <= lastX; x += 1) {
 			drawPixel(x, y, pixels[y][x] ?? '#FFFFFF')
 		}
 	}
@@ -107,20 +176,24 @@ function drawGrid() {
 
 	const canvas = getCanvas()
 
-	ctx.strokeStyle = '#7A6189'
+	ctx.strokeStyle = '#A0A0A0'
 	ctx.lineWidth = 1
 
-	for (let x = 0; x <= X_MAX; x += 1) {
+	for (let x = 0; x <= WORLD_X_MAX; x += 1) {
+		const screenX = x * CELL_SIZE - cameraX
+
 		ctx.beginPath()
-		ctx.moveTo(x * CELL_SIZE + 0.5, 0)
-		ctx.lineTo(x * CELL_SIZE + 0.5, canvas.height)
+		ctx.moveTo(screenX + 0.5, 0)
+		ctx.lineTo(screenX + 0.5, canvas.height)
 		ctx.stroke()
 	}
 
-	for (let y = 0; y <= Y_MAX; y += 1) {
+	for (let y = 0; y <= WORLD_Y_MAX; y += 1) {
+		const screenY = y * CELL_SIZE - cameraY
+
 		ctx.beginPath()
-		ctx.moveTo(0, y * CELL_SIZE + 0.5)
-		ctx.lineTo(canvas.width, y * CELL_SIZE + 0.5)
+		ctx.moveTo(0, screenY + 0.5)
+		ctx.lineTo(canvas.width, screenY + 0.5)
 		ctx.stroke()
 	}
 }
@@ -132,8 +205,8 @@ function drawHover() {
 
 	ctx.drawImage(
 		hoverImage,
-		hoverCell.x * CELL_SIZE,
-		hoverCell.y * CELL_SIZE,
+		hoverCell.x * CELL_SIZE - cameraX,
+		hoverCell.y * CELL_SIZE - cameraY,
 		CELL_SIZE,
 		CELL_SIZE,
 	)
@@ -222,7 +295,39 @@ function colorize(event) {
 	recordPixelChange(pos.cellX, pos.cellY, selectedColor.value)
 }
 
+function beginPan(event) {
+	event.preventDefault()
+	isPanning = true
+	isDrawing = false
+	hoverCell = null
+	commitStroke()
+
+	const { mouseX, mouseY } = getViewportMousePos(event)
+
+	lastPanX = mouseX
+	lastPanY = mouseY
+}
+
+function panCamera(event) {
+	const { mouseX, mouseY } = getViewportMousePos(event)
+	const deltaX = mouseX - lastPanX
+	const deltaY = mouseY - lastPanY
+
+	cameraX -= deltaX
+	cameraY -= deltaY
+	clampCamera()
+
+	lastPanX = mouseX
+	lastPanY = mouseY
+	pointerStatus.value = `Camera (x,y): ${Math.round(cameraX)},${Math.round(cameraY)}`
+}
+
 function handleMouseMove(event) {
+	if (isPanning) {
+		panCamera(event)
+		return
+	}
+
 	const pos = getMousePos(event)
 
 	hoverCell = {
@@ -239,10 +344,16 @@ function handleMouseLeave() {
 	pointerStatus.value = 'Mouse not here :('
 	hoverCell = null
 	isDrawing = false
+	isPanning = false
 	commitStroke()
 }
 
 function handleMouseDown(event) {
+	if (event.button === 1) {
+		beginPan(event)
+		return
+	}
+
 	if (event.button !== 0) {
 		return
 	}
@@ -261,9 +372,24 @@ function handleMouseDown(event) {
 	colorize(event)
 }
 
-function handleMouseUp() {
+function handleMouseUp(event) {
+	if (event.button === 1) {
+		isPanning = false
+		return
+	}
+
+	if (event.button !== 0) {
+		return
+	}
+
 	isDrawing = false
 	commitStroke()
+}
+
+function preventMiddleClick(event) {
+	if (event.button === 1) {
+		event.preventDefault()
+	}
 }
 
 function handleKeydown(event) {
@@ -291,30 +417,45 @@ function loop() {
 	drawPixels()
 	drawGrid()
 	drawHover()
-	pixelsLeft.value = "Pixels restants: " + (100 - placed) + "/100"
+	pixelsLeft.value = (100 - placed) + "/100"
 
 	animationFrameId = requestAnimationFrame(loop)
 }
 
 onMounted(() => {
 	const canvas = getCanvas()
-
-	canvas.width = CELL_SIZE * X_MAX
-	canvas.height = CELL_SIZE * Y_MAX
 	ctx = canvas.getContext('2d')
 
 	if (!ctx) {
 		throw new Error('2D context not available')
 	}
 
+	ctx.imageSmoothingEnabled = false
+	syncCanvasSize(true)
+
 	hoverImage = new Image()
 	hoverImage.src = selectImageUrl
 
+	resizeObserver = new ResizeObserver(() => {
+		syncCanvasSize(false)
+	})
+	resizeObserver.observe(canvas)
+
+	canvas.addEventListener('auxclick', preventMiddleClick)
 	document.addEventListener('keydown', handleKeydown)
 	loop()
 })
 
 onBeforeUnmount(() => {
+	const canvas = canvasRef.value
+
+	if (canvas instanceof HTMLCanvasElement) {
+		canvas.removeEventListener('auxclick', preventMiddleClick)
+	}
+
+	resizeObserver?.disconnect()
+	resizeObserver = null
+
 	document.removeEventListener('keydown', handleKeydown)
 	cancelAnimationFrame(animationFrameId)
 	commitStroke()
