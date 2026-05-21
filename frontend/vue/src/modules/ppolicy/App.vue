@@ -76,7 +76,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import '../../style.css';
+@import "@/style.css";
 
 .fscreen {
   @apply h-[calc(100dvh-5rem)] w-dvw

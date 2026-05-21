@@ -82,7 +82,7 @@ defineProps ({
 </script>
 
 <style scoped>
-@import "../style.css";
+@import "@/style.css";
 
 nav {
   @apply fixed w-full top-0 h-20 lg:h-40

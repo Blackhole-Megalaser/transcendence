@@ -22,7 +22,7 @@ const emit = defineEmits(['changeStatus']);
 </script>
 
 <style scoped>
-@import '../style.css';
+@import "@/style.css";
 
 .btn-base {
   @apply px-6 py-2 w-full rounded-full font-bold transition-all duration-300 cursor-pointer flex justify-start;

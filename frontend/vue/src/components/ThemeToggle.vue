@@ -22,7 +22,7 @@ const theme = useThemeStore();
 </script>
 
 <style scoped>
-@import "../style.css";
+@import "@/style.css";
 
 .themeBtn {
    @apply rounded-full bg-theme-button inset-shadow-sm 
