@@ -1,7 +1,7 @@
-import { createApp } from 'vue';
-import { setupPinia } from '../../shared/pinia';
-import ChatApp from './ChatApp.vue';
-import { useThemeStore } from '../../storage/theme';
+import { createApp } 		from 'vue';
+import { setupPinia } 		from '@shared/pinia';
+import ChatApp 				from './ChatApp.vue';
+import { useThemeStore }	from '@storage/theme';
 
 const pinia = setupPinia();
 const app = createApp(ChatApp);
