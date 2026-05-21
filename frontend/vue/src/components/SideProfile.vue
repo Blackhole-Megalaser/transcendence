@@ -61,7 +61,7 @@ const UserName = computed (() => {
 </script>
 
 <style scoped>
-@import '../style.css';
+@import "@/style.css";
 
 dialog {
   @apply sm:m-2 w-full h-full z-70 sm:w-md sm:h-auto sm:rounded-4xl 

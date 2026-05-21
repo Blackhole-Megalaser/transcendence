@@ -21,7 +21,7 @@ const emit = defineEmits(['changeStatus']);
 </script>
 
 <style scoped>
-@import "../style.css";
+@import "@/style.css";
 
 .btn-base {
   @apply px-2 py-1 sm:px-6 sm:py-2 rounded-full font-bold transition-all duration-300 shadow-xs;

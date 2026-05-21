@@ -83,7 +83,7 @@ const showFriendList = ref(false);
 </script>
 
 <style scoped>
-@import '../style.css';
+@import "@/style.css";
 
 hr {
   @apply h-px my-6 border-sidebar-border

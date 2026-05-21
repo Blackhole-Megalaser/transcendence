@@ -25,8 +25,8 @@ import { useThemeStore }  from '../../storage/theme.js';
 import { useBreakpoints } from '@vueuse/core';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-import Chat        from '@chat/core/Chat.vue';
 import Button      from '@components/Button.vue';
+import Chat        from '@components/Chat.vue';
 import NavBar      from '@components/NavBar.vue';
 import SideBar     from '@components/SideBar.vue';
 import SideProfile from '@components/SideProfile.vue';
@@ -77,7 +77,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import '../../style.css';
+@import "@/style.css";
 
 .fscreen {
   @apply h-[calc(100dvh-5rem)] w-dvw
