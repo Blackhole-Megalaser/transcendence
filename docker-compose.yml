@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17
+    image: postgres:17-alpine
     restart: unless-stopped
     # set shared memory limit when using docker compose
     shm_size: 128mb
@@ -50,7 +50,7 @@ services:
       - back
 
   redis:
-    image: redis:latest
+    image: redis:alpine
     restart: unless-stopped
     # set shared memory limit when using docker compose
     shm_size: 128mb
