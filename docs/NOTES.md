@@ -93,3 +93,22 @@ Nous avons pris la decision de drop le SSR et le module associe en faveur du MPA
 
 Globalement toutes les parties avancent bien, le prochain enjeux est de connecter les front et le back avec les routes API qui ont ete mises en avant.
 
+## Resume de la reunion 4
+
+Cette semaine a ete plus calme que les autres, il nous faudra les endpoint pour pouvoir communiquer avec la BDD.
+
+Pour le front, la page de login est disponible, il manque la page de profil pour afficher toutes les informations a un endroit (notament l'historique des parties, nombre de pixels places etc). Les pages pour le ToS et la privacy policy sont a remplir meme avec une generation tres basique.
+
+Pour le moment le chat fonctionne cote vue mais il faut encore voir pour avoir plusieurs chatroom et tenter de voir si l'integration dans les autres pages se fait correctement.
+
+Pour le tplace, le mode plein ecran et le dragging fonctionne, reste encore a le connecter pour synchroniser des clients.
+
+Pour le skribble, la page prend encore forme, pareil pour la synchronisation, il faudra aussi voir avec le chat pour le bon fonctionnement du jeu (voir ajouter cote back la verification pour les mots?).
+
+La gamification reste a faire mais ca reste sans doute assez rapide a implementer.
+
+Aussi un mot sur les issues qui sont actuellement ouvertes et l'invitation a y jeter un oeil pour fermer celles qui ne sont plus d'actualite
+
+Cette reunion etait place sous le signe de la patoune 
+
+		ฅᨐฅ		𓊆ྀི⋆🐾⋆𓊇ྀི  	 (˵◝ ⩊  ◜˵マ
