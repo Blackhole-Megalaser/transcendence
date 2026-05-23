@@ -18,7 +18,7 @@
         </div>
       </div>
       <div class="h-20 flex flex-1 justify-center items-center sm:items-start">
-        <a href="/" class="cursor-pointer" aria-label="back to home">
+        <a href="/" class="cursor-pointer select-none" aria-label="back to home">
           <img 
             :src="themeIndex === 0 ? ft_cat : ft_mean" alt="LOGO"
             :class="`s-${variant}`"
@@ -82,7 +82,7 @@ const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
 const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
-const isLogged    = ref(true);
+const isLogged    = ref(false);
 
 defineProps ({
   variant: {
