@@ -1,15 +1,9 @@
 import { createApp }      from 'vue';
 import { useThemeStore }  from '@storage/theme';
-import App                from './SkribbleApp.vue';
+import { setupPinia }     from '@shared';
+import BasePage           from '@components/BasePage.vue';
 import Skribbl            from './game/Skribbl.vue';
-
-import {
-  setupPinia,
-  Button,
-  NavBar,
-  SideBar,
-  SideProfile
-} from '@shared';
+import App                from './SkribbleApp.vue';
 
 const app = createApp(App);
 const pinia = setupPinia();
@@ -19,9 +13,6 @@ const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
 app.component('Skribbl', Skribbl);
-app.component('Button', Button);
-app.component('NavBar', NavBar);
-app.component('SideBar', SideBar);
-app.component('SideProfile', SideProfile);
+app.component('BasePage', BasePage);
 
 app.mount('#app')
