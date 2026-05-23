@@ -48,12 +48,9 @@
             </div>
           </li>
           <li class="h-10 flex items-center">
-            <a href="http://localhost:8000/chat" class="w-full">
+            <a href="chat" class="w-full">
               <ButtonSideBar>Chat rooms</ButtonSideBar>
             </a>
-          </li>
-          <li class="h-10 flex items-center">
-            <ButtonSideBar>Friendlist</ButtonSideBar>
           </li>
         </ul>
       </section>

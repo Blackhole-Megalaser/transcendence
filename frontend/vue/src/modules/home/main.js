@@ -1,25 +1,16 @@
 import { createApp }      from 'vue';
 import { useThemeStore }  from '@storage/theme';
-import HomeApp            from './HomeApp.vue';
+import { setupPinia }     from '@shared';
+import App                from './HomeApp.vue';
+import BasePage           from '@components/BasePage.vue';
 
-import { 
-  setupPinia,
-  Button,
-  NavBar,
-  SideBar,
-  SideProfile
-} from '@shared';
-
-const app = createApp(HomeApp);
+const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);
 
 const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
-app.component('Button', Button);
-app.component('NavBar', NavBar);
-app.component('SideBar', SideBar);
-app.component('SideProfile', SideProfile);
+app.component('BasePage', BasePage);
 
 app.mount('#app')
