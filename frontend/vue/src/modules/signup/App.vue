@@ -41,7 +41,7 @@
             </div>
           </form>
         </div>
-        <p class="text-sm text-sidebar-text-1">Already have an account ?<a href="login.html" class="underline"> Log in !</a></p>
+        <p class="text-sm text-sidebar-text-1">Already have an account ?<a href="login" class="underline"> Log in !</a></p>
       </div>
     </section>
   </main>

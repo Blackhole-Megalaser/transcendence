@@ -16,7 +16,7 @@
         class="transition duration-200 fscreen fixed z-49 bg-black/40"
         @click="closeSideBar"
     ></div>
-    <TPlace class="z-40"/>
+    <h2>Privacy</h2>
   </main>
 </template>
 
@@ -37,5 +37,5 @@ const {
 </script>
 
 <style scoped>
-@import '@/style.css';
+@import "@/style.css";
 </style>
