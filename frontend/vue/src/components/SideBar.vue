@@ -27,7 +27,7 @@
                 class="bg-button-sidebar-2-normal rounded-3xl"
               >
                 <li>
-                  <a href="skribbl.html">
+                  <a href="skribbl">
                     <ButtonSideBar
                       variant="secondary"
                     >
@@ -36,7 +36,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="tplace.html">
+                  <a href="tplace">
                       <ButtonSideBar
                         variant="secondary"
                       >
@@ -59,9 +59,9 @@
       </section>
       <footer class="flex-none text-xs underline text-sidebar-footer">
         <hr>
-        <a href="">Termes de Service</a>
+        <a href="terms">Termes of service</a>
         <br>
-        <a href="">Politique de confidentialité</a>
+        <a href="privacy">Privacy policy</a>
       </footer>
     </aside>
   </div>

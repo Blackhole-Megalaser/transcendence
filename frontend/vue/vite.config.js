@@ -23,8 +23,8 @@ export default defineConfig({
         main:             resolve(__dirname, 'index.html'),
         skribbl:          resolve(__dirname, 'skribbl.html'),
         tplace:           resolve(__dirname, 'tplace.html'),
-        privacy_policy:   resolve(__dirname, 'privacypolicy.html'),
-        term_of_service:  resolve(__dirname, 'termService.html'),
+        privacy:          resolve(__dirname, 'privacy.html'),
+        terms:            resolve(__dirname, 'terms.html'),
   	    chat:             resolve(__dirname, 'chat.html'),
         login:            resolve(__dirname, 'login.html'),
         signup:           resolve(__dirname, 'signup.html')
@@ -32,15 +32,15 @@ export default defineConfig({
     },
   },
   resolve: {
-        alias: {
-              '@assets':      path.resolve(__dirname, './src/assets'),
-              '@components':  path.resolve(__dirname, './src/components'),
-              '@modules':     path.resolve(__dirname, './src/modules'),
-              '@skribbl':     path.resolve(__dirname, './src/modules/skribbl'),
-              '@tplace':      path.resolve(__dirname, './src/modules/tplace'),
-			        '@shared':      path.resolve(__dirname, './src/shared/'),
-      			  '@storage':     path.resolve(__dirname, './src/storage'),
-              '@':            path.resolve(__dirname, './src'),
-            },
+    alias: {
+      '@assets':      path.resolve(__dirname, './src/assets'),
+      '@components':  path.resolve(__dirname, './src/components'),
+      '@modules':     path.resolve(__dirname, './src/modules'),
+      '@skribbl':     path.resolve(__dirname, './src/modules/skribbl'),
+      '@tplace':      path.resolve(__dirname, './src/modules/tplace'),
+      '@shared':      path.resolve(__dirname, './src/shared/'),
+      '@storage':     path.resolve(__dirname, './src/storage'),
+      '@':            path.resolve(__dirname, './src'),
     },
+  },
 });

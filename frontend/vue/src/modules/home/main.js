@@ -23,4 +23,3 @@ app.component('SideBar', SideBar);
 app.component('SideProfile', SideProfile);
 
 app.mount('#app')
-

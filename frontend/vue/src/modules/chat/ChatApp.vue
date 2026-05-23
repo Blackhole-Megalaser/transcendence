@@ -22,7 +22,6 @@
 
 <script setup>
 import { useUi } from '@shared'
-import Chat      from '@components/Chat.vue';
 
 const {
     ismobile,
@@ -42,7 +41,6 @@ const {
 .fscreen {
   @apply h-[calc(100dvh-5rem)] w-dvw
 }
-
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -51,9 +49,7 @@ const {
   color: #2c3e50;
   margin-top: 60px;
 }
-
 body {
   @apply bg-bg-main pt-20
 }
-
 </style>
