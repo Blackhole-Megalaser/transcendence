@@ -37,8 +37,4 @@ const {
 <style scoped>
 @import "@/style.css";
 
-.fscreen {
-  @apply h-[calc(100dvh-5rem)] w-dvw
-}
-
 </style>

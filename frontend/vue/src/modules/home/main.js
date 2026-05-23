@@ -1,6 +1,6 @@
-import { createApp } 		  from 'vue';
-import HomeApp 				    from './HomeApp.vue';
-import { useThemeStore } 	from '@storage/theme';
+import { createApp }      from 'vue';
+import { useThemeStore }  from '@storage/theme';
+import HomeApp            from './HomeApp.vue';
 
 import { 
   setupPinia,
