@@ -64,7 +64,7 @@ function closeProfile() {
   if (showProfile.value) showProfile.value = false;
 }
 const MaskNavIcons = computed (() => {
-  if (ismobile.value) { console.log("true") ;return true; }
+  if (ismobile.value && showProfile.value) { console.log("true") ;return true; }
   else { console.log('false');   return false; }
 })
 
