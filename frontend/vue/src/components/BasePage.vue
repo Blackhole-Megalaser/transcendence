@@ -24,7 +24,6 @@
 import { useUi, Button, NavBar, SideBar, SideProfile } from '@shared'
 
 const {
-    ismobile,
     showSideBar,
     showProfile,
     MaskNavIcons,
