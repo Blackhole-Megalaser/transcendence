@@ -6,7 +6,7 @@
       @click="closeInfoBar"
     >
       <div
-        class="w-full top-20 p-4 bg-bg-main shadow-md transition duration-300"
+        class="absolute w-full top-10 p-4 bg-bg-main shadow-md transition duration-300"
         :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
       >
       <informations />
