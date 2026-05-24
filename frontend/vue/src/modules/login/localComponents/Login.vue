@@ -25,7 +25,7 @@
 <script setup>
 </script>
 
-<style>
+<style scoped>
 @import '@/style.css';
 
 .informations {

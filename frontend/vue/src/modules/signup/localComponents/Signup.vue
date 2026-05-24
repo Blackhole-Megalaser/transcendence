@@ -1,54 +1,59 @@
 <template>
   <section class="text-text-main h-full w-full flex-center flex-col">
-    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xs:rounded-4xl shadow-xl">
+    <div 
+      class="absolute w-full h-full" 
+      :class="OpenInfoBar ? 'z-40' : '-z-40'"
+      @click="closeInfoBar"
+    >
+      <div
+        class="w-full top-20 p-4 bg-bg-main shadow-md transition duration-300"
+        :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
+      >
+      <informations />
+      </div>
+    </div>
+    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
       <h2 class="text-title text-4xl">
         Sign Up
       </h2>
       <div class="flex-center flex-col">
         <form action="post" class="flex flex-col">
           <div class="flex">
-            <div class="size-4"/>
-            <input 
-              type="text" 
-              class="informations" 
-              placeholder="Enter your Username"
-              v-model="username" 
-            >
-            <div class="size-4">
-            </div>
+            <Input
+              v-model="username"
+              :input-validate="validateUser"
+              p-holder="Enter your Username"
+              input-type="text"
+              :information-component="false"
+            />
           </div>
           <div class="flex">
-            <div class="size-4"/>
-            <input 
-              type="text" 
-              class="informations" 
-              placeholder="Enter your Email"
+            <Input
               v-model="email"
-            >
-            <div class="size-4">
-            </div>
+              :input-validate="validateEmail"
+              p-holder="Enter your Email"
+              input-type="text"
+              :information-component="false"
+            />
           </div>
           <div class="flex">
-            <div class="size-4"/>
-            <input 
-              type="password" 
-              class="informations" 
-              placeholder="Enter your Password"
-              v-model="password"
-            >
-            <div class="size-4">
-            </div>
+            <Input 
+              v-model="password" 
+              :input-validate="validatePass"
+              p-holder="Enter your Password"
+              input-type="password"
+              :information-component="true"
+              @openInfoBar="OpenInfoBar = !OpenInfoBar"
+            />
           </div>
           <div class="flex">
-            <div class="size-4"/>
-            <input 
-              type="password" 
-              class="informations" 
-              placeholder="Repeat your Password"
+            <Input
               v-model="passwordRepeat"
-            >
-            <div class="size-4">
-            </div>
+              :input-validate="validatePassRep"
+              p-holder="Repeat your Password"
+              input-type="password"
+              :information-component="false"
+            />
           </div>
           <div class="flex-center h-10 w-26 self-end">
             <div class="size-4"/>
@@ -70,13 +75,23 @@
 
 <script setup>
 import { ref, computed }  from 'vue'
+import { useBreakpoints } from '@vueuse/core';
 import forbiddenUsername  from '@shared/forbiddenUsernames.json'
+import Input              from './Input.vue';    
+import informations       from './informations.vue'
 
 const email           = ref("");
 const username        = ref("");
 const password        = ref("");
 const passwordRepeat  = ref("");
+const OpenInfoBar     = ref(false);
 
+const breakpoints = useBreakpoints({sm: 640 });
+const ismobile = breakpoints.smaller("sm");
+
+const closeInfoBar    = computed(() => {
+  if (OpenInfoBar.value) { OpenInfoBar.value = false }
+})
 
 const validateForm    = computed(() => {
   if (validatePass.value && validatePassRep.value && validateEmail.value && validateUser.value) { return true }
@@ -130,7 +145,7 @@ const validateEmail   = computed(() => {
   if (localPart.length < 1 || localPart.length > 64) { return false }
   if (/\.{2}/.test(localPart)) { return false } // forbid two or more successive dots ".."
   if (localPart.startsWith(".") || localPart.endsWith(".")) { return false }
-  if (!/^[a-z0-9-._]+$/i.test(localPart)) { return false } // Looks if every chars are valids (Alpha numerical + dots)
+  if (!/^[a-z0-9.]+$/i.test(localPart)) { return false } // Looks if every chars are valids (Alpha numerical + dots)
 
   // Domain part verification
   const domainlength = domainPart.length;
@@ -141,12 +156,9 @@ const validateEmail   = computed(() => {
 })
 </script>
 
-<style>
+<style scoped>
 @import '@/style.css';
 
-.informations {
-  @apply my-1 py-1 px-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
-}
 .input {
   @apply shadow-button-2-normal bg-button-2-normal text-text-button-2 
     active:duration-100 px-3.5 py-0.5
