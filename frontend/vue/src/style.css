@@ -5,7 +5,8 @@
   --breakpoint-xs: 24rem;
   --color-pink-pastel-50:   #fff5f7;
   --color-pink-pastel-75:   #fff0f4;
-  --color-pink-pastel-100:  #ffe4e9; 
+  --color-pink-pastel-100:  #ffe4e9;
+  --color-pink-pastel-150:  #ffd6de;
   --color-pink-pastel-200:  #ffc9d4;
   --color-pink-pastel-300:  #ff99ac;
   --color-pink-pastel-400:  #ff6b88;
@@ -115,7 +116,7 @@
 
   --color-input-text:       var(--color-lavender-pastel-500);
   --color-input-bg:         var(--color-pink-pastel-100);
-  --color-input-bg-active:  var(--color-pink-pastel-200);
+  --color-input-bg-active:  var(--color-pink-pastel-150);
 
 }
 

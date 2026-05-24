@@ -116,22 +116,23 @@ const validateEmail   = computed(() => {
   const domainPart      = splitedAddress[1];
 
   /* 
-    pour les nerds de regex ! /^(?!.*\.{2})[a-z0-9!#$%&'*+/=?^_`{|}~-]+$/i xD 
-    ce regex autorise tous les characteres alphanumeriques et !#$%&'*+/=?^_-`{|}~
-    et interdit d'avoir de points au debut, a la fin et deux points de suite 
+    For the regex nerds xD /^(?!.*\.{2})[a-z0-9!#$%&'*+/=?^_`{|}~-]+$/i
+    This regex allows every alpha numericals chars and !#$%&'*+/=?^_-`{|}~
+    and forbids string starting and ending with dots, and to have multiple 
+    successives dots.
 
-    -> de base la RFC 5322 autorise tous les characteres imprimables ci dessus 
-    mais gmail a une vision beaucoup plus strict de la chose et du coup autorise
-    uniquement les characteres alpha numeriques. 
+    -> the RFC 5322 allows almost every printable chars to be put in emails
+    but because of anti fishing, scaming etc procedures, gmail only allows
+    alpha numericals characters to be included in the local part
   */
 
-  // Verification de la partie locale
+  // Local part verification
   if (localPart.length < 1 || localPart.length > 64) { return false }
-  if (/\.{2}/.test(localPart)) { return false } // interdit la suite de deux points ".."
+  if (/\.{2}/.test(localPart)) { return false } // forbid two or more successive dots ".."
   if (localPart.startsWith(".") || localPart.endsWith(".")) { return false }
-  if (!/^[a-z0-9-._]+$/i.test(localPart)) { return false } // regarde si tous les characteres de la chaine sont valides (alpha numeriques)
+  if (!/^[a-z0-9-._]+$/i.test(localPart)) { return false } // Looks if every chars are valids (Alpha numerical + dots)
 
-  // Verification de la partie domaine
+  // Domain part verification
   const domainlength = domainPart.length;
   if (domainlength < 3 || domainlength > 253) { return false }
   if (domainPart.startsWith(".") || domainPart.endsWith(".")) { return false }
@@ -147,18 +148,9 @@ const validateEmail   = computed(() => {
   @apply my-1 py-1 px-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
 }
 .input {
-  @apply shadow-button-2-normal;
-  background-color: var(--color-button-2-normal);
-  color: var(--color-text-button-2);
-}
-.input:hover {
-  background-color: var(--color-button-2-hover);
-}
-.input:active {
-  @apply duration-100 px-3.5 py-0.5;
-  background-color: var(--);
-}
-.input:disabled {
-  background-color: var(--color-button-2-disable);
+  @apply shadow-button-2-normal bg-button-2-normal text-text-button-2 
+    active:duration-100 px-3.5 py-0.5
+  hover:bg-button-2-hover 
+  disabled:bg-button-2-disable;
 }
 </style>
