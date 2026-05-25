@@ -1,16 +1,10 @@
 <template>
-  <section class="text-text-main h-full w-full flex-center flex-col">
-    <div 
-      class="absolute w-full h-full" 
-      :class="OpenInfoBar ? 'z-40' : '-z-40'"
-      @click="closeInfoBar"
+  <section class="text-text-main h-full w-full flex-center gap-4 sm:px-6">
+    <div
+      class="absolute w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
+      :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
-      <div
-        class="absolute w-full top-10 p-4 bg-bg-main shadow-md transition duration-300"
-        :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
-      >
       <informations />
-      </div>
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
       <h2 class="text-title text-4xl">
@@ -24,7 +18,6 @@
               :input-validate="validateUser"
               p-holder="Enter your Username"
               input-type="text"
-              :information-component="false"
             />
           </div>
           <div class="flex">
@@ -33,7 +26,6 @@
               :input-validate="validateEmail"
               p-holder="Enter your Email"
               input-type="text"
-              :information-component="false"
             />
           </div>
           <div class="flex">
@@ -42,9 +34,20 @@
               :input-validate="validatePass"
               p-holder="Enter your Password"
               input-type="password"
-              :information-component="true"
-              @openInfoBar="OpenInfoBar = !OpenInfoBar"
-            />
+            >
+              <component 
+                v-if="ismobile"
+                :is="interogation"
+                class="size-4 flex items-center fill-sidebar-text-2 cursor-pointer"
+                @click="OpenInfoBar = !OpenInfoBar"
+              />
+              <component 
+                v-else-if="!ismobile"
+                :is="interogation"
+                class="size-4 flex items-center fill-sidebar-text-2 cursor-help"
+                @click="OpenInfoBox = !OpenInfoBox"
+              />
+            </Input>
           </div>
           <div class="flex">
             <Input
@@ -52,7 +55,6 @@
               :input-validate="validatePassRep"
               p-holder="Repeat your Password"
               input-type="password"
-              :information-component="false"
             />
           </div>
           <div class="flex-center h-10 w-26 self-end">
@@ -70,6 +72,16 @@
       </div>
       <p class="text-sm text-sidebar-text-1">Already have an account ?<a href="login" class="underline"> Log in !</a></p>
     </div>
+    <aside 
+      v-if="!ismobile"
+      class="hidden sm:block bg-navbar rounded-4xl shadow-xl transition-all duration-300 transform"
+      :class="OpenInfoBox 
+        ? 'max-w-80 p-6 opacity-100 translate-x-0 max-h-96' 
+        : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0'
+      "
+    >
+      <informations />
+    </aside>
   </section>
 </template>
 
@@ -80,14 +92,17 @@ import forbiddenUsername  from '@shared/forbiddenUsernames.json'
 import Input              from './Input.vue';    
 import informations       from './informations.vue'
 
+import interogation       from '@assets/interrogation.svg'
+
 const email           = ref("");
 const username        = ref("");
 const password        = ref("");
 const passwordRepeat  = ref("");
 const OpenInfoBar     = ref(false);
+const OpenInfoBox     = ref(false);
 
 const breakpoints = useBreakpoints({sm: 640 });
-const ismobile = breakpoints.smaller("sm");
+const ismobile    = breakpoints.smaller("sm");
 
 const closeInfoBar    = computed(() => {
   if (OpenInfoBar.value) { OpenInfoBar.value = false }
@@ -99,7 +114,7 @@ const validateForm    = computed(() => {
 })
 
 const validatePass    = computed(() => {
-  if (password.length < 8) { return false }
+  if (password.value.length < 8) { return false }
   if (!/(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).+/.test(password.value)) { return false }
   return true
 })
