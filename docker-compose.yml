@@ -42,7 +42,6 @@ services:
     environment:
       - TZ=Europe/Paris
     ports:
-      - "1080:80"
       - "1443:443"
     networks:
       - ft_cat-network
