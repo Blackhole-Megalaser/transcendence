@@ -9,27 +9,25 @@
       Password Requirements <span class="font-medium">:3</span>
     </h3>
   </div>
-
-  <!-- Texte d'introduction -->
   <p class="text-sm font-medium text-text-main/80 mb-4 leading-relaxed">
-    To ensure your account remains secure, your password must include:
+    To ensure your account remains secure, your password must include :
   </p>
 
   <ul class="space-y-2.5 text-sm font-semibold text-text-main">
     <li class="flex items-center gap-2.5">
-      <span class="h-1.5 w-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span>At least <span class="text-title font-bold">8</span> characters</span>
     </li>
     <li class="flex items-center gap-2.5">
-      <span class="h-1.5 w-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span>One uppercase letter <span class="text-xs text-text-main/50 font-normal">(A-Z)</span></span>
     </li>
     <li class="flex items-center gap-2.5">
-      <span class="h-1.5 w-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span>One number <span class="text-xs text-text-main/50 font-normal">(0-9)</span></span>
     </li>
     <li class="flex items-center gap-2.5">
-      <span class="h-1.5 w-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span>One special character <span class="text-xs text-text-main/50 font-normal">(!@#$)</span></span>
     </li>
   </ul>
