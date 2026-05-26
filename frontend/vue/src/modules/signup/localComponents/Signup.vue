@@ -76,8 +76,8 @@
       v-if="!ismobile"
       class="hidden sm:block bg-navbar rounded-4xl shadow-xl transition-all duration-300 transform"
       :class="OpenInfoBox 
-        ? 'max-w-80 p-6 opacity-100 translate-x-0 max-h-96' 
-        : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0'
+        ? 'max-w-80 p-6 opacity-100 translate-x-0 max-h-96 rotate-360' 
+        : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
       <informations />
