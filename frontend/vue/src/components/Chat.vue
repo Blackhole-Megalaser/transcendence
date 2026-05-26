@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     connectWebSocket() {
-      const wsUrl = `ws://${window.location.host}/ws/chat/${this.roomName}/`;
+      const wsUrl = `wss://${window.location.host}/ws/chat/${this.roomName}/`;
       this.chatSocket = new WebSocket(wsUrl);
 
       this.chatSocket.onmessage = (e) => {
