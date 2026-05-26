@@ -4,7 +4,7 @@
       class="absolute w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
       :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
-      <informations />
+      <informations :password-check="password"/>
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
       <h2 class="text-title text-4xl">
@@ -80,7 +80,7 @@
         : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
-      <informations />
+      <informations :password-check="password"/>
     </aside>
   </section>
 </template>
@@ -89,6 +89,7 @@
 import { ref, computed }  from 'vue'
 import { useBreakpoints } from '@vueuse/core';
 import forbiddenUsername  from '@shared/forbiddenUsernames.json'
+import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
 import Input              from './Input.vue';    
 import informations       from './informations.vue'
 
@@ -101,22 +102,35 @@ const passwordRepeat  = ref("");
 const OpenInfoBar     = ref(false);
 const OpenInfoBox     = ref(false);
 
-const breakpoints = useBreakpoints({sm: 640 });
-const ismobile    = breakpoints.smaller("sm");
 
-const closeInfoBar    = computed(() => {
-  if (OpenInfoBar.value) { OpenInfoBar.value = false }
-})
+const breakpoints = useBreakpoints({ sm: 640 });
+const ismobile    = breakpoints.smaller("sm");
 
 const validateForm    = computed(() => {
   if (validatePass.value && validatePassRep.value && validateEmail.value && validateUser.value) { return true }
   else { return false }
 })
 
-const validatePass    = computed(() => {
-  if (password.value.length < 8) { return false }
-  if (!/(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).+/.test(password.value)) { return false }
+const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(password.value.toLowerCase))
+const hasUppercase        = computed(() => /[A-Z]/.test(password.value))
+const hasNumber           = computed(() => /[0-9]/.test(password.value))
+const isLongEnough        = computed(() => password.value.trim().length >= 8)
+
+const validatePass        = computed(() => {
+  if (isMostUsedPassword.value) { return false }
+  if (!isLongEnough.value) { return false }
+  if (!hasUppercase.value) { return false }
+  if (!hasNumber.value) { return false }
   return true
+})
+
+const passwordStatus  = computed(() => {
+  return {
+    isValidUppercase:         hasUppercase.value,
+    isValidNumber:            hasNumber.value,
+    isValidLength:            isLongEnough.value,
+    isValidMostUsedPassword:  isMostUsedPassword.value
+  }
 })
 
 const validatePassRep = computed(() => {

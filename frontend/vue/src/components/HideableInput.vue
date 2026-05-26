@@ -2,7 +2,8 @@
   <div class="relative w-full">
     <input 
       :type="isPassword ? inputType : 'text'" 
-      class="informations w-full" 
+      class="informations w-full"
+      :class="isPassword ? 'pr-8' : ''"
       :placeholder="myPlaceholder"
       v-model="model"
     >
