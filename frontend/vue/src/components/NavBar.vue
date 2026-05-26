@@ -4,7 +4,7 @@
       class="flex items-center w-full h-20 bg-navbar border-b 
         border-navbar-border px-3 sm:px-6 shadow-md"
     >
-      <div class="flex flex-none justify-start w-1/5">
+      <div class="flex flex-none justify-start w-1/5 sm:w-1/4 xl:w-1/3">
         <button v-if="!mobileProfile && !isLogin" class="flex-center" type="button" @click="$emit('changeStatus')">
           <component :is="currentPaw" class="fill-navbar-menu size-12" />
         </button>
@@ -25,7 +25,7 @@
           >
         </a>
       </div>
-      <div class="flex flex-none justify-end w-1/5 items-center">
+      <div class="flex flex-none justify-end w-1/5 sm:w-1/4 xl:w-1/3 items-center">
         <div v-if="!mobileProfile && !isLogin" class="flex gap-5 lg:gap-10 ">
           <div class="hidden lg:flex">
             <ThemeButton />
@@ -37,11 +37,19 @@
             <ProfileButton v-if="isLogged" 
               class="flex" @click="$emit('showProfile')"
             />
-            <a v-else href="login" class="h-10 sm:w-28 flex-center">
-              <ButtonLogIn>
-                Log in
-              </ButtonLogIn>
-            </a>
+            <div v-else class="flex">
+              <a href="login" class="h-10 sm:w-28 flex-center">
+                <ButtonLogIn>
+                  Log in
+                </ButtonLogIn>
+              </a>
+              <a href="signup" class="h-10 sm:w-28 hidden xl:flex justify-center items-center">
+                <ButtonLogIn>
+                  Sign Up
+                </ButtonLogIn>
+              </a>
+            </div>
+
           </div>
         </div>
         <div v-else>
