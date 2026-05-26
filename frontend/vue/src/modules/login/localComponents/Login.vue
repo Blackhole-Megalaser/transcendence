@@ -10,7 +10,7 @@
             <input type="text" class="informations" placeholder="Enter your Username">
           </div>
           <div>
-            <input type="text" class="informations" placeholder="Enter your Password">
+            <input type="password" class="informations" placeholder="Enter your Password">
           </div>
           <div class="flex-center h-10 w-18 self-center">
             <input type="submit" class="px-4 py-1 rounded-full mt-1 input" value="Send">
