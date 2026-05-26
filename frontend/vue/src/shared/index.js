@@ -3,5 +3,6 @@ export { default as NavBar } from '@components/NavBar.vue'
 export { default as SideBar } from '@components/SideBar.vue'
 export { default as SideProfile } from '@components/SideProfile.vue'
 
+export { setupFontAwesome } from './fontawesome'
 export { setupPinia } from './pinia'
 export { useUi } from './ui'
