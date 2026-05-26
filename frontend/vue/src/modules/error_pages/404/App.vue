@@ -1,5 +1,5 @@
 <template>
   <BasePage>
-    <h2>404 not found</h2>
+    <h2 class="text-title">404 not found</h2>
   </BasePage>
 </template>
