@@ -40,7 +40,7 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 
-ALLOWED_HOSTS = [ '127.0.0.1', 'localhost' ]
+ALLOWED_HOSTS = [ "127.0.0.1", "localhost" ]
 
 
 # Application definition
