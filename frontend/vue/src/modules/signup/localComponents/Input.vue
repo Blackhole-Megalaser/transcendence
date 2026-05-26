@@ -23,9 +23,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useBreakpoints } 	from '@vueuse/core';
-
 import HideableInput from '@components/HideableInput.vue';
-
 import cross        from '@assets/wrong_cross.svg'
 import check        from '@assets/check-mark.svg'
 
