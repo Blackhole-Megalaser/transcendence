@@ -643,12 +643,17 @@
     "year",
     "yml",
     "you",
-    "yourdomain",
-    "yourname",
-    "yoursite",
-    "yourusername"
+    "localhost",
+    "lva-bre",
+    "Sellith",
+    "logistic-bot",
+    "ft_cat",
+    "kcolin",
+    "cczerwin",
+    "ael-ghaz"
   ],
   "prefixes": [
+    "bot",
     "support",
     "test",
     "system",
@@ -656,7 +661,6 @@
     "staff"
   ],
   "suffixes": [
-    "bot",
     "support",
     "team",
     "help"
