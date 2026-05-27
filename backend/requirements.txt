@@ -1,6 +1,6 @@
 # DJANGO BASE
-django==5.2.13
-django-environ==0.12.0
+django==6.0.5
+django-environ==0.13.0
 pillow==12.2.0
 
 # REDIS CACHE
