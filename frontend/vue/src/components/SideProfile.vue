@@ -2,46 +2,29 @@
   <dialog 
     ref="dialog"
   >
-    <div class="w-full flex-center flex-col">
-      <img 
-        :src='ProfilePicture' alt="profile picture" 
-        class="size-20 rounded-full"
-      >
-      <h2 class="mt-6 text-center font-bold text-2xl text-title">
-        Hello
-        <br class="xs:hidden"> {{ UserName }} !</h2>
+    <div class="h-8 w-full mb-6">
+      <button @click="bar = 0" class="size-6">1</button>
+      <button @click="bar = 1" class="size-6">2</button>
+      <button @click="bar = 2" class="size-6">3</button>
     </div>
     <hr>
-    <div class="flex flex-col gap-2 my-2">
-      <div class="h-10 flex-center">
-        <Button>See profile page</Button>
-      </div>
-      <div class="h-10 flex-center">
-        <Button>See Friendlist</Button>
-      </div>
-    </div>
-    <div class="flex-center flex-col xs:flex-row">
-      <div class="h-10 w-full xs:w-1/2 flex-center">
-        <Button variant="secondary" side="left">Change user</Button>
-      </div>
-      <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
-        <Button variant="secondary" side="right">Log out</Button>
-      </div>
-    </div>
+    <BasicInformations v-if="selectWindow === 0"/>
+    <Friendlist v-else-if="selectWindow === 1"/>
+    <Settings v-else/>
   </dialog>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import BasicInformations        from './sideProfile/BasicInformations.vue';
+import Friendlist               from './sideProfile/Friendlist.vue';
+import Settings                 from './sideProfile/Settings.vue';
 
-import defaultcat 	from '@assets/default_cat.png';
-import Button 		from './Button.vue';
+const props   = defineProps({open: Boolean});
+const dialog  = ref(null);
+const bar     = ref(0);
 
-const props = defineProps({open: Boolean});
-const username = ref("");
-const dialog = ref(null);
-const profilePic = ref(null);
-const randomName = "Stranger";
+const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2))
 
 watch(() => props.open, (val) => {
   val ? dialog.value.show() : dialog.value.close()
@@ -50,13 +33,6 @@ watch(() => props.open, (val) => {
 // Futur getter par API
 
 
-const ProfilePicture = computed (() => {
-  return profilePic.value ?? defaultcat;
-})
-
-const UserName = computed (() => {
-  return username.value || randomName
-})
 
 </script>
 
@@ -68,6 +44,7 @@ dialog {
     shadow-md fixed left-auto p-12;
   background-color: var(--color-profile);
 }
+
 hr {
   @apply h-px border-navbar-border my-6;
 }
