@@ -90,7 +90,7 @@ const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
 const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
-const isLogged    = ref(false);
+const isLogged    = ref(true);
 
 defineProps ({
   variant: {
