@@ -1,5 +1,5 @@
 <template>
-  <BasePage>
+  <BasePage :islogin="true">
     <Login />
   </BasePage>
 </template>

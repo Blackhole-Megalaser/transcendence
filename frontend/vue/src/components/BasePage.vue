@@ -4,6 +4,7 @@
     class="z-60"
     @showProfile="toggleSideProfile"
     :mobileProfile="MaskNavIcons"
+    :isLogin="islogin"
   />
   <SideProfile :open="showProfile" @keydown.=""/>
   <main class="fscreen" @click="closeProfile">
@@ -22,6 +23,14 @@
 
 <script setup>
 import { useUi, Button, NavBar, SideBar, SideProfile } from '@shared'
+import { computed } from 'vue';
+
+const props = defineProps({
+  islogin: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const {
     showSideBar,

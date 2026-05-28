@@ -6,12 +6,13 @@
       </h2>
       <div class="flex-center flex-col">
         <form action="post" class="flex flex-col">
-          <div>
-            <input type="text" class="informations" placeholder="Enter your Username">
-          </div>
-          <div>
-            <input type="text" class="informations" placeholder="Enter your Password">
-          </div>
+          <HideableInput
+            myPlaceholder="Enter your username" 
+          />
+          <HideableInput 
+            :isPassword="true"
+            myPlaceholder="Enter your password"
+          />
           <div class="flex-center h-10 w-18 self-center">
             <input type="submit" class="px-4 py-1 rounded-full mt-1 input" value="Send">
           </div>
@@ -23,14 +24,14 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue';
+import HideableInput from "@components/HideableInput.vue";
+
 </script>
 
 <style scoped>
 @import '@/style.css';
 
-.informations {
-  @apply my-1 py-1 px-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
-}
 .input {
   @apply shadow-button-2-normal;
   background-color: var(--color-button-2-normal);

@@ -7,7 +7,8 @@ RUN npm run build
 
 FROM alpine/openssl AS ssl-build-stage
 WORKDIR /app
-RUN openssl req -x509 -nodes -out ./cat.crt -keyout ./cat.key -subj "/C=FR/ST=Normandie/L=Le_Havre/O=42/OU=42/CN=hacker-cat/UID=TheCatCommittee"
+RUN openssl ecparam -genkey -out ecdsakey.pem -name prime256v1
+RUN openssl req -x509 -noenc -new -key ecdsakey.pem -out ./cat.crt -keyout ./cat.key -subj "/C=FR/ST=Normandie/L=Le_Havre/O=42/OU=42/CN=hacker-cat/UID=TheCatCommittee"
 
 
 FROM nginx:stable-alpine AS production-stage

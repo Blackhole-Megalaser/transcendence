@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from rest_framework import serializers, permissions, viewsets
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
@@ -63,3 +64,30 @@ def account_modify(request):
         "back/account_modify.html",
         {"user_form": user_form, "profile_form": profile_form},
     )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    profile_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["url", "username", "email", "is_staff", "profile_image"]
+
+    def get_profile_image(self, obj):
+        try:
+            profile = obj.userprofile
+        except UserProfile.DoesNotExist:
+            return None
+        if profile.profile_image:
+            request = self.context.get("request")
+            url = profile.profile_image.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        return None
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
