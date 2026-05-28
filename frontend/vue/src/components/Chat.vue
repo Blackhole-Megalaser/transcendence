@@ -29,7 +29,7 @@ import Button from '@components/Button.vue';
 export default {
   data() {
     return {
-      roomName: 'chat',
+      roomName: 'room',
       chatSocket: null,
       chatLog: '',
       messageInput: ''
@@ -45,7 +45,10 @@ export default {
   },
   methods: {
     connectWebSocket() {
-      const wsUrl = `wss://${window.location.host}/ws/chat/${this.roomName}/`;
+	  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	  const host = window.location.host;
+	
+      const wsUrl = `${protocol}//${host}/ws/chat/${this.roomName}/`;
       this.chatSocket = new WebSocket(wsUrl);
 
       this.chatSocket.onmessage = (e) => {

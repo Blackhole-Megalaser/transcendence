@@ -39,8 +39,9 @@ SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "front"]
 
 
 # Application definition
@@ -85,7 +86,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = "transcendence.wsgi.application"
+WSGI_APPLICATION = "transcendence.wsgi.application"
 ASGI_APPLICATION = "transcendence.asgi.application"
 
 # Channels
