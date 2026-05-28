@@ -19,6 +19,9 @@
             django-environ
             psycopg2
             pillow
+            daphne
+            djangorestframework
+            django-redis
           ]);
       in {
         devShells.default = pkgs.mkShell {
