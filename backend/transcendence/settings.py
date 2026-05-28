@@ -21,14 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 
 # Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
+env_file_path = os.path.join(BASE_DIR.parent, ".env")
+environ.Env.read_env(env_file_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = "django-insecure-9qnoi)x8u$_th9@*cdp8vp23!i2kgwglwrc*q^n4d=sct6rdu2"
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
