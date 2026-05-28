@@ -32,7 +32,7 @@ environ.Env.read_env(env_file_path)
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = env("DEBUG").lower().startswith("t")
 
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
