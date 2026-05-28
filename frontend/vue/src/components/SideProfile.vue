@@ -1,15 +1,13 @@
 <template>
-  <dialog 
-    ref="dialog"
-  >
-    <div class="h-8 w-full mb-6">
-      <button @click="bar = 0" class="size-6">1</button>
-      <button @click="bar = 1" class="size-6">2</button>
-      <button @click="bar = 2" class="size-6">3</button>
+  <dialog ref="dialog">
+    <div class="h-8 w-full flex-center gap-4">
+      <button @click="bar = 0" class="size-6 cursor-pointer">1</button>
+      <button @click="bar = 1" class="size-6 cursor-pointer">2</button>
+      <button @click="bar = 2" class="size-6 cursor-pointer">3</button>
     </div>
     <hr>
     <BasicInformations v-if="selectWindow === 0"/>
-    <Friendlist v-else-if="selectWindow === 1"/>
+    <Social v-else-if="selectWindow === 1"/>
     <Settings v-else/>
   </dialog>
 </template>
@@ -17,7 +15,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import BasicInformations        from './sideProfile/BasicInformations.vue';
-import Friendlist               from './sideProfile/Friendlist.vue';
+import Social               from './sideProfile/Social.vue';
 import Settings                 from './sideProfile/Settings.vue';
 
 const props   = defineProps({open: Boolean});
@@ -31,9 +29,6 @@ watch(() => props.open, (val) => {
 })
 
 // Futur getter par API
-
-
-
 </script>
 
 <style scoped>
@@ -41,12 +36,12 @@ watch(() => props.open, (val) => {
 
 dialog {
   @apply sm:m-2 w-full h-full z-70 sm:w-md sm:h-auto sm:rounded-4xl 
-    shadow-md fixed left-auto p-12;
+    shadow-md fixed left-auto p-12 pt-6;
   background-color: var(--color-profile);
 }
 
 hr {
-  @apply h-px border-navbar-border my-6;
+  @apply h-px border-sidebar-border my-6;
 }
 </style>
 

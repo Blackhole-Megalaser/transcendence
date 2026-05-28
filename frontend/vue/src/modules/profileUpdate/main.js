@@ -3,7 +3,7 @@ import { useThemeStore }  from '@storage/theme';
 import { setupPinia }     from '@shared';
 import BasePage           from '@components/BasePage.vue';
 import App                from './App.vue';
-import Profile            from './Profile.vue'
+import Update            from './update.vue'
 
 const app = createApp(App);
 const pinia = setupPinia();

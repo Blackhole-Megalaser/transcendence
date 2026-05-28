@@ -46,6 +46,6 @@ const UserName = computed (() => {
 @import "@/style.css";
 
 hr {
-  @apply h-px border-navbar-border my-6;
+  @apply h-px border-sidebar-border my-6;
 }
 </style>
