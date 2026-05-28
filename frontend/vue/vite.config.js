@@ -26,6 +26,7 @@ export default defineConfig({
         privacy:    resolve(__dirname, 'privacy.html'),
         terms:      resolve(__dirname, 'terms.html'),
   	    chat:       resolve(__dirname, 'chat.html'),
+		chat2:       resolve(__dirname, 'chat2.html'),
         login:      resolve(__dirname, 'login.html'),
         signup:     resolve(__dirname, 'signup.html'),
         error_404:  resolve(__dirname, 'error_404.html'),

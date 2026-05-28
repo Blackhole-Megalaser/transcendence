@@ -1,10 +1,11 @@
 <template>
   <BasePage>
-    <Chat :initialRoomName="'Cat_hideout'"/>
+    <Chat :initialRoomName="'Cardboard_box'"/>
   </BasePage>
 </template>
 
 <script setup>
+
 </script>
 
 <style scoped>
