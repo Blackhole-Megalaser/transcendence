@@ -10,6 +10,6 @@ COPY . /app/
 EXPOSE 8000
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-CMD [ "python", "-m", "daphne", "transcendence.asgi:application" ]
+CMD [ "daphne","-b", "0.0.0.0", "transcendence.asgi:application" ]
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 # CMD ["python", "manage.py", "check", "--deploy"]
