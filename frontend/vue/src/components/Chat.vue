@@ -1,15 +1,15 @@
 <template>
   <section class="h-full bg-bg-main p-2 sm:p-4 text-text-main">
     <div>
-    <textarea style="height:100%;width:100%;border: 4mm ridge rgb(211 220 50 / 0.6);margin-top:5%;padding:0.4%" id="chat-log" v-model="chatLog" rows="20" readonly></textarea>
+    <textarea class="chatbox" id="chat-log" v-model="chatLog" rows="20" readonly></textarea>
    <center>
-	  <input style="border: solid white;margin-top:1%;margin-bottom:1%;padding:0.4%"
+	  <input class="inputbox"
         id="chat-message-input"
         v-model="messageInput"
         @keyup.enter="sendMessage"
         placeholder="Type a meowssage..."
        />
-      <Button style="width:15%;margin-left:5%;" id="chat-message-submit" @click="sendMessage">Send</Button>
+      <Button class="sendbox" id="chat-message-submit" @click="sendMessage">Send</Button>
 	</center>
   </div>
   </section>
@@ -79,6 +79,26 @@ export default {
 
 <style scoped>
 @import "@/style.css";
+
+.chatbox {
+	height:100%;
+	width:100%;
+	border: 4mm ridge rgb(211 220 50 / 0.6);
+	margin-top:5%;
+	padding:0.4%;
+}
+
+.inputbox {
+	border: solid white;
+	margin-top:1%;
+	margin-bottom:1%;
+	padding:0.4%;
+}
+
+.sendbox {
+	width:15%;
+	margin-left:5%;
+}
 
 .fscreen {
   @apply h-[calc(100dvh-5rem)] w-dvw
