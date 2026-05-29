@@ -1,9 +1,27 @@
 <template>
   <dialog ref="dialog">
     <div class="h-8 w-full flex-center gap-4">
-      <button @click="bar = 0" class="size-6 cursor-pointer">1</button>
-      <button @click="bar = 1" class="size-6 cursor-pointer">2</button>
-      <button @click="bar = 2" class="size-6 cursor-pointer">3</button>
+      <button 
+        @click="bar = 0" 
+        class="size-10 cursor-pointer flex-center rounded-full text-text-main"
+        :class="selectWindow === 0 ? 'bg-sidebar border border-text-main' : ''"
+      >
+        <component :is="profileIcon" class="size-8"/>
+      </button>
+      <button 
+        @click="bar = 1" 
+        class="size-10 cursor-pointer flex-center rounded-full "
+        :class="selectWindow === 1 ? 'bg-sidebar border border-text-main' : ''"
+      >
+        <component :is="contacstIcon" class="size-10 stroke-text-main"/>
+      </button>
+      <button 
+        @click="bar = 2" 
+        class="size-10 cursor-pointer flex-center rounded-full text-text-main"
+        :class="selectWindow === 2 ? 'bg-sidebar border border-text-main' : ''"
+      >
+        <component :is="settingsIcon" class="size-8"/>
+      </button>
     </div>
     <hr>
     <BasicInformations v-if="selectWindow === 0"/>
@@ -14,8 +32,11 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import settingsIcon             from '@assets/settings.svg';
+import profileIcon              from '@assets/profile.svg';
+import contacstIcon             from '@assets/contacts.svg';
 import BasicInformations        from './sideProfile/BasicInformations.vue';
-import Social               from './sideProfile/Social.vue';
+import Social                   from './sideProfile/Social.vue';
 import Settings                 from './sideProfile/Settings.vue';
 
 const props   = defineProps({open: Boolean});
