@@ -70,9 +70,15 @@ export default {
         this.chatSocket.send(JSON.stringify({
           message: this.messageInput
         }));
+		this.scrollText();
         this.messageInput = '';
       }
-    }
+    },
+	scrollText() {
+	    var textarea = document.getElementById('chat-log');
+	    textarea.value += document.getElementById('chat-message-submit').value + "\n";            
+	    textarea.scrollTop = textarea.scrollHeight;
+	}
   }
 };
 </script>
