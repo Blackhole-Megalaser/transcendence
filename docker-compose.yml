@@ -31,6 +31,11 @@ services:
       - "8000"
     networks:
       - ft_cat-network
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; print(urllib.request.urlopen('http://localhost:8000').read().decode())\""]
+      interval: 1s
+      timeout: 1s
+      retries: 180
     develop:
       watch:
         - action: sync
@@ -50,7 +55,8 @@ services:
     networks:
       - ft_cat-network
     depends_on:
-      - back
+      back:
+        condition: service_healthy
 
   redis:
     image: redis:alpine
