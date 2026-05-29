@@ -12,6 +12,7 @@ router.register(r"users", views.UserViewSet, basename="user")
 urlpatterns = [
     path("", views.index, name="index"),
     path("api/", include(router.urls)),
+    path("api-auth/signup", views.signup),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("accounts/profile/", views.profile, name="profile"),
     path("accounts/signup", views.signup, name="signup"),
