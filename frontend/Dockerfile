@@ -14,8 +14,10 @@ RUN openssl req -x509 -noenc -new -key ecdsakey.pem -out ./cat.crt -keyout ./cat
 FROM nginx:stable-alpine AS production-stage
 COPY --from=node-build-stage /app/dist /usr/share/nginx/html
 COPY --from=ssl-build-stage /app/ /etc/nginx/ssl
-COPY /nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY /nginx/nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY ./entrypoint.sh /app/entrypoint.sh
 
 EXPOSE 443
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 CMD ["nginx", "-g", "daemon off;"]

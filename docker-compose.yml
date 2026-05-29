@@ -40,10 +40,9 @@ services:
   front:
     build: ./frontend
     restart: unless-stopped
-    environment:
-      - TZ=Europe/Paris
+    env_file: .env
     ports:
-      - "1443:443"
+      - "${EXTERNAL_PORT}:443"
     networks:
       - ft_cat-network
     depends_on:
