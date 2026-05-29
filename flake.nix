@@ -32,6 +32,7 @@
             pkgs.ruff
             pkgs.act
             pkgs.docker-buildx
+            pkgs.ty # python lsp
           ];
         };
       }
