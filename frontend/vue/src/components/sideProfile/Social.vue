@@ -12,7 +12,7 @@
         :class="bar === 1 ? 'bg-button-2-hover' : ''"
       >Friend requests</button>
     </div>
-    <div class="w-full bg-navbar rounded-b-2xl px-4 pt-1 pb-2 shadow">
+    <div class="w-full bg-navbar rounded-b-2xl px-4 py-2 shadow">
       <Friendlist v-if="selectWindow === 0"/>
       <FriendRequests v-else/>
     </div>
