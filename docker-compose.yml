@@ -1,11 +1,10 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     # set shared memory limit when using docker compose
     shm_size: 128mb
     env_file: .env
-    user: "70:70"  # postgress user UID in the container
     volumes:
       - ./volumes/db-data:/var/lib/postgresql
     expose:
@@ -59,7 +58,6 @@ services:
     # set shared memory limit when using docker compose
     shm_size: 128mb
     env_file: .env
-    user: "999:1000"  # redis user UID in the container
     command: redis-server --dir /data --save 120 1
     volumes:
       - ./volumes/redis-data:/data
