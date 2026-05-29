@@ -38,7 +38,7 @@ services:
       retries: 180
     develop:
       watch:
-        - action: sync
+        - action: sync+restart
           path: ./backend
           target: /app
           ignore:
