@@ -66,12 +66,13 @@ def account_modify(request):
     )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ["url", "username", "email", "is_staff", "profile_image"]
+        extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
     def get_profile_image(self, obj):
         try:
@@ -91,3 +92,5 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+    lookup_field = "username"
+    lookup_value_regex = "[a-zA-Z0-9-_@.+]+"
