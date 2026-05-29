@@ -21,18 +21,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 
 # Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR.parent, ".env"))
+env_file_path = os.path.join(BASE_DIR.parent, ".env")
+environ.Env.read_env(env_file_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-9qnoi)x8u$_th9@*cdp8vp23!i2kgwglwrc*q^n4d=sct6rdu2"
+# SECRET_KEY = "django-insecure-9qnoi)x8u$_th9@*cdp8vp23!i2kgwglwrc*q^n4d=sct6rdu2"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG").lower().startswith("t")
 
-ALLOWED_HOSTS = []
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_SECONDS = 3600
+SECURE_SSL_REDIRECT = False  # Handled by nginx reverse proxy
+SESSION_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SILENCED_SYSTEM_CHECKS = [
+    "security.W008"  # SECURE_SSL_REDIRECT
+]
+
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "front"]
 
 
 # Application definition
@@ -47,6 +64,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -130,7 +148,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_ROOT = "/media"
 MEDIA_URL = "media/"
 

@@ -1,16 +1,19 @@
 # DJANGO BASE
-django==5.2.13
-django-environ==0.12.0
+django==6.0.5
+django-environ==0.13.0
 pillow==12.2.0
+djangorestframework==3.17.1
 
 # REDIS CACHE
 django-redis==6.0.0
 redis==7.4.0
 
 # POSTGRES
-psycopg2==2.9.11
+#psycopg2==2.9.11
+psycopg2-binary==2.9.11
 
 # WEBSOCKETS
 channels==4.3.2
 channels_redis==4.3.0
 daphne==4.2.1
+Twisted[http2,tls]==26.4.0

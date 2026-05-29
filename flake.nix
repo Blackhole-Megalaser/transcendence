@@ -19,6 +19,9 @@
             django-environ
             psycopg2
             pillow
+            daphne
+            djangorestframework
+            django-redis
           ]);
       in {
         devShells.default = pkgs.mkShell {
@@ -28,6 +31,8 @@
             pkgs.postgresql
             pkgs.ruff
             pkgs.act
+            pkgs.docker-buildx
+            pkgs.ty # python lsp
           ];
         };
       }

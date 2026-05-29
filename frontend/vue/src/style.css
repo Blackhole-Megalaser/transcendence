@@ -5,7 +5,8 @@
   --breakpoint-xs: 24rem;
   --color-pink-pastel-50:   #fff5f7;
   --color-pink-pastel-75:   #fff0f4;
-  --color-pink-pastel-100:  #ffe4e9; 
+  --color-pink-pastel-100:  #ffe4e9;
+  --color-pink-pastel-150:  #ffd6de;
   --color-pink-pastel-200:  #ffc9d4;
   --color-pink-pastel-300:  #ff99ac;
   --color-pink-pastel-400:  #ff6b88;
@@ -15,18 +16,18 @@
   --color-pink-pastel-800:  #8f293c;
   --color-pink-pastel-900:  #6b2d39;
 
-  --color-lavender-pastel-50:   #f3f0ff;
-  --color-lavender-pastel-100:  #e8e1ff;
-  --color-lavender-pastel-200:  #d1c5ff;
-  --color-lavender-pastel-300:  #b2a1ff;
-  --color-lavender-pastel-400:  #937bff;
-  --color-lavender-pastel-500:  #7a5fff;
-  --color-lavender-pastel-600:  #6449e6;
-  --color-lavender-pastel-700:  #543cc1;
-  --color-lavender-pastel-800:  #46329c;
-  --color-lavender-pastel-900:  #3c3260;
+  --color-lavender-pastel-50:  #f5f0ff;
+  --color-lavender-pastel-100: #ede6ff;
+  --color-lavender-pastel-150: #e3d9ff;
+  --color-lavender-pastel-200: #d9ccff;
+  --color-lavender-pastel-300: #b2a1ff;
+  --color-lavender-pastel-400: #a87de0;
+  --color-lavender-pastel-500: #8a5cc4;
+  --color-lavender-pastel-600: #6e42a6;
+  --color-lavender-pastel-700: #562d8a;
+  --color-lavender-pastel-800: #3f1f6e;
+  --color-lavender-pastel-900: #2a1249;
 
-    /* Noirs profonds (L'Obsidienne) */
   --color-obsidian-50:  #f2f2f2;
   --color-obsidian-100: #e5e5e5;
   --color-obsidian-200: #cccccc;
@@ -35,6 +36,7 @@
   --color-obsidian-500: #4d4d4d;
   --color-obsidian-600: #333333;
   --color-obsidian-700: #262626;
+  --color-obsidian-750: #202020;
   --color-obsidian-800: #1a1a1a;
   --color-obsidian-900: #121212;
   --color-obsidian-950: #0a0a0a;
@@ -61,7 +63,7 @@
   /* Sidebar */
   --color-sidebar:          var(--color-lavender-pastel-100);
   --color-sidebar-border:   var(--color-lavender-pastel-200);
-  --color-sidebar-text-1:   var(--color-lavender-pastel-500);
+  --color-sidebar-text-1:   var(--color-lavender-pastel-400);
   --color-sidebar-text-2:   var(--color-pink-pastel-400);
   --color-sidebar-footer:    var(--color-sidebar-text-1);
 
@@ -77,6 +79,7 @@
   --color-navbar-border:    var(--color-pink-200);
   --color-navbar-text:      var(--color-pink-pastel-900);
   --color-navbar-menu:      var(--color-lavender-pastel-300);
+  --color-exit-cross:       var(--color-black);
 
   --color-navbar-profile-outline: var(--color-lavender-pastel-200);
 
@@ -85,7 +88,7 @@
   
   /* text */
   --color-text-main:        var(--color-pink-pastel-900);
-  --color-title:            var(--color-pink-pastel-400);
+  --color-title:            var(--color-lavender-pastel-300);
   --color-placeholder:      var(--color-pink-pastel-200);
   --color-text-button-1 :   var(--color-pink-pastel-50);
   --color-text-button-2 :   var(--color-pink-pastel-900);
@@ -98,9 +101,9 @@
 
   /* Buton 2 */
   --color-button-2-normal:  var(--color-lavender-pastel-200);
-  --color-button-2-hover:   var(--color-lavender-pastel-100);
+  --color-button-2-hover:   var(--color-lavender-pastel-300);
   --color-button-2-active:  var(--color-lavender-pastel-200);
-  --color-button-2-disable: var(--color-lavender-pastel-50);
+  --color-button-2-disable: var(--color-lavender-pastel-150);
 
 
   --color-theme-button:           var(--color-lavender-pastel-200);
@@ -110,11 +113,16 @@
   --color-theme-cursor-border:    var(--color-lavender-pastel-50);
   --color-theme-cursor-shadow:    rgba(60, 50, 96, 0.2);
   
+
+  --color-input-text:       var(--color-lavender-pastel-500);
+  --color-input-bg:         var(--color-pink-pastel-100);
+  --color-input-bg-active:  var(--color-pink-pastel-150);
+
 }
 
 [data-theme="dark"] {
   /* Base */
-  --color-bg-main:          var(--color-obsidian-800);
+  --color-bg-main:          var(--color-obsidian-750);
   --color-bg-card:          var(--color-obsidian-900);
   --color-borders-outline:  var(--color-crimson-900);
 
@@ -136,6 +144,7 @@
   --color-navbar-border:    var(--color-obsidian-800);
   --color-navbar-text:      var(--color-obsidian-50);
   --color-navbar-menu:      var(--color-crimson-700);
+  --color-exit-cross:       var(--color-obsidian-200);
 
   --color-navbar-profile-outline: var(--color-obsidian-700);
 
@@ -156,7 +165,7 @@
 
   /* Bouton 2 */
   --color-button-2-normal:  var(--color-obsidian-700);
-  --color-button-2-hover:   var(--color-obsidian-900);
+  --color-button-2-hover:   var(--color-obsidian-600);
   --color-button-2-active:  var(--color-obsidian-950);
   --color-button-2-disable: var(--color-obsidian-950);
 
@@ -167,6 +176,10 @@
   --color-theme-cursor:         var(--color-obsidian-600);
   --color-theme-cursor-border:  var(--color-obsidian-700);
   --color-theme-cursor-shadow:  var(--color-crimson-600);
+
+  --color-input-text:           var(--color-obsidian-500);
+  --color-input-bg:             var(--color-obsidian-800);
+  --color-input-bg-active:      var(--color-obsidian-800);
 }
 
 body {
@@ -174,4 +187,7 @@ body {
 }
 .flex-center {
   @apply flex justify-center items-center
+}
+.fscreen {
+  @apply h-[calc(100dvh-5rem)] w-dvw
 }

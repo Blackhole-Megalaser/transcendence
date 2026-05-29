@@ -4,3 +4,4 @@
 .env
 .vscode
 .ruff_cache
+**/node_modules

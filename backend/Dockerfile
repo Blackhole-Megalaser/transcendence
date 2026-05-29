@@ -1,4 +1,4 @@
-FROM python:3.14
+FROM python:3.14-slim
 WORKDIR /app
 
 RUN pip install --upgrade pip
@@ -9,4 +9,7 @@ COPY . /app/
 
 EXPOSE 8000
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+CMD [ "daphne","-b", "0.0.0.0", "transcendence.asgi:application" ]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["python", "manage.py", "check", "--deploy"]

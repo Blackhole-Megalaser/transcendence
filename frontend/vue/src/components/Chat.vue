@@ -27,14 +27,21 @@ import Button from '@components/Button.vue';
 <script>
 
 export default {
+  props: {
+    initialRoomName: {
+      type: String,
+      default: 'room'
+    }
+  },
   data() {
     return {
-      roomName: 'chat',
+      roomName: this.initialRoomName,
       chatSocket: null,
       chatLog: '',
       messageInput: ''
     };
   },
+
   mounted() {
     this.connectWebSocket();
   },
@@ -45,16 +52,20 @@ export default {
   },
   methods: {
     connectWebSocket() {
-      const wsUrl = `ws://${window.location.host}/ws/chat/${this.roomName}/`;
+	  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	  const host = window.location.host;
+	
+      const wsUrl = `${protocol}//${host}/ws/chat/${this.roomName}/`;
       this.chatSocket = new WebSocket(wsUrl);
 
+	  console.log('Chat socket connected to ' + this.roomName);
       this.chatSocket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         this.chatLog += data.message + '\n';
       };
 
       this.chatSocket.onclose = (e) => {
-        console.error('Chat socket closed unexpectedly');
+        console.log('Chat socket closed');
       };
     },
     sendMessage() {

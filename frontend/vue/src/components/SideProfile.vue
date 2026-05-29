@@ -1,63 +1,55 @@
 <template>
-  <dialog 
-    ref="dialog"
-  >
-    <div class="w-full flex-center flex-col">
-      <img 
-        :src='ProfilePicture' alt="profile picture" 
-        class="size-20 rounded-full"
+  <dialog ref="dialog">
+    <div class="h-8 w-full flex-center gap-4">
+      <button 
+        @click="bar = 0" 
+        class="size-10 cursor-pointer flex-center rounded-full text-text-main"
+        :class="selectWindow === 0 ? 'bg-sidebar border border-text-main' : ''"
       >
-      <h2 class="mt-6 text-center font-bold text-2xl text-title">
-        Hello
-        <br class="xs:hidden"> {{ UserName }} !</h2>
+        <component :is="profileIcon" class="size-8"/>
+      </button>
+      <button 
+        @click="bar = 1" 
+        class="size-10 cursor-pointer flex-center rounded-full "
+        :class="selectWindow === 1 ? 'bg-sidebar border border-text-main' : ''"
+      >
+        <component :is="contacstIcon" class="size-10 stroke-text-main"/>
+      </button>
+      <button 
+        @click="bar = 2" 
+        class="size-10 cursor-pointer flex-center rounded-full text-text-main"
+        :class="selectWindow === 2 ? 'bg-sidebar border border-text-main' : ''"
+      >
+        <component :is="settingsIcon" class="size-8"/>
+      </button>
     </div>
     <hr>
-    <div class="flex flex-col gap-2 my-2">
-      <div class="h-10 flex-center">
-        <Button>See profile page</Button>
-      </div>
-      <div class="h-10 flex-center">
-        <Button>See Friendlist</Button>
-      </div>
-    </div>
-    <div class="flex-center flex-col xs:flex-row">
-      <div class="h-10 w-full xs:w-1/2 flex-center">
-        <Button variant="secondary" side="left">Change user</Button>
-      </div>
-      <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
-        <Button variant="secondary" side="right">Log out</Button>
-      </div>
-    </div>
+    <BasicInformations v-if="selectWindow === 0"/>
+    <Social v-else-if="selectWindow === 1"/>
+    <Settings v-else/>
   </dialog>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import settingsIcon             from '@assets/settings.svg';
+import profileIcon              from '@assets/profile.svg';
+import contacstIcon             from '@assets/contacts.svg';
+import BasicInformations        from './sideProfile/BasicInformations.vue';
+import Social                   from './sideProfile/Social.vue';
+import Settings                 from './sideProfile/Settings.vue';
 
-import defaultcat 	from '@assets/default_cat.png';
-import Button 		from './Button.vue';
+const props   = defineProps({open: Boolean});
+const dialog  = ref(null);
+const bar     = ref(0);
 
-const props = defineProps({open: Boolean});
-const username = ref("");
-const dialog = ref(null);
-const profilePic = ref(null);
-const randomName = "Stranger";
+const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2))
 
 watch(() => props.open, (val) => {
   val ? dialog.value.show() : dialog.value.close()
 })
 
 // Futur getter par API
-
-
-const ProfilePicture = computed (() => {
-  return profilePic.value ?? defaultcat;
-})
-
-const UserName = computed (() => {
-  return username.value || randomName
-})
-
 </script>
 
 <style scoped>
@@ -65,11 +57,12 @@ const UserName = computed (() => {
 
 dialog {
   @apply sm:m-2 w-full h-full z-70 sm:w-md sm:h-auto sm:rounded-4xl 
-    shadow-md fixed left-auto p-12;
+    shadow-md fixed left-auto p-12 pt-6;
   background-color: var(--color-profile);
 }
+
 hr {
-  @apply h-px border-navbar-border my-6;
+  @apply h-px border-sidebar-border my-6;
 }
 </style>
 

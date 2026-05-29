@@ -4,21 +4,29 @@
       class="flex items-center w-full h-20 bg-navbar border-b 
         border-navbar-border px-3 sm:px-6 shadow-md"
     >
-      <div class="flex flex-none justify-start w-1/5">
-        <button v-if="mobileProfile" class="flex-center" type="button" @click="$emit('changeStatus')">
+      <div class="flex flex-none justify-start w-1/5 sm:w-1/4 xl:w-1/3">
+        <button v-if="!mobileProfile && !isLogin" class="flex-center" type="button" @click="$emit('changeStatus')">
           <component :is="currentPaw" class="fill-navbar-menu size-12" />
         </button>
+        <div v-else-if="!mobileProfile && isLogin">
+          <div class="hidden lg:flex">
+            <ThemeButton />
+          </div>
+          <div class="flex lg:hidden">
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
       <div class="h-20 flex flex-1 justify-center items-center sm:items-start">
-        <a href="/" class="cursor-pointer" aria-label="back to home">
+        <a href="/" class="cursor-pointer select-none" aria-label="back to home">
           <img 
             :src="themeIndex === 0 ? ft_cat : ft_mean" alt="LOGO"
             :class="`s-${variant}`"
           >
         </a>
       </div>
-      <div class="flex flex-none justify-end w-1/5 items-center">
-        <div v-if="mobileProfile" class="flex gap-5 lg:gap-10 ">
+      <div class="flex flex-none justify-end w-1/5 sm:w-1/4 xl:w-1/3 items-center">
+        <div v-if="!mobileProfile && !isLogin" class="flex gap-5 lg:gap-10 ">
           <div class="hidden lg:flex">
             <ThemeButton />
           </div>
@@ -29,17 +37,34 @@
             <ProfileButton v-if="isLogged" 
               class="flex" @click="$emit('showProfile')"
             />
-            <a v-else href="/" class="h-10 w-28 flex-center">
-              <ButtonLogIn>
-                Log in
-              </ButtonLogIn>
-            </a>
+            <div v-else class="flex">
+              <a href="login" class="h-10 sm:w-28 flex-center">
+                <ButtonLogIn>
+                  Log in
+                </ButtonLogIn>
+              </a>
+              <a href="signup" class="h-10 sm:w-28 hidden xl:flex justify-center items-center">
+                <ButtonLogIn>
+                  Sign Up
+                </ButtonLogIn>
+              </a>
+            </div>
+
           </div>
         </div>
         <div v-else>
-          <button @click="$emit('showProfile')" class="size-10 flex-center">
-            <component :is=cross alt="close window" class="size-8" />
-          </button>
+          <div v-if="isLogin">
+            <button class="size-10 flex-center">
+              <a href="/">
+                <component :is=cross alt="close window" class="size-8 fill-exit-cross" />
+              </a>
+            </button>
+          </div>
+          <div v-else>
+            <button @click="$emit('showProfile')" class="size-10 flex-center">
+              <component :is=cross alt="close window" class="size-8 fill-exit-cross" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -55,17 +80,17 @@ import ProfileButton 		from './ProfileButton.vue';
 import ThemeButton 			from './ThemeButton.vue';
 import ThemeToggle 			from './ThemeToggle.vue';
 
-import cross 				from '@assets/cross-svgrepo-com.svg'
+import cross 				  from '@assets/cross-svgrepo-com.svg'
 import cute_paw 			from '@assets/cute_paw.svg?component';
 import mean_paw 			from '@assets/mean_paw.svg?component';
 import ft_cat 				from '@assets/ft_cat.png';
 import ft_mean 				from '@assets/ft_cat-dark.png'
 
-const theme = useThemeStore();
-const themeIndex = computed (() => theme.getThemeIndex());
-const currentPaw = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
-const emit = defineEmits(['changeStatus', 'showProfile']);
-const isLogged = ref(true);
+const theme       = useThemeStore();
+const themeIndex  = computed (() => theme.getThemeIndex());
+const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
+const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
+const isLogged    = ref(true);
 
 defineProps ({
   variant: {
@@ -75,9 +100,12 @@ defineProps ({
   mobileProfile: {
     type: Boolean,
     default: false,
-  }
+  },
+  isLogin: {
+    type: Boolean,
+    default: false,
+  },
 });
-
 
 </script>
 
