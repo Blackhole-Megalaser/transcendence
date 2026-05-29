@@ -26,6 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./volumes/backend-data:/media
     expose:
       - "8000"
     networks:
