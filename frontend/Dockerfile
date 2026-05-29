@@ -14,6 +14,7 @@ RUN openssl req -x509 -noenc -new -key ecdsakey.pem -out ./cat.crt -keyout ./cat
 FROM nginx:stable-alpine AS production-stage
 COPY --from=node-build-stage /app/dist /usr/share/nginx/html
 COPY --from=ssl-build-stage /app/ /etc/nginx/ssl
+COPY ./vue/src/assets/favicon.ico /usr/share/nginx/html/favicon.ico
 COPY /nginx/nginx.conf /etc/nginx/conf.d/default.conf.template
 COPY ./entrypoint.sh /app/entrypoint.sh
 
