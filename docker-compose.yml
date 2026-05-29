@@ -56,6 +56,11 @@ services:
     env_file: .env
     expose:
       - "6379"
+    user: "1000:1000"  # redis user UID in the container
+    # entrypoint: |
+    #   sh -c 'chown -R 1000:1000 /data && exec redis-server --dir /data'
+    volumes:
+      - ./volumes/redis-data:/data
     networks:
       - ft_cat-network
     depends_on:
