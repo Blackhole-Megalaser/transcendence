@@ -187,9 +187,9 @@
 			</div>
 		</div>
 	</div>
-	<div class="flex justify-center border-4 border-solid border-red-500 p-2">
-		<div :style="{ width: width / 2 + 'px' }" class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
-			<button class="bg-sidebar">
+	<div :style="cursorStyle" class="flex justify-center border-4 border-solid border-red-500 p-2">
+		<div :style="{ width: width / 2 + 'px'}" class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+			<button :style="cursorStyle" class="bg-sidebar">
 				<svg class="stroke-[0.5] size-50"
 						xlms="http://www.w3.org/2000/svg"
 						viewBox="0 0 32 32"
@@ -206,7 +206,7 @@
 					<rect class="fill-pink-50" x="5.75" y="26.5" width="20.5" height="32"></rect>
 				</svg>
 			</button>
-			<button class="bg-sidebar">
+			<button :style="cursorStyle" class="bg-sidebar">
 				<svg class="stroke-[0.5] size-50"
 						xlms="http://www.w3.org/2000/svg"
 						viewBox="0 0 32 32"
@@ -225,7 +225,7 @@
 			</button>
 		</div>
 		<div :style="{ width: width / 2 + 'px' }" class="grid grid-flow-col grid-rows-2 justify-start bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
-			<button class="bg-sidebar hover:bg-lavender-pastel-50" @click="clear">
+			<button :style="cursorStyle" class="bg-sidebar hover:bg-lavender-pastel-50" @click="clear">
 				<svg 
 					class="size-25 fill-current" 
 					viewBox="0 0 512 512" 
@@ -252,7 +252,7 @@
 					</g>
 				</svg>
 			</button>
-			<button class="bg-sidebar hover:bg-lavender-pastel-50" @click="isBucket = !isBucket">
+			<button :style="cursorStyle" class="bg-sidebar hover:bg-lavender-pastel-50" @click="isBucket = !isBucket">
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 60" version="1.1">
 					<title>016 - Paint Bucket</title><desc>Created with Sketch.</desc><defs/>
 					<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
