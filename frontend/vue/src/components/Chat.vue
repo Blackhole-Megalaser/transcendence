@@ -1,7 +1,7 @@
 <template>
   <section class="h-full bg-bg-main p-2 sm:p-4 text-text-main">
     <div>
-    <textarea class="chatbox" id="chat-log" v-model="chatLog" rows="20" readonly></textarea>
+    <textarea class="chatbox" id="chat-log" v-model="chatLog" readonly></textarea>
    <center>
 	  <input class="inputbox"
         id="chat-message-input"
@@ -79,6 +79,16 @@ export default {
 
 <style scoped>
 @import "@/style.css";
+
+textarea {
+	display: block;
+	cursor: text;
+	height: auto;
+	min-width: 30em;
+    max-width: 100%;
+    min-height: 10em;
+	overflow: auto;
+}
 
 .chatbox {
 	height:100%;
