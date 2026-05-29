@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from rest_framework import serializers, permissions, viewsets
+from rest_framework import serializers, permissions, viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
@@ -94,3 +96,13 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
     lookup_field = "username"
     lookup_value_regex = "[a-zA-Z0-9-_@.+]+"
+
+    @action(
+        detail=False,
+        url_path="me",
+        methods=["get"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def me(self, request):
+        serializer = self.get_serializer(request.user, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
