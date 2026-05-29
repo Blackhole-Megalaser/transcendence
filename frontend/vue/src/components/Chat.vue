@@ -1,10 +1,7 @@
 <template>
-  <br>
-  <center>
-    <h2 >Work in progress</h2>
-    <br>
+  <section class="h-full bg-bg-main p-2 sm:p-4 text-text-main">
     <div>
-    <textarea id="chat-log" v-model="chatLog" readonly></textarea>
+    <textarea style="height:100%;width:100%;border: 4mm ridge rgb(211 220 50 / 0.6);margin-top:5%;padding:0.4%" id="chat-log" v-model="chatLog" readonly></textarea>
 	<br>
     <input
       id="chat-message-input"
@@ -13,9 +10,10 @@
       placeholder="Type a message..."
     />
 	<br>
+	<br>
     <Button id="chat-message-submit" @click="sendMessage">Send</Button>
   </div>
-  </center>
+  </section>
 </template>
 
 <script setup>
