@@ -27,7 +27,7 @@
                 class="bg-button-sidebar-2-normal rounded-3xl"
               >
                 <li>
-                  <a href="skribbl">
+                  <a href="/skribbl">
                     <ButtonSideBar
                       variant="secondary"
                     >
@@ -36,7 +36,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="tplace">
+                  <a href="/tplace">
                       <ButtonSideBar
                         variant="secondary"
                       >
@@ -48,7 +48,7 @@
             </div>
           </li>
           <li class="h-10 flex items-center">
-            <a href="chat" class="w-full">
+            <a href="/chat" class="w-full">
               <ButtonSideBar>Chat rooms</ButtonSideBar>
             </a>
           </li>
