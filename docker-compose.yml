@@ -5,6 +5,11 @@ services:
     # set shared memory limit when using docker compose
     shm_size: 128mb
     env_file: .env
+    user: "70:70"  # postgress (alpine) user UID in the container
+    # entrypoint: |
+    #   sh -c 'chown -R 70:70 /var/lib/postgresql && exec postgres'
+    volumes:
+      - ./volumes/db-data:/var/lib/postgresql
     expose:
       - "5432"
     networks:
@@ -54,13 +59,13 @@ services:
     # set shared memory limit when using docker compose
     shm_size: 128mb
     env_file: .env
-    expose:
-      - "6379"
-    user: "1000:1000"  # redis user UID in the container
+    user: "1000:1000"  # redis (alpine) user UID in the container
     # entrypoint: |
     #   sh -c 'chown -R 1000:1000 /data && exec redis-server --dir /data'
     volumes:
       - ./volumes/redis-data:/data
+    expose:
+      - "6379"
     networks:
       - ft_cat-network
     depends_on:
