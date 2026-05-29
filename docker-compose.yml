@@ -57,7 +57,8 @@ services:
     # set shared memory limit when using docker compose
     shm_size: 128mb
     env_file: .env
-    user: "1000:1000"  # redis user UID in the container
+    user: "999:1000"  # redis user UID in the container
+    command: redis-server --dir /data --save 120 1
     volumes:
       - ./volumes/redis-data:/data
     expose:
