@@ -10,7 +10,12 @@
 	const isBucket = ref(false);
 	const coord = ref({x: 0, y: 0});
 	const penColor = ref('#000000');
+	
+	const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
 
+	const history = ref([]); 
+	let currentPath = null;
+	
 	onMounted(() => {
 		vueCanvas.value = canvasRef.value.getContext("2d");
 	});
@@ -21,43 +26,145 @@
 	};
 	
 	const start = (event) => {
+		if (isBucket.value) {
+			fill(event.offsetX, event.offsetY);
+			return;
+		}
 		isDrawing.value = true;
 		reposition(event);
+	
+		currentPath = {
+			color: penColor.value,
+			points: [{ x: coord.value.x, y: coord.value.y }]
+		};
 	};
-
-	const stop = () => {
-		isDrawing.value = false;
-	};
-
-	const clear = () => {
-		vueCanvas.value.clearRect(0, 0, 1000, 600);
-	};
-
+	
 	const draw = (event) => {
 		if (!isDrawing.value) return;
-
+	
 		const ctx = vueCanvas.value;
-
+	
 		ctx.beginPath();
 		ctx.lineWidth = 4;
 		ctx.lineCap = 'round';
 		ctx.strokeStyle = penColor.value;
-
+	
 		ctx.moveTo(coord.value.x, coord.value.y);
 		reposition(event);
 		ctx.lineTo(coord.value.x, coord.value.y);
 		ctx.stroke();
+	
+		if (currentPath) {
+			currentPath.points.push({ x: coord.value.x, y: coord.value.y });
+		}
 	};
-
+	
+	const stop = () => {
+		isDrawing.value = false;
+		if (currentPath) {
+			history.value.push(currentPath);
+			currentPath = null;
+		}
+	};
+	
+	const clear = () => {
+		vueCanvas.value.clearRect(0, 0, 1000, 600);
+		history.value = [];
+	};
+		
 	const penColorBlue = () => {
-		penColor = '#0000FF';
+		penColor.value = '#0000FF';
 	};
 
 	const cursorStyle = computed(() => ({
 	cursor: isBucket.value
 		? `url(${bucket}) 16 16, auto`
 		: 'default'
-	}))
+	}));
+
+	const redrawLines = () => {
+		const ctx = vueCanvas.value;
+	
+		ctx.lineWidth = 4;
+		ctx.lineCap = 'round';
+	
+		history.value.forEach(path => {
+			if (path.points.length < 2) return;
+	
+			ctx.beginPath();
+			ctx.strokeStyle = path.color;
+			ctx.moveTo(path.points[0].x, path.points[0].y);
+	
+			for (let i = 1; i < path.points.length; i++) {
+				ctx.lineTo(path.points[i].x, path.points[i].y);
+			}
+			ctx.stroke();
+		});
+	};
+		
+	const hexToRgb = (hex) => {
+		const r = parseInt(hex.slice(1, 3), 16);
+		const g = parseInt(hex.slice(3, 5), 16);
+		const b = parseInt(hex.slice(5, 7), 16);
+		return [r, g, b, 255];
+	};
+		
+	const fill = (startX, startY) => {
+		const ctx = vueCanvas.value;
+		const imageData = ctx.getImageData(0, 0, width, height);
+		const data = imageData.data;
+	
+		const startPos = (startY * width + startX) * 4;
+		const startR = data[startPos];
+		const startG = data[startPos + 1];
+		const startB = data[startPos + 2];
+		const startA = data[startPos + 3];
+	
+		const [fillR, fillG, fillB] = hexToRgb(penColor.value);
+	
+		if (startR === fillR && startG === fillG && startB === fillB && startA === 255) {
+			return;
+		}
+	
+		const pixelStack = [[startX, startY]];
+		const visited = new Uint8Array(width * height);
+		
+		const tolerance = 0; 
+	
+		while (pixelStack.length > 0) {
+			const [x, y] = pixelStack.pop();
+			const pixelIdx = y * width + x;
+			const pos = pixelIdx * 4;
+	
+			if (visited[pixelIdx]) continue;
+			visited[pixelIdx] = 1;
+	
+			const r = data[pos];
+			const g = data[pos + 1];
+			const b = data[pos + 2];
+			const a = data[pos + 3];
+	
+			const matchStart = Math.abs(r - startR) <= tolerance &&
+								 Math.abs(g - startG) <= tolerance &&
+								 Math.abs(b - startB) <= tolerance &&
+								 Math.abs(a - startA) <= tolerance;
+			 
+			data[pos] = fillR;
+			data[pos + 1] = fillG;
+			data[pos + 2] = fillB;
+			data[pos + 3] = 255;
+			if (matchStart) {
+				if (x > 0) pixelStack.push([x - 1, y]);
+				if (x < width - 1) pixelStack.push([x + 1, y]);
+				if (y > 0) pixelStack.push([x, y - 1]);
+				if (y < height - 1) pixelStack.push([x, y + 1]);
+			}
+		}
+	
+		ctx.putImageData(imageData, 0, 0);
+		redrawLines();
+	};
+		
 </script>
 
 <template>
@@ -88,11 +195,11 @@
 						viewBox="0 0 32 32"
 						stroke-width="2" stroke-miterlimit="10">
 					<ellipse class="stroke-[0.7] stroke-[#917F97] fill-pink-50" cx="16" cy="18" rx="13" ry="15"/>
-					<ellipse class="hover:stroke-blue-500 hover:fill-blue-400 stroke-blue-600 fill-blue-500" @click="penColor = 'blue'" cx="12.5" cy="9.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-red-500 hover:fill-red-400 stroke-red-600 fill-red-500" @click="penColor = 'red'" cx="19.5" cy="9.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-green-500 hover:fill-green-400 stroke-green-600 fill-green-500" @click="penColor = 'green'" cx="7.5" cy="16.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-yellow-500 hover:fill-yellow-400 stroke-yellow-600 fill-yellow-500" @click="penColor = 'yellow'" cx="24.5" cy="16.5" rx="2.5" ry="3.5"/>
-					<path class="hover:stroke-gray-800 hover:fill-gray-900 stroke-gray-800 fill-black" @click="penColor = 'black'" d="M19,20c-0.966-0.966-1-3-3-3s-2,2-3,3
+					<ellipse class="hover:stroke-blue-500 hover:fill-blue-400 stroke-blue-600 fill-blue-500" @click="penColor = paintColors[0]" cx="12.5" cy="9.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-red-500 hover:fill-red-400 stroke-red-600 fill-red-500" @click="penColor = paintColors[1]" cx="19.5" cy="9.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-green-500 hover:fill-green-400 stroke-green-600 fill-green-500" @click="penColor = paintColors[2]" cx="7.5" cy="16.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-yellow-500 hover:fill-yellow-400 stroke-yellow-600 fill-yellow-500" @click="penColor = paintColors[3]" cx="24.5" cy="16.5" rx="2.5" ry="3.5"/>
+					<path class="hover:stroke-gray-800 hover:fill-gray-900 stroke-gray-800 fill-black" @click="penColor = paintColors[4]" d="M19,20c-0.966-0.966-1-3-3-3s-2,2-3,3
 						s-4,1.069-4,3.5c0,1.381,1.119,2.5,2.5,2.5c1.157,0,3.684-1,4.5-1s3.343,1,4.5,1c1.381,0,2.5-1.119,2.5-2.5
 						C23,21.207,19.966,20.966,19,20z"/>
 					<rect class="stroke-[#917F97] fill-pink-50" x="5.5" y="27" width="21" height="32"></rect>
@@ -105,18 +212,17 @@
 						viewBox="0 0 32 32"
 						stroke-width="2" stroke-miterlimit="10">
 					<ellipse class="stroke-[0.7] stroke-[#917F97] fill-pink-50" cx="16" cy="18" rx="13" ry="15"/>
-					<ellipse class="hover:stroke-pink-500 hover:fill-pink-400 stroke-pink-600 fill-pink-500" @click="penColor = 'pink'" cx="12.5" cy="9.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-violet-500 hover:fill-violet-400 stroke-violet-600 fill-violet-500" @click="penColor = 'violet'" cx="19.5" cy="9.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-yellow-800 hover:fill-yellow-700 stroke-yellow-900 fill-yellow-800" @click="penColor = 'brown'" cx="7.5" cy="16.5" rx="2.5" ry="3.5"/>
-					<ellipse class="hover:stroke-gray-500 hover:fill-gray-400 stroke-gray-600 fill-gray-500" @click="penColor = 'gray'" cx="24.5" cy="16.5" rx="2.5" ry="3.5"/>
-					<path class="hover:stroke-gray-200 hover:fill-gray-50 stroke-gray-200 fill-white" @click="penColor = 'white'" d="M19,20c-0.966-0.966-1-3-3-3s-2,2-3,3
+					<ellipse class="hover:stroke-pink-500 hover:fill-pink-400 stroke-pink-600 fill-pink-500" @click="penColor = paintColors[5]" cx="12.5" cy="9.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-violet-500 hover:fill-violet-400 stroke-violet-600 fill-violet-500" @click="penColor = paintColors[6]" cx="19.5" cy="9.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-yellow-800 hover:fill-yellow-700 stroke-yellow-900 fill-yellow-800" @click="penColor = paintColors[7]" cx="7.5" cy="16.5" rx="2.5" ry="3.5"/>
+					<ellipse class="hover:stroke-gray-500 hover:fill-gray-400 stroke-gray-600 fill-gray-500" @click="penColor = paintColors[8]" cx="24.5" cy="16.5" rx="2.5" ry="3.5"/>
+					<path class="hover:stroke-gray-200 hover:fill-gray-50 stroke-gray-200 fill-white" @click="penColor = paintColors[9]" d="M19,20c-0.966-0.966-1-3-3-3s-2,2-3,3
 						s-4,1.069-4,3.5c0,1.381,1.119,2.5,2.5,2.5c1.157,0,3.684-1,4.5-1s3.343,1,4.5,1c1.381,0,2.5-1.119,2.5-2.5
 						C23,21.207,19.966,20.966,19,20z"/>
 					<rect class="stroke-[#917F97] fill-pink-50" x="5.5" y="27" width="21" height="32"></rect>	
 					<rect class="fill-pink-50" x="5.75" y="26.5" width="20.5" height="32"></rect>
 				</svg>
 			</button>
-			
 		</div>
 		<div :style="{ width: width / 2 + 'px' }" class="grid grid-flow-col grid-rows-2 justify-start bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
 			<button class="bg-sidebar hover:bg-lavender-pastel-50" @click="clear">
