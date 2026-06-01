@@ -5,13 +5,18 @@
 			<p class="pointer-status">{{ pointerStatus }}</p>
 			<!-- END dev temporary pointer message -->
 
-			<div class="canvas-overlay overlay-right">
+			<div
+				id="tplace-tools"
+				class="canvas-overlay overlay-right"
+				:class="{ 'is-open': isToolMenuOpen }"
+				:aria-hidden="!isToolMenuOpen"
+			>
 				<div class="history-controls" aria-label="History controls">
 					<button class="history-button" type="button" title="Annuler" aria-label="Undo" @click="undo">
-						↩
+						<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-left']" />
 					</button>
 					<button class="history-button" type="button" title="Refaire" aria-label="Redo" @click="redo">
-						↪
+						<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-right']" />
 					</button>
 				</div>
 
@@ -39,7 +44,14 @@
 			</div>
 
 			<div class="canvas-overlay overlay-bottom">
-				<button class="pretty-button" type="button">
+				<button
+					class="pretty-button"
+					:class="{ 'is-open': isToolMenuOpen }"
+					type="button"
+					aria-controls="tplace-tools"
+					:aria-expanded="isToolMenuOpen"
+					@click="toggleToolMenu"
+				>
 					Paint {{ pixelsLeft }}
 					<span
 						v-for="star in 6"
@@ -88,12 +100,14 @@ const {
 	handleMouseLeave,
 	handleMouseMove,
 	handleMouseUp,
+	isToolMenuOpen,
 	pixelsLeft,
 	pointerStatus,
 	redo,
 	selectColor,
 	selectedColor,
 	showGrid,
+	toggleToolMenu,
 	undo,
 } = runTplace()
 </script>

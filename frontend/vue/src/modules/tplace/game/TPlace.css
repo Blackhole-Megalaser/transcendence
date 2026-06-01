@@ -40,7 +40,22 @@ body {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 0.75rem;
-	transform: translateY(-50%);
+	opacity: 0;
+	pointer-events: none;
+	transform: translateY(-50%) translateX(18px) scale(0.96);
+	transform-origin: right center;
+	transition:
+		opacity 0.22s ease,
+		transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+		visibility 0.22s ease;
+	visibility: hidden;
+}
+
+.overlay-right.is-open {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(-50%) translateX(0) scale(1);
+	visibility: visible;
 }
 
 .overlay-bottom {
@@ -252,6 +267,12 @@ body {
 	color: var(--color-text-button-1);
 }
 
+.pretty-button.is-open {
+	box-shadow:
+		0 0 0 3px color-mix(in srgb, var(--color-button-2-normal) 55%, transparent),
+		0 0 24px color-mix(in srgb, var(--color-button-1-hover) 55%, transparent);
+}
+
 .pretty-button:hover .star {
 	filter:
 		drop-shadow(0 0 10px var(--color-text-button-1))
@@ -301,7 +322,12 @@ body {
 		top: auto;
 		right: 0.75rem;
 		bottom: 5.25rem;
-		transform: none;
+		transform: translateY(14px) scale(0.96);
+		transform-origin: right bottom;
+	}
+
+	.overlay-right.is-open {
+		transform: translateY(0) scale(1);
 	}
 
 	.color-palette {

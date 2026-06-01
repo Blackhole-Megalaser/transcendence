@@ -1,6 +1,7 @@
 import { createApp }      from 'vue';
 import { useThemeStore }  from '@storage/theme';
 import { setupPinia }     from '@shared';
+import { setupFontAwesome } from '@shared';
 import BasePage           from '@components/BasePage.vue';
 import TPlace             from './game/TPlace.vue'; 
 import App                from './TplaceApp.vue';
@@ -14,5 +15,6 @@ document.documentElement.setAttribute("data-theme", savedTheme.current);
 
 app.component('TPlace', TPlace);
 app.component('BasePage', BasePage);
+setupFontAwesome(app);
 
 app.mount('#app')
