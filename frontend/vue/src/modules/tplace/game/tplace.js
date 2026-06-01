@@ -39,9 +39,10 @@ const colors = [
 
 const canvasRef = ref(null)
 const showGrid = ref(false)
+const isToolMenuOpen = ref(false)
 const selectedColor = ref(colors[0].value)
 const pointerStatus = ref('Mouse not here :(')
-const gridLabel = computed(() => (showGrid.value ? 'Grille affichee' : 'Grille cachee'))
+const gridLabel = computed(() => 'Show grid')
 const pixelsLeft = ref('100/100')
 
 const pixels = Array.from({ length: WORLD_Y_MAX }, () => Array.from({ length: WORLD_X_MAX }, () => null))
@@ -64,6 +65,10 @@ let resizeObserver = null
 
 function selectColor(color) {
 	selectedColor.value = color
+}
+
+function toggleToolMenu() {
+	isToolMenuOpen.value = !isToolMenuOpen.value
 }
 
 function clamp(value, min, max) {
@@ -469,12 +474,14 @@ return {
 	handleMouseLeave,
 	handleMouseMove,
 	handleMouseUp,
+	isToolMenuOpen,
 	pixelsLeft,
 	pointerStatus,
 	redo,
 	selectColor,
 	selectedColor,
 	showGrid,
+	toggleToolMenu,
 	undo,
 }
 }
