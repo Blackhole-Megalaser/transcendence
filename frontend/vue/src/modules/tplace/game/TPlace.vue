@@ -83,6 +83,7 @@
 				@mouseleave="handleMouseLeave"
 				@mousedown="handleMouseDown"
 				@mouseup="handleMouseUp"
+				@wheel.prevent="handleWheel"
 			/>
 		</section>
 	</main>
@@ -100,6 +101,7 @@ const {
 	handleMouseLeave,
 	handleMouseMove,
 	handleMouseUp,
+	handleWheel,
 	isToolMenuOpen,
 	pixelsLeft,
 	pointerStatus,
