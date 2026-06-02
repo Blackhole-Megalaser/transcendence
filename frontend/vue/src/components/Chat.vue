@@ -1,21 +1,18 @@
 <template>
-  <br>
-  <center>
-    <h2 >Work in progress</h2>
-    <br>
+  <section class="h-full bg-bg-main p-2 sm:p-4 text-text-main">
     <div>
-    <textarea id="chat-log" v-model="chatLog" readonly></textarea>
-	<br>
-    <input
-      id="chat-message-input"
-      v-model="messageInput"
-      @keyup.enter="sendMessage"
-      placeholder="Type a message..."
-    />
-	<br>
-    <Button id="chat-message-submit" @click="sendMessage">Send</Button>
+    <textarea class="chatbox" id="chat-log" v-model="chatLog" readonly></textarea>
+   <center>
+	  <input class="inputbox"
+        id="chat-message-input"
+        v-model="messageInput"
+        @keyup.enter="sendMessage"
+        placeholder="Type a meowssage..."
+       />
+      <Button class="sendbox" id="chat-message-submit" @click="sendMessage">Send</Button>
+	</center>
   </div>
-  </center>
+  </section>
 </template>
 
 <script setup>
@@ -73,15 +70,51 @@ export default {
         this.chatSocket.send(JSON.stringify({
           message: this.messageInput
         }));
+		this.scrollText();
         this.messageInput = '';
       }
-    }
+    },
+	scrollText() {
+	    var textarea = document.getElementById('chat-log');
+	    textarea.value += document.getElementById('chat-message-submit').value + "\n";            
+	    textarea.scrollTop = textarea.scrollHeight;
+	}
   }
 };
 </script>
 
 <style scoped>
 @import "@/style.css";
+
+textarea {
+	display: block;
+	cursor: text;
+	height: auto;
+	min-width: 30em;
+    max-width: 100%;
+    min-height: 10em;
+	overflow: auto;
+}
+
+.chatbox {
+	height:100%;
+	width:100%;
+	border: 4mm ridge rgb(211 220 50 / 0.6);
+	margin-top:5%;
+	padding:0.4%;
+}
+
+.inputbox {
+	border: solid white;
+	margin-top:1%;
+	margin-bottom:1%;
+	padding:0.4%;
+}
+
+.sendbox {
+	width:15%;
+	margin-left:5%;
+}
 
 .fscreen {
   @apply h-[calc(100dvh-5rem)] w-dvw
