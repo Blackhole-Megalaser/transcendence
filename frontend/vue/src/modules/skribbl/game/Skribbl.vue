@@ -10,6 +10,7 @@
 	const isBucket = ref(false);
 	const coord = ref({x: 0, y: 0});
 	const penColor = ref('#000000');
+	const penStroke = ref('4');
 	
 	const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
 
@@ -45,7 +46,7 @@
 		const ctx = vueCanvas.value;
 	
 		ctx.beginPath();
-		ctx.lineWidth = 4;
+		ctx.lineWidth = penStroke.value;
 		ctx.lineCap = 'round';
 		ctx.strokeStyle = penColor.value;
 	
@@ -224,10 +225,12 @@
 				</svg>
 			</button>
 		</div>
-		<div :style="{ width: width / 2 + 'px' }" class="grid grid-flow-col grid-rows-2 justify-start bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
-			<button :style="cursorStyle" class="bg-sidebar hover:bg-lavender-pastel-50" @click="clear">
+		<div :style="{ width: width / 2 + 'px' }" class="grid grid-cols-4 grid-rows-2 bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+			<button :style="cursorStyle" 
+				class="col-span-1 col-end-2 bg-sidebar hover:bg-lavender-pastel-50 flex justify-center" 
+				@click="clear">
 				<svg 
-					class="size-25 fill-current" 
+					class="size-25" 
 					viewBox="0 0 512 512" 
 					xmlns="http://www.w3.org/2000/svg">
 					<g>
@@ -252,8 +255,14 @@
 					</g>
 				</svg>
 			</button>
-			<button :style="cursorStyle" class="bg-sidebar hover:bg-lavender-pastel-50" @click="isBucket = !isBucket">
-				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60 60" version="1.1">
+			<button :style="cursorStyle" 
+				class="col-start-3 col-end-4 bg-sidebar hover:bg-lavender-pastel-50" 
+				@click="isBucket = !isBucket">
+				<svg 
+					xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+					class="size-25"
+					viewBox="0 0 60 60"
+					version="1.1">
 					<title>016 - Paint Bucket</title><desc>Created with Sketch.</desc><defs/>
 					<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
 						<g id="016---Paint-Bucket" fill-rule="nonzero">
@@ -294,6 +303,60 @@
 					</g>
 				</svg>
 			</button>
+			<button :style="cursorStyle"
+				class="flex justify-center col-start-1 bg-sidebar hover:bg-lavender-pastel-50"
+				@click="penStroke = '4'">
+				<svg 
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-25"
+				viewBox="0 0 100 100" 
+				>
+					<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+					<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
+					<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="2" />
+				</svg>			
+			</button>
+			<button :style="cursorStyle"
+				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
+				@click="penStroke = '8'">
+				<svg 
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-25"
+				viewBox="0 0 100 100" 
+				>
+					<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+					<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
+					<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="4" />
+				</svg>			
+			</button>
+			<button :style="cursorStyle"
+				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
+				@click="penStroke = '16'">
+				<svg 
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-25"
+				viewBox="0 0 100 100" 
+				>
+					<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+					<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
+					<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="8" />
+				</svg>			
+			</button>
+			<button :style="cursorStyle"
+				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
+				@click="penStroke = '32'">
+				<svg 
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-25"
+				viewBox="0 0 100 100" 
+				>
+					<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+					<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
+					<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="16" />
+				</svg>			
+			</button>
+				<!-- <input type="range" min="4" max="20" step="2" 
+				class="col-start-1 col-end-5 w-full h-25 bg-neutral-quaternary rounded-full appearance-none cursor-pointer"> -->
 		</div>
 	</div>
 	
