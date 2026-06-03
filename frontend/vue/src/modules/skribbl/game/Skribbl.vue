@@ -11,6 +11,7 @@
 	const coord = ref({x: 0, y: 0});
 	const penColor = ref('#000000');
 	const penStroke = ref('4');
+	const penSizeActive = ref('1');
 	
 	const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
 
@@ -189,8 +190,8 @@
 		</div>
 	</div>
 	<div :style="cursorStyle" class="flex justify-center border-4 border-solid border-red-500 p-2">
-		<div :style="{ width: width / 2 + 'px'}" class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
-			<button :style="cursorStyle" class="bg-sidebar">
+		<div :style="[cursorStyle, {backgroundColor: penColor}, { width: width / 2 + 'px'}]" class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+			<button :style="[cursorStyle, {backgroundColor: penColor}]" class="bg-sidebar">
 				<svg class="stroke-[0.5] size-50"
 						xlms="http://www.w3.org/2000/svg"
 						viewBox="0 0 32 32"
@@ -207,7 +208,7 @@
 					<rect class="fill-pink-50" x="5.75" y="26.5" width="20.5" height="32"></rect>
 				</svg>
 			</button>
-			<button :style="cursorStyle" class="bg-sidebar">
+			<button :style="[cursorStyle, {backgroundColor: penColor}]" class="bg-sidebar">
 				<svg class="stroke-[0.5] size-50"
 						xlms="http://www.w3.org/2000/svg"
 						viewBox="0 0 32 32"
@@ -227,7 +228,7 @@
 		</div>
 		<div :style="{ width: width / 2 + 'px' }" class="grid grid-cols-4 grid-rows-2 bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
 			<button :style="cursorStyle" 
-				class="col-span-1 col-end-2 bg-sidebar hover:bg-lavender-pastel-50 flex justify-center" 
+				class="col-span-1 col-end-2 bg-sidebar hover:bg-lavender-pastel-200 flex justify-center" 
 				@click="clear">
 				<svg 
 					class="size-25" 
@@ -255,12 +256,24 @@
 					</g>
 				</svg>
 			</button>
-			<button :style="cursorStyle" 
-				class="col-start-3 col-end-4 bg-sidebar hover:bg-lavender-pastel-50" 
-				@click="isBucket = !isBucket">
+			<button :style="cursorStyle"
+				:class="isBucket ? 'bg-sidebar' : 'bg-lavender-pastel-200'"
+				class="hover:bg-lavender-pastel-200" 
+				@click="isBucket = false">
+				<svg 
+					xmlns="http://www.w3.org/2000/svg"
+					class="size-25 w-30"
+					viewBox="0 0 640 640">
+					<path fill="rgb(116, 192, 252)" d="M512.5 74.3L291.1 222C262 241.4 243.5 272.9 240.5 307.3C302.8 320.1 351.9 369.2 364.8 431.6C399.3 428.6 430.7 410.1 450.1 381L597.7 159.5C604.4 149.4 608 137.6 608 125.4C608 91.5 580.5 64 546.6 64C534.5 64 522.6 67.6 512.5 74.3zM320 464C320 402.1 269.9 352 208 352C146.1 352 96 402.1 96 464C96 467.9 96.2 471.8 96.6 475.6C98.4 493.1 86.4 512 68.8 512L64 512C46.3 512 32 526.3 32 544C32 561.7 46.3 576 64 576L208 576C269.9 576 320 525.9 320 464z"/>
+				</svg>
+			</button>
+			<button :style="cursorStyle"
+				:class="isBucket ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+				class="col-start-3 col-end-4 hover:bg-lavender-pastel-200" 
+				@click="isBucket = true">
 				<svg 
 					xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-					class="size-25"
+					class="size-25 w-30"
 					viewBox="0 0 60 60"
 					version="1.1">
 					<title>016 - Paint Bucket</title><desc>Created with Sketch.</desc><defs/>
@@ -304,8 +317,9 @@
 				</svg>
 			</button>
 			<button :style="cursorStyle"
-				class="flex justify-center col-start-1 bg-sidebar hover:bg-lavender-pastel-50"
-				@click="penStroke = '4'">
+				:class="penSizeActive == 1 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+				class="flex justify-center col-start-1 hover:bg-lavender-pastel-200"
+				@click="penStroke = '4', penSizeActive = 1">
 				<svg 
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-25"
@@ -317,8 +331,9 @@
 				</svg>			
 			</button>
 			<button :style="cursorStyle"
-				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
-				@click="penStroke = '8'">
+				:class="penSizeActive === 2 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+				class="flex justify-center hover:bg-lavender-pastel-200"
+				@click="penStroke = '8', penSizeActive = 2">
 				<svg 
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-25"
@@ -330,8 +345,9 @@
 				</svg>			
 			</button>
 			<button :style="cursorStyle"
-				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
-				@click="penStroke = '16'">
+				:class="penSizeActive === 3 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+				class="flex justify-center hover:bg-lavender-pastel-200"
+				@click="penStroke = '16', penSizeActive = 3">
 				<svg 
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-25"
@@ -343,8 +359,9 @@
 				</svg>			
 			</button>
 			<button :style="cursorStyle"
-				class="flex justify-center bg-sidebar hover:bg-lavender-pastel-50"
-				@click="penStroke = '32'">
+				:class="penSizeActive === 4 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+				class="flex justify-center hover:bg-lavender-pastel-200"
+				@click="penStroke = '32', penSizeActive = 4">
 				<svg 
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-25"
