@@ -172,28 +172,37 @@
 <template>
 	<div class="w-full h-full">
 		<div class="w-full">
-			<div class="flex justify-center bg-bg-main">
-				<div class="w-1/2 mr-10 border-4 border-solid border-red-500 bg-white">
+			<div class="grid grid-cols-2 lg:grid-cols-4
+				gap-2 w-full max-w-full p-4
+				bg-bg-main">
+				<div class="order-2 lg:order-1
+
+					border-4 border-solid border-blue-500 bg-white">
 					<div class="bg-white ">
 						
 					</div>
 				</div>
 				<canvas :style="cursorStyle" ref="canvasRef" :width="width" :height="height"
-					class="border-4 border-solid border-red-500 bg-white"
+					class="order-1 lg:order-2 col-span-2 lg:col-span-2
+					border-4 border-solid border-red-500 bg-white
+					max-w-full block "
 					@mousedown="start"
 					@mousemove="draw"
 					@mouseup="stop"
 					@mouseleave="stop">
 				</canvas>
-				<div class="w-1/2 ml-10 border-4 border-solid border-red-500 bg-white">
+				<div class="order-3
+
+					border-4 border-solid border-green-500 bg-white">
 					<div class="bg-white">
 		
 					</div>
 				</div>
 			</div>
 		</div>
-		<div :style="cursorStyle" class="flex justify-center p-2">
-			<div :style="[cursorStyle, {backgroundColor: penColor}, { width: width / 2 + 'px'}]" class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+		<div :style="cursorStyle" class="flex flex-col lg:flex-row items-center lg:items-stretch max-w-full mx-auto justify-center gap-2 p-2">
+			<div :style="[cursorStyle, {backgroundColor: penColor}, { width: width / 2 + 'px'}]" 
+				class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
 				<button :style="[cursorStyle, {backgroundColor: penColor}]" class="bg-sidebar">
 					<svg class="stroke-[0.5] size-50"
 							xlms="http://www.w3.org/2000/svg"
