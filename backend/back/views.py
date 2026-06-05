@@ -9,7 +9,14 @@ from rest_framework.decorators import action
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
-from .serializers import UserSerializer, TplaceSerializer, NyancoinsSerializer, ColorsSerializer, PixelsSerializer, MaxPixelsSerializer
+from .serializers import (
+    UserSerializer,
+    TplaceSerializer,
+    NyancoinsSerializer,
+    ColorsSerializer,
+    PixelsSerializer,
+    MaxPixelsSerializer,
+)
 
 
 def index(request):
