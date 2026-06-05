@@ -105,12 +105,12 @@ class UserViewSet(viewsets.ModelViewSet):
             "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
             "nyancoins": request.build_absolute_uri(
                 f"/api/users/{user.username}/nyancoins/"
-                ),
+            ),
             "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
             "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
             "max-pixels": request.build_absolute_uri(
                 f"/api/users/{user.username}/max-pixels/"
-                ),
+            ),
         }
 
         return Response(data)
