@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
-from .serializers import *
+from .serializers import UserSerializer, TplaceSerializer, NyancoinsSerializer, ColorsSerializer, PixelsSerializer, MaxPixelsSerializer
 
 
 def index(request):
@@ -95,7 +95,7 @@ class TplaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        username = self.kwargs.get('user_username')
+        username = self.kwargs.get("user_username")
         if username is not None:
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
@@ -107,7 +107,7 @@ class NyancoinsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        username = self.kwargs.get('user_username')
+        username = self.kwargs.get("user_username")
         if username is not None:
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
@@ -119,7 +119,7 @@ class ColorsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        username = self.kwargs.get('user_username')
+        username = self.kwargs.get("user_username")
         if username is not None:
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
@@ -131,7 +131,7 @@ class PixelsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        username = self.kwargs.get('user_username')
+        username = self.kwargs.get("user_username")
         if username is not None:
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
@@ -143,9 +143,8 @@ class MaxPixelsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        username = self.kwargs.get('user_username')
+        username = self.kwargs.get("user_username")
         if username is not None:
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
         return UserProfile.objects.all()
-

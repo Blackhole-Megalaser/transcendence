@@ -41,7 +41,7 @@ class TplaceSerializer(serializers.ModelSerializer):
             "regeneration_delay",
             "next_regeneration",
             "unlocked_colors",
-            "unlocked_wordlists"
+            "unlocked_wordlists",
         ]
 
 
@@ -49,9 +49,7 @@ class NyancoinsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = [
-            "nyancoins"
-        ]
+        fields = ["nyancoins"]
 
 
 class ColorsSerializer(serializers.ModelSerializer):
@@ -59,9 +57,7 @@ class ColorsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = [
-            "unlocked_colors"
-        ]
+        fields = ["unlocked_colors"]
 
 
 class PixelsSerializer(serializers.ModelSerializer):
@@ -72,7 +68,7 @@ class PixelsSerializer(serializers.ModelSerializer):
             "placable_pixels",
             "max_placable_pixels",
             "regeneration_delay",
-            "next_regeneration"
+            "next_regeneration",
         ]
 
 
@@ -81,7 +77,5 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = [
-            "max_placable_pixels"
-        ]
+        fields = ["max_placable_pixels"]
 
