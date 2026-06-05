@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from rest_framework import serializers, permissions, viewsets, status
+from rest_framework import permissions, viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
+from .serializers import *
 
 
 def index(request):
@@ -68,28 +70,7 @@ def account_modify(request):
     )
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    profile_image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ["url", "username", "email", "is_staff", "profile_image"]
-        extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
-
-    def get_profile_image(self, obj):
-        try:
-            profile = obj.userprofile
-        except UserProfile.DoesNotExist:
-            return None
-        if profile.profile_image:
-            request = self.context.get("request")
-            url = profile.profile_image.url
-            if request:
-                return request.build_absolute_uri(url)
-            return url
-        return None
-
-
+# /users/
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -106,3 +87,65 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# /users/{username}/
+class TplaceViewSet(viewsets.ModelViewSet):
+    serializer_class = TplaceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs.get('user_username')
+        if username is not None:
+            get_object_or_404(UserProfile, user__username=username)
+            return UserProfile.objects.filter(user__username=username)
+        return UserProfile.objects.all()
+
+
+class NyancoinsViewSet(viewsets.ModelViewSet):
+    serializer_class = NyancoinsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs.get('user_username')
+        if username is not None:
+            get_object_or_404(UserProfile, user__username=username)
+            return UserProfile.objects.filter(user__username=username)
+        return UserProfile.objects.all()
+
+
+class ColorsViewSet(viewsets.ModelViewSet):
+    serializer_class = ColorsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs.get('user_username')
+        if username is not None:
+            get_object_or_404(UserProfile, user__username=username)
+            return UserProfile.objects.filter(user__username=username)
+        return UserProfile.objects.all()
+
+
+class PixelsViewSet(viewsets.ModelViewSet):
+    serializer_class = PixelsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs.get('user_username')
+        if username is not None:
+            get_object_or_404(UserProfile, user__username=username)
+            return UserProfile.objects.filter(user__username=username)
+        return UserProfile.objects.all()
+
+
+class MaxPixelsViewSet(viewsets.ModelViewSet):
+    serializer_class = MaxPixelsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs.get('user_username')
+        if username is not None:
+            get_object_or_404(UserProfile, user__username=username)
+            return UserProfile.objects.filter(user__username=username)
+        return UserProfile.objects.all()
+

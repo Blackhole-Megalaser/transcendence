@@ -112,3 +112,7 @@ Aussi un mot sur les issues qui sont actuellement ouvertes et l'invitation a y j
 Cette reunion etait place sous le signe de la patoune 
 
 		ฅᨐฅ		𓊆ྀི⋆🐾⋆𓊇ྀི  	 (˵◝ ⩊  ◜˵マ
+
+## Resume de la reunion 5 (29/05/26)
+
+placeholder
