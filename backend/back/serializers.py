@@ -71,8 +71,6 @@ class PixelsSerializer(serializers.ModelSerializer):
 
 
 class MaxPixelsSerializer(serializers.ModelSerializer):
-    unlocked_colors = serializers.StringRelatedField(many=True, read_only=True)
-
     class Meta:
         model = UserProfile
         fields = ["max_placable_pixels"]
