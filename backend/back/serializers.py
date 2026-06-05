@@ -46,7 +46,6 @@ class TplaceSerializer(serializers.ModelSerializer):
 
 
 class NyancoinsSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = UserProfile
         fields = ["nyancoins"]
@@ -61,7 +60,6 @@ class ColorsSerializer(serializers.ModelSerializer):
 
 
 class PixelsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserProfile
         fields = [
@@ -78,4 +76,3 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["max_placable_pixels"]
-
