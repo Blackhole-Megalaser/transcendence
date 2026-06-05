@@ -42,6 +42,7 @@ export function runTplace() {
 	const canvasRef = ref(null)
 	const showGrid = ref(false)
 	const isToolMenuOpen = ref(false)
+	const isPaintMode = ref(false)
 	const selectedColor = ref(colors[0].value)
 	const pointerStatus = ref('Mouse not here :(')
 	const gridLabel = computed(() => 'Show grid')
@@ -70,8 +71,14 @@ export function runTplace() {
 		selectedColor.value = color
 	}
 
-	function toggleToolMenu() {
-		isToolMenuOpen.value = !isToolMenuOpen.value
+	function togglePaintMode() {
+		isPaintMode.value = !isPaintMode.value
+		isToolMenuOpen.value = isPaintMode.value
+
+		if (!isPaintMode.value) {
+			isDrawing = false
+			commitStroke()
+		}
 	}
 
 	function clamp(value, min, max) {
@@ -338,7 +345,6 @@ export function runTplace() {
 		event.preventDefault()
 		isPanning = true
 		isDrawing = false
-		hoverCell = null
 		commitStroke()
 
 		const { mouseX, mouseY } = getViewportMousePos(event)
@@ -417,6 +423,11 @@ export function runTplace() {
 			return
 		}
 
+		if (!isPaintMode.value) {
+			beginPan(event)
+			return
+		}
+
 		event.preventDefault()
 		isDrawing = true
 		beginStroke()
@@ -438,6 +449,11 @@ export function runTplace() {
 		}
 
 		if (event.button !== 0) {
+			return
+		}
+
+		if (isPanning) {
+			isPanning = false
 			return
 		}
 
@@ -529,6 +545,7 @@ export function runTplace() {
 		handleMouseMove,
 		handleMouseUp,
 		handleWheel,
+		isPaintMode,
 		isToolMenuOpen,
 		pixelsLeft,
 		pointerStatus,
@@ -536,7 +553,7 @@ export function runTplace() {
 		selectColor,
 		selectedColor,
 		showGrid,
-		toggleToolMenu,
+		togglePaintMode,
 		undo,
 	}
 }
