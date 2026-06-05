@@ -8,7 +8,7 @@
 			<div
 				id="tplace-tools"
 				class="canvas-overlay overlay-right"
-				:class="{ 'is-open': isToolMenuOpen }"
+				:class="{ 'is-open': isPaintMode }"
 				:aria-hidden="!isToolMenuOpen"
 			>
 				<div class="history-controls" aria-label="History controls">
@@ -46,11 +46,11 @@
 			<div class="canvas-overlay overlay-bottom">
 				<button
 					class="pretty-button"
-					:class="{ 'is-open': isToolMenuOpen }"
+					:class="{ 'is-open': isPaintMode }"
 					type="button"
 					aria-controls="tplace-tools"
 					:aria-expanded="isToolMenuOpen"
-					@click="toggleToolMenu"
+					@click="togglePaintMode"
 				>
 					Paint {{ pixelsLeft }}
 					<span
@@ -76,7 +76,7 @@
 
 			<canvas
 				ref="canvasRef"
-				class="block h-full w-full cursor-crosshair bg-bg-card"
+				class="block h-full w-full bg-bg-card" :class="isPaintMode ? 'cursor-crosshair' : 'cursor-grab'"
 				width="896"
 				height="608"
 				@mousemove="handleMouseMove"
@@ -102,6 +102,7 @@ const {
 	handleMouseMove,
 	handleMouseUp,
 	handleWheel,
+	isPaintMode,
 	isToolMenuOpen,
 	pixelsLeft,
 	pointerStatus,
@@ -109,7 +110,7 @@ const {
 	selectColor,
 	selectedColor,
 	showGrid,
-	toggleToolMenu,
+	togglePaintMode,
 	undo,
 } = runTplace()
 </script>
