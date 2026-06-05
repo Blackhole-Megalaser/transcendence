@@ -94,6 +94,22 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        data = serializer.data
+
+        # Add available nested routes
+        data["available_routes"] = {
+            "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
+            "nyancoins": request.build_absolute_uri(f"/api/users/{user.username}/nyancoins/"),
+            "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
+            "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
+            "max-pixels": request.build_absolute_uri(f"/api/users/{user.username}/max-pixels/"),
+        }
+
+        return Response(data)
 
 
 # /users/{username}/
@@ -119,6 +135,11 @@ class NyancoinsViewSet(viewsets.ModelViewSet):
             get_object_or_404(UserProfile, user__username=username)
             return UserProfile.objects.filter(user__username=username)
         return UserProfile.objects.all()
+    
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        data = serializer.data
 
 
 class ColorsViewSet(viewsets.ModelViewSet):
