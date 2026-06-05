@@ -9,11 +9,13 @@ redev:
 	docker compose down
 	+make dev
 rebuild: .env
+	clear
 	docker compose down
 	docker compose up --build --force-recreate
 down:
 	docker compose down
 prune:
+	clear
 	docker system prune -af
 	docker volume prune -af
 createsuperuser:
