@@ -171,40 +171,41 @@
 
 <template>
 	<div class="w-full h-full">
-		<div class="w-full">
-			<div class="grid grid-cols-2 lg:grid-cols-4
-				gap-2 w-full max-w-full p-4
-				bg-bg-main">
-				<div class="order-2 lg:order-1
-
-					border-4 border-solid border-blue-500 bg-white">
-					<div class="bg-white ">
-						
-					</div>
-				</div>
-				<canvas :style="cursorStyle" ref="canvasRef" :width="width" :height="height"
-					class="order-1 lg:order-2 col-span-2 lg:col-span-2
-					border-4 border-solid border-red-500 bg-white
-					max-w-full block "
-					@mousedown="start"
-					@mousemove="draw"
-					@mouseup="stop"
-					@mouseleave="stop">
-				</canvas>
-				<div class="order-3
-
-					border-4 border-solid border-green-500 bg-white">
-					<div class="bg-white">
-		
-					</div>
+		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr]
+			gap-2 w-full h-full max-w-full max-h-full p-4
+			bg-bg-main">
+			<div class="order-2 lg:order-1 row-start-2 lg:row-start-1 
+				w-full h-full min-h-0
+				border-4 border-solid border-blue-500 bg-white">
+				<div class="bg-white ">
+					
 				</div>
 			</div>
-		</div>
-		<div :style="cursorStyle" class="flex flex-col lg:flex-row items-center lg:items-stretch max-w-full mx-auto justify-center gap-2 p-2">
-			<div :style="[cursorStyle, {backgroundColor: penColor}, { width: width / 2 + 'px'}]" 
-				class="grid grid-flow-col grid-rows-1 justify-center bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
-				<button :style="[cursorStyle, {backgroundColor: penColor}]" class="bg-sidebar">
-					<svg class="stroke-[0.5] size-50"
+
+			<canvas :style="cursorStyle" ref="canvasRef"
+				class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
+                     border-4 border-solid border-red-500 bg-white
+                     w-full h-full min-h-0 block"
+				@mousedown="start"
+				@mousemove="draw"
+				@mouseup="stop"
+				@mouseleave="stop">
+			</canvas>
+			<div class="order-3 row-start-2 lg:row-start-1
+				w-full h-full min-h-0
+				border-4 border-solid border-green-500 bg-white">
+				<div class="bg-white">
+	
+				</div>
+			</div>
+			<div :style="[cursorStyle, {backgroundColor: penColor}]" 
+				class="order-4 row-start-3 lg:row-start-2  col-start-1 lg:col-start-2
+					grid grid-flow-col grid-rows-1 justify-center
+					h-full lg:h-1/2 w-full max-w-full max-h-full min-h-0
+					bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+				<button :style="[cursorStyle, {backgroundColor: penColor}]"
+					class="bg-sidebar w-full h-full">
+					<svg class="stroke-[0.5]  w-full h-full"
 							xlms="http://www.w3.org/2000/svg"
 							viewBox="0 0 32 32"
 							stroke-width="2" stroke-miterlimit="10">
@@ -220,8 +221,9 @@
 						<rect class="fill-pink-50" x="5.75" y="26.5" width="20.5" height="32"></rect>
 					</svg>
 				</button>
-				<button :style="[cursorStyle, {backgroundColor: penColor}]" class="bg-sidebar">
-					<svg class="stroke-[0.5] size-50"
+				<button :style="[cursorStyle, {backgroundColor: penColor}]"
+					class="bg-sidebar w-full h-full">
+					<svg class="stroke-[0.5]  w-full h-full"
 							xlms="http://www.w3.org/2000/svg"
 							viewBox="0 0 32 32"
 							stroke-width="2" stroke-miterlimit="10">
@@ -238,12 +240,17 @@
 					</svg>
 				</button>
 			</div>
-			<div :style="{ width: width / 2 + 'px' }" class="grid grid-cols-4 grid-rows-2 bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+			<div :style="{cursorStyle}" 
+				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 rounded-lg
+				w-full h-full lg:h-1/2 max-w-full max-h-full min-h-0
+				bg-sidebar border-4 border-solid border-pink-pastel-300">
 				<button :style="cursorStyle" 
-					class="col-span-1 col-end-2 bg-sidebar hover:bg-lavender-pastel-200 flex justify-center" 
+					class="col-span-1 col-end-2
+					w-full h-full
+					bg-sidebar hover:bg-lavender-pastel-200 flex justify-center" 
 					@click="clear">
 					<svg 
-						class="size-25" 
+						class=" h-full w-full" 
 						viewBox="0 0 512 512" 
 						xmlns="http://www.w3.org/2000/svg">
 						<g>
@@ -270,11 +277,11 @@
 				</button>
 				<button :style="cursorStyle"
 					:class="isBucket ? 'bg-sidebar' : 'bg-lavender-pastel-200'"
-					class="hover:bg-lavender-pastel-200" 
+					class="hover:bg-lavender-pastel-200 w-full h-full" 
 					@click="isBucket = false">
 					<svg 
 						xmlns="http://www.w3.org/2000/svg"
-						class="size-25 w-30"
+						class=" h-full w-full"
 						viewBox="0 0 640 640">
 						<path fill="rgb(116, 192, 252)" d="M512.5 74.3L291.1 222C262 241.4 243.5 272.9 240.5 307.3C302.8 320.1 351.9 369.2 364.8 431.6C399.3 428.6 430.7 410.1 450.1 381L597.7 159.5C604.4 149.4 608 137.6 608 125.4C608 91.5 580.5 64 546.6 64C534.5 64 522.6 67.6 512.5 74.3zM320 464C320 402.1 269.9 352 208 352C146.1 352 96 402.1 96 464C96 467.9 96.2 471.8 96.6 475.6C98.4 493.1 86.4 512 68.8 512L64 512C46.3 512 32 526.3 32 544C32 561.7 46.3 576 64 576L208 576C269.9 576 320 525.9 320 464z"/>
 					</svg>
@@ -285,7 +292,7 @@
 					@click="isBucket = true">
 					<svg 
 						xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-						class="size-25 w-30"
+						class=" h-full w-full"
 						viewBox="0 0 60 60"
 						version="1.1">
 						<title>016 - Paint Bucket</title><desc>Created with Sketch.</desc><defs/>
@@ -334,7 +341,7 @@
 					@click="penStroke = '4', penSizeActive = 1">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
-					class="h-25"
+					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
 						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
@@ -348,7 +355,7 @@
 					@click="penStroke = '8', penSizeActive = 2">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
-					class="h-25"
+					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
 						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
@@ -358,11 +365,13 @@
 				</button>
 				<button :style="cursorStyle"
 					:class="penSizeActive === 3 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
-					class="flex justify-center hover:bg-lavender-pastel-200"
+					class="flex justify-center 
+					w-full h-full
+					hover:bg-lavender-pastel-200"
 					@click="penStroke = '16', penSizeActive = 3">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
-					class="h-25"
+					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
 						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
@@ -376,7 +385,7 @@
 					@click="penStroke = '32', penSizeActive = 4">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
-					class="h-25"
+					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
 						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
