@@ -100,19 +100,16 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(user)
         data = serializer.data
 
+        # fmt: off
         # Add available nested routes
         data["available_routes"] = {
             "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
-            "nyancoins": request.build_absolute_uri(
-                f"/api/users/{user.username}/nyancoins/"
-            ),
+            "nyancoins": request.build_absolute_uri(f"/api/users/{user.username}/nyancoins/"),
             "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
             "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
-            "max-pixels": request.build_absolute_uri(
-                f"/api/users/{user.username}/max-pixels/"
-            ),
+            "max-pixels": request.build_absolute_uri(f"/api/users/{user.username}/max-pixels/"),
         }
-
+        # fmt: on
         return Response(data)
 
 
