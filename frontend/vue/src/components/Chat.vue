@@ -38,7 +38,6 @@ export default {
       messageInput: ''
     };
   },
-
   mounted() {
     this.connectWebSocket();
   },
@@ -57,28 +56,84 @@ export default {
 
 	  console.log('Chat socket connected to ' + this.roomName);
       this.chatSocket.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        this.chatLog += data.message + '\n';
+        this.handleSocketMessage(e);
       };
 
       this.chatSocket.onclose = (e) => {
         console.log('Chat socket closed');
       };
     },
-    sendMessage() {
-      if (this.messageInput.trim()) {
-        this.chatSocket.send(JSON.stringify({
-          message: this.messageInput
-        }));
-		this.scrollText();
-        this.messageInput = '';
+    handleSocketMessage(e) {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'history' && Array.isArray(data.messages)) {
+        this.chatLog = data.messages
+          .map((message) => this.formatMessage(message))
+          .filter(Boolean)
+          .join('\n');
+
+        if (this.chatLog) {
+          this.chatLog += '\n';
+        }
+
+        this.$nextTick(this.scrollText);
+        return;
+      }
+
+      if (data.type === 'message') {
+        this.appendMessage(data.message);
+        return;
+      }
+
+      if (data.message) {
+        this.appendMessage(data.message);
       }
     },
-	scrollText() {
-	    var textarea = document.getElementById('chat-log');
-	    textarea.value += document.getElementById('chat-message-submit').value + "\n";            
-	    textarea.scrollTop = textarea.scrollHeight;
-	}
+    sendMessage() {
+      const message = this.messageInput.trim();
+
+      if (!message || !this.chatSocket || this.chatSocket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      this.chatSocket.send(JSON.stringify({
+        message
+      }));
+      this.messageInput = '';
+    },
+    appendMessage(message) {
+      const formattedMessage = this.formatMessage(message);
+
+      if (!formattedMessage) {
+        return;
+      }
+
+      this.chatLog += formattedMessage + '\n';
+      this.$nextTick(this.scrollText);
+    },
+	  formatMessage(message) {
+        if (typeof message === 'string') {
+          return message;
+        }
+
+        if (!message) {
+          return '';
+        }
+
+        const author = message.author || 'anonymous';
+        const text = message.text || message.message || '';
+
+        return text ? `${author}: ${text}` : '';
+	  },
+	  scrollText() {
+	      const textarea = document.getElementById('chat-log');
+
+          if (!textarea) {
+            return;
+          }
+
+	      textarea.scrollTop = textarea.scrollHeight;
+	  }
   }
 };
 </script>
