@@ -87,12 +87,11 @@ export default {
 @import "@/style.css";
 
 textarea {
-	display: block;
-	cursor: text;
+	cursor: pointer;
 	height: auto;
 	min-width: 30em;
-    max-width: 100%;
-    min-height: 10em;
+  max-width: 100%;
+  min-height: 10em;
 	overflow: auto;
 }
 
@@ -115,22 +114,4 @@ textarea {
 	width:15%;
 	margin-left:5%;
 }
-
-.fscreen {
-  @apply h-[calc(100dvh-5rem)] w-dvw
-}
-
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-
-body {
-  @apply bg-bg-main pt-20
-}
-
 </style>
