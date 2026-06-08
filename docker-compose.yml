@@ -57,6 +57,15 @@ services:
     depends_on:
       back:
         condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore: 
+            - .jj
+            - .git
+            - .direnv
 
   redis:
     image: redis:alpine
