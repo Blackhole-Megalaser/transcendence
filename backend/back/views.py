@@ -6,6 +6,7 @@ from django.contrib import messages
 from rest_framework import permissions, viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
@@ -78,97 +79,36 @@ def account_modify(request):
 
 
 # /users/
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
-    lookup_field = "username"
-    lookup_value_regex = "[a-zA-Z0-9-_@.+]+"
+class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
 
-    @action(
-        detail=False,
-        url_path="me",
-        methods=["get"],
-        permission_classes=[permissions.IsAuthenticated],
-    )
-    def me(self, request):
-        serializer = self.get_serializer(request.user, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_parent_user(self):
+        username = self.kwargs.get("user_username")
+        if username is None:
+            return self.request.user
+        if username != self.request.user.username and not self.request.user.is_staff:
+            raise PermissionDenied("You cannot access another user's profile data.")
+        return get_object_or_404(User, username=username)
 
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user)
-        data = serializer.data
+    def get_queryset(self):
+        parent_user = self.get_parent_user()
+        return (
+            UserProfile.objects.select_related("user")
+            .prefetch_related("unlocked_colors", "unlocked_wordlists")
+            .filter(user=parent_user)
+        )
 
-        # fmt: off
-        # Add available nested routes
-        data["available_routes"] = {
-            "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
-            "nyancoins": request.build_absolute_uri(f"/api/users/{user.username}/nyancoins/"),
-            "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
-            "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
-            "max-pixels": request.build_absolute_uri(f"/api/users/{user.username}/max-pixels/"),
-        }
-        # fmt: on
-        return Response(data)
-
-
-# /users/{username}/
-class TplaceViewSet(viewsets.ModelViewSet):
+class TplaceViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = TplaceSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        username = self.kwargs.get("user_username")
-        if username is not None:
-            get_object_or_404(UserProfile, user__username=username)
-            return UserProfile.objects.filter(user__username=username)
-        return UserProfile.objects.all()
-
-
-class NyancoinsViewSet(viewsets.ModelViewSet):
+class NyancoinsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = NyancoinsSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        username = self.kwargs.get("user_username")
-        if username is not None:
-            get_object_or_404(UserProfile, user__username=username)
-            return UserProfile.objects.filter(user__username=username)
-        return UserProfile.objects.all()
-
-
-class ColorsViewSet(viewsets.ModelViewSet):
+class ColorsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = ColorsSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        username = self.kwargs.get("user_username")
-        if username is not None:
-            get_object_or_404(UserProfile, user__username=username)
-            return UserProfile.objects.filter(user__username=username)
-        return UserProfile.objects.all()
-
-
-class PixelsViewSet(viewsets.ModelViewSet):
+class PixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = PixelsSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        username = self.kwargs.get("user_username")
-        if username is not None:
-            get_object_or_404(UserProfile, user__username=username)
-            return UserProfile.objects.filter(user__username=username)
-        return UserProfile.objects.all()
-
-
-class MaxPixelsViewSet(viewsets.ModelViewSet):
+class MaxPixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = MaxPixelsSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        username = self.kwargs.get("user_username")
-        if username is not None:
-            get_object_or_404(UserProfile, user__username=username)
-            return UserProfile.objects.filter(user__username=username)
-        return UserProfile.objects.all()
