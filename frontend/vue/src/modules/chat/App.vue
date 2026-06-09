@@ -9,14 +9,16 @@
     />
     <section 
       :class="openRoomSelection ? 'pl-72 xl:pl-80' : 'pl-0'"
-      class="z-10"
+      class="z-10 transition-transform duration-200"
     >
-      <div class="w-full flex justify-center items-center py-6 bg-navbar shadow-sm">
-        <component 
+      <div class="w-full flex justify-between px-4 items-center bg-navbar shadow-sm">
+        <component
           :is="menu"
-          class="text-navbar-menu size-8"
+          class="stroke-navbar-menu size-10 cursor-pointer"
+          @click="openRoomSelection = !openRoomSelection"
         />
-        <h2 class="text-title text-xl font-bold">{{ formatChanName(currentChannel) }}</h2>
+        <h2 class="text-title h-8 text-xl font-bold my-4">{{ formatChanName(currentChannel) }}</h2>
+        <div class="size-10"/>
       </div>
       <div class="h-[calc(100dvh-160px)]">
         <Chat
