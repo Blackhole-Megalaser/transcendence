@@ -1,43 +1,81 @@
 <script setup>
-	import { ref, onMounted, computed } from 'vue';
+	import { ref, onMounted, onUnmounted, computed } from 'vue';
 	import bucket from './bucket.png'
 
-	const width = 1000;
-	const height = 500;
+	let width = ref('1000');
+	let height = ref('500');
 	const canvasRef = ref(null);
 	const vueCanvas = ref(null);
+	let resizeObserver = null;
+
 	const isDrawing = ref(false);
 	const isBucket = ref(false);
 	const coord = ref({x: 0, y: 0});
 	const penColor = ref('#000000');
 	const penStroke = ref('4');
 	const penSizeActive = ref('1');
-	
 	const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
-
 	const history = ref([]); 
 	let currentPath = null;
 	
 	onMounted(() => {
 		vueCanvas.value = canvasRef.value.getContext("2d");
+
+		resizeObserver = new ResizeObserver(resizeCanvas);
+		resizeObserver.observe(canvasRef.value.parentElement);
 	});
 
+	onUnmounted(() => {
+		if (resizeObserver) {
+			resizeObserver.disconnect();
+		}
+	});
+
+	const resizeCanvas = () => {
+		const canvas = canvasRef.value;
+		if (!canvas) return;
+
+		const rect = canvas.parentElement.getBoundingClientRect();
+
+		const reresolutionFactor = 1; 
+
+		canvas.width = rect.width / reresolutionFactor;
+		canvas.height = rect.height / reresolutionFactor;
+		width.value = rect.width;
+		height.value = rect.height;
+
+		redrawLines();
+	};
+
 	const reposition = (event) => {
-		coord.value.x = event.offsetX;
-		coord.value.y = event.offsetY;
+		const canvas = canvasRef.value;
+		if (!canvas) return;
+
+		const rect = canvas.getBoundingClientRect();
+
+		const xMouseRel = event.clientX - rect.left;
+		const yMouseRel = event.clientY - rect.top;
+
+		coord.value.x = xMouseRel * (canvas.width / rect.width);
+		coord.value.y = yMouseRel * (canvas.height / rect.height);
 	};
 	
 	const start = (event) => {
+		reposition(event);
+		
 		if (isBucket.value) {
-			fill(event.offsetX, event.offsetY);
+			fill(Math.floor(coord.value.x), Math.floor(coord.value.y));
 			return;
 		}
 		isDrawing.value = true;
-		reposition(event);
 	
 		currentPath = {
+			type: 'paint',
 			color: penColor.value,
-			points: [{ x: coord.value.x, y: coord.value.y }]
+			points: [{ 
+				x: coord.value.valueX / width.value,  // ex: 600 / 1200 = 0.5
+				y: coord.value.y / height.value 
+			}]
 		};
 	};
 	
@@ -57,10 +95,13 @@
 		ctx.stroke();
 	
 		if (currentPath) {
-			currentPath.points.push({ x: coord.value.x, y: coord.value.y });
+			currentPath.points.push({ 
+				x: coord.value.x / width.value, 
+				y: coord.value.y / height.value 
+			});
 		}
 	};
-	
+		
 	const stop = () => {
 		isDrawing.value = false;
 		if (currentPath) {
@@ -70,7 +111,7 @@
 	};
 	
 	const clear = () => {
-		vueCanvas.value.clearRect(0, 0, 1000, 600);
+		vueCanvas.value.clearRect(0, 0, width.value, height.value);
 		history.value = [];
 	};
 		
@@ -86,24 +127,85 @@
 
 	const redrawLines = () => {
 		const ctx = vueCanvas.value;
+		if (!ctx) return;
 	
-		ctx.lineWidth = 4;
-		ctx.lineCap = 'round';
+		const currentWidth = width.value;
+		const currentHeight = height.value;
 	
-		history.value.forEach(path => {
-			if (path.points.length < 2) return;
+		history.value.forEach(action => {
+			if (!action.type || action.type === 'paint') {
+				if (action.points.length < 2) return;
 	
-			ctx.beginPath();
-			ctx.strokeStyle = path.color;
-			ctx.moveTo(path.points[0].x, path.points[0].y);
+				ctx.lineWidth = 4;
+				ctx.lineCap = 'round';
+				ctx.beginPath();
+				ctx.strokeStyle = action.color;
+				
+				ctx.moveTo(action.points[0].x * currentWidth, action.points[0].y * currentHeight);
 	
-			for (let i = 1; i < path.points.length; i++) {
-				ctx.lineTo(path.points[i].x, path.points[i].y);
+				for (let i = 1; i < action.points.length; i++) {
+					ctx.lineTo(action.points[i].x * currentWidth, action.points[i].y * currentHeight);
+				}
+				ctx.stroke();
+			} 
+			
+			else if (action.type === 'fill') {
+				const realX = Math.floor(action.x * currentWidth);
+				const realY = Math.floor(action.y * currentHeight);
+				runFillSilently(realX, realY, action.color);
 			}
-			ctx.stroke();
 		});
 	};
 		
+const runFillSilently = (startX, startY, targetColor) => {
+    const ctx = vueCanvas.value;
+    const currentWidth = Math.floor(width.value);
+    const currentHeight = Math.floor(height.value);
+    
+    if (currentWidth <= 0 || currentHeight <= 0) return;
+
+    const imageData = ctx.getImageData(0, 0, currentWidth, currentHeight);
+    const data = imageData.data;
+
+    const startPos = (startY * currentWidth + startX) * 4;
+    const startR = data[startPos];
+    const startG = data[startPos + 1];
+    const startB = data[startPos + 2];
+    const startA = data[startPos + 3];
+
+    const [fillR, fillG, fillB] = hexToRgb(targetColor);
+
+    if (startR === fillR && startG === fillG && startB === fillB && startA === 255) return;
+
+    const pixelStack = [[startX, startY]];
+    const match = (x, y) => {
+        const pos = (y * currentWidth + x) * 4;
+        return data[pos] === startR && data[pos+1] === startG && data[pos+2] === startB && data[pos+3] === startA;
+    };
+
+    while (pixelStack.length > 0) {
+        const [cx, cy] = pixelStack.pop();
+        let x = cx; let y = cy;
+        while (x >= 0 && match(x, y)) x--;
+        x++;
+        let reachUp = false; let reachDown = false;
+        while (x < currentWidth && match(x, y)) {
+            const pos = (y * currentWidth + x) * 4;
+            data[pos] = fillR; data[pos + 1] = fillG; data[pos + 2] = fillB; data[pos + 3] = 255;
+            if (y > 0) {
+                if (match(x, y - 1)) { if (!reachUp) { pixelStack.push([x, y - 1]); reachUp = true; } }
+                else if (reachUp) reachUp = false;
+            }
+            if (y < currentHeight - 1) {
+                if (match(x, y + 1)) { if (!reachDown) { pixelStack.push([x, y + 1]); reachDown = true; } }
+                else if (reachDown) reachDown = false;
+            }
+            x++;
+        }
+    }
+    ctx.putImageData(imageData, 0, 0);
+};
+	
 	const hexToRgb = (hex) => {
 		const r = parseInt(hex.slice(1, 3), 16);
 		const g = parseInt(hex.slice(3, 5), 16);
@@ -112,65 +214,99 @@
 	};
 		
 	const fill = (startX, startY) => {
-		const ctx = vueCanvas.value;
-		const imageData = ctx.getImageData(0, 0, width, height);
-		const data = imageData.data;
-	
-		const startPos = (startY * width + startX) * 4;
-		const startR = data[startPos];
-		const startG = data[startPos + 1];
-		const startB = data[startPos + 2];
-		const startA = data[startPos + 3];
-	
-		const [fillR, fillG, fillB] = hexToRgb(penColor.value);
-	
-		if (startR === fillR && startG === fillG && startB === fillB && startA === 255) {
-			return;
-		}
-	
-		const pixelStack = [[startX, startY]];
-		const visited = new Uint8Array(width * height);
-		
-		const tolerance = 0; 
-	
-		while (pixelStack.length > 0) {
-			const [x, y] = pixelStack.pop();
-			const pixelIdx = y * width + x;
-			const pos = pixelIdx * 4;
-	
-			if (visited[pixelIdx]) continue;
-			visited[pixelIdx] = 1;
-	
-			const r = data[pos];
-			const g = data[pos + 1];
-			const b = data[pos + 2];
-			const a = data[pos + 3];
-	
-			const matchStart = Math.abs(r - startR) <= tolerance &&
-								 Math.abs(g - startG) <= tolerance &&
-								 Math.abs(b - startB) <= tolerance &&
-								 Math.abs(a - startA) <= tolerance;
-			 
-			data[pos] = fillR;
-			data[pos + 1] = fillG;
-			data[pos + 2] = fillB;
-			data[pos + 3] = 255;
-			if (matchStart) {
-				if (x > 0) pixelStack.push([x - 1, y]);
-				if (x < width - 1) pixelStack.push([x + 1, y]);
-				if (y > 0) pixelStack.push([x, y - 1]);
-				if (y < height - 1) pixelStack.push([x, y + 1]);
-			}
-		}
-	
-		ctx.putImageData(imageData, 0, 0);
-		redrawLines();
-	};
+    const ctx = vueCanvas.value;
+    const currentWidth = Math.floor(width.value);
+    const currentHeight = Math.floor(height.value);
+    
+    if (currentWidth <= 0 || currentHeight <= 0) return;
+
+    const imageData = ctx.getImageData(0, 0, currentWidth, currentHeight);
+    const data = imageData.data;
+
+    const startPos = (startY * currentWidth + startX) * 4;
+    const startR = data[startPos];
+    const startG = data[startPos + 1];
+    const startB = data[startPos + 2];
+    const startA = data[startPos + 3];
+
+    const [fillR, fillG, fillB] = hexToRgb(penColor.value);
+
+    if (startR === fillR && startG === fillG && startB === fillB && startA === 255) {
+        return;
+    }
+
+    const tolerance = 0;
+    const pixelStack = [[startX, startY]];
+
+    const match = (x, y) => {
+        const pos = (y * currentWidth + x) * 4;
+        return Math.abs(data[pos] - startR) <= tolerance &&
+               Math.abs(data[pos + 1] - startG) <= tolerance &&
+               Math.abs(data[pos + 2] - startB) <= tolerance &&
+               Math.abs(data[pos + 3] - startA) <= tolerance;
+    };
+
+    while (pixelStack.length > 0) {
+        const [cx, cy] = pixelStack.pop();
+        let x = cx;
+        let y = cy;
+
+        while (x >= 0 && match(x, y)) {
+            x--;
+        }
+        x++;
+
+        let reachUp = false;
+        let reachDown = false;
+
+        while (x < currentWidth && match(x, y)) {
+            const pos = (y * currentWidth + x) * 4;
+            data[pos] = fillR;
+            data[pos + 1] = fillG;
+            data[pos + 2] = fillB;
+            data[pos + 3] = 255;
+
+            if (y > 0) {
+                if (match(x, y - 1)) {
+                    if (!reachUp) {
+                        pixelStack.push([x, y - 1]);
+                        reachUp = true;
+                    }
+                } else if (reachUp) {
+                    reachUp = false;
+                }
+            }
+
+            if (y < currentHeight - 1) {
+                if (match(x, y + 1)) {
+                    if (!reachDown) {
+                        pixelStack.push([x, y + 1]);
+                        reachDown = true;
+                    }
+                } else if (reachDown) {
+                    reachDown = false;
+                }
+            }
+
+            x++;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+	history.value.push({
+        type: 'fill',
+        x: startX / currentWidth,
+        y: startY / currentHeight,
+        color: penColor.value
+    });
+    redrawLines();
+};
 		
 </script>
 
 <template>
 	<div class="w-full h-full">
+		{{ width }} / {{ height }}
 		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr]
 			gap-2 w-full h-full max-w-full max-h-full p-4
 			bg-bg-main">
