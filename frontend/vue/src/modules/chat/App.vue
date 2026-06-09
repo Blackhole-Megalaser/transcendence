@@ -18,7 +18,7 @@
           @click="openRoomSelection = !openRoomSelection"
         />
         <h2 class="text-title h-8 text-xl font-bold my-4">{{ formatChanName(currentChannel) }}</h2>
-        <div class="size-10"/>
+        <div class="size=10"></div>
       </div>
       <div class="h-[calc(100dvh-160px)]">
         <Chat
@@ -40,29 +40,50 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted }  from 'vue';
-import menu                             from '@assets/menu-chat.svg'
+import menu                             from '@assets/menu-chat.svg';
 
 const openRoomSelection = ref(false);
-const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox']
-const currentChannel    = ref('general')
+const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox'];
+const currentChannel    = ref('general');
 
 const formatChanName  = (str) => {
   const lowerCaseWithSpaces = str.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
   return lowerCaseWithSpaces.charAt(0).toUpperCase() + lowerCaseWithSpaces.slice(1); 
 }
 
-const changeChannel   = (channelName) => {
-  
-  if (currentChannel === channelName) return;
-
-  if (!existingChannels.find((chan) => chan === channelName)) {
+const getChannelFromUrl = () => {
+  const URLParams = new URLSearchParams(window.location.search);
+  const room      = URLParams.get('room');
+  if (!room) {
+    const newURL = `${window.location.pathname}?room=general`;
+    window.history.pushState({ path: newURL }, '', newURL )
+    currentChannel.value = 'general';
+    return ;
+  }
+  else if (!existingChannels.find((chan) => chan === room)) {
     window.location.href = '/error_404';
     return ;
-  } 
-  
+  }
+  else {
+    currentChannel.value = room;
+  }
+  document.title = `Chat - ${currentChannel.value}`;
+}
+
+const changeChannel   = (channelName) => {
+  if (currentChannel === channelName) return;
   const newURL = `${window.location.pathname}?room=${channelName}`;
   currentChannel.value = channelName;
+  window.history.pushState({ path: newURL }, formatChanName(currentChannel.value), newURL)
 }
+
+onMounted(() => {
+  getChannelFromUrl();
+  window.addEventListener('popstate', getChannelFromUrl());
+})
+onUnmounted(() => {
+  window.removeEventListener('popstate', getChannelFromUrl());
+})
 </script>
 
 <style scoped>
