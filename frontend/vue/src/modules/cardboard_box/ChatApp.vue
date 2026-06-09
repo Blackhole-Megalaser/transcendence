@@ -1,6 +1,6 @@
 <template>
   <BasePage>
-    <Chat :initialRoomName="'Cardboard_box'"/>
+    <Chat initialRoomName="Cardboard_box"/>
   </BasePage>
 </template>
 
