@@ -3,15 +3,12 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from rest_framework import permissions, viewsets, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
 from .serializers import (
-    UserSerializer,
     TplaceSerializer,
     NyancoinsSerializer,
     ColorsSerializer,
