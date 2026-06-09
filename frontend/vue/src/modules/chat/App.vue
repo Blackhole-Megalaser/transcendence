@@ -79,13 +79,9 @@ const changeChannel   = (channelName) => {
 
 onMounted(() => {
   getChannelFromUrl();
-  window.addEventListener('popstate', getChannelFromUrl());
+  window.addEventListener('popstate', getChannelFromUrl);
 })
 onUnmounted(() => {
-  window.removeEventListener('popstate', getChannelFromUrl());
+  window.removeEventListener('popstate', getChannelFromUrl);
 })
 </script>
-
-<style scoped>
-
-</style>
