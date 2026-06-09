@@ -1,5 +1,5 @@
 <template>
-  <section class="h-[calc(100vh-160px)] p-2 sm:p-4 text-text-main flex flex-col">
+  <section class="h-full p-2 sm:p-4 text-text-main flex flex-col">
     <textarea
       class="w-full p-4 resize-none flex-1" 
       id="chat-log" 

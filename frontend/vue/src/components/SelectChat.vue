@@ -44,9 +44,9 @@ hr {
   @apply h-px border-sidebar-border my-6 mx-4;
 }
 li {
-  @apply w-full text-text-main font-semibold text-lg flex items-center px-6
+  @apply w-full text-text-main font-semibold text-lg px-6
 }
 button {
-  @apply w-full hover:bg-button-2-normal px-6 py-2 rounded-full
+  @apply w-full hover:bg-button-2-normal px-6 py-2 flex items-center justify-start rounded-full
 }
 </style>
