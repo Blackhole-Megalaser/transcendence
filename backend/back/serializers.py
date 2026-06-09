@@ -26,7 +26,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             return url
         return None
 
-
 # /users/{username}/
 class TplaceSerializer(serializers.ModelSerializer):
     unlocked_colors = serializers.StringRelatedField(many=True, read_only=True)
@@ -43,13 +42,13 @@ class TplaceSerializer(serializers.ModelSerializer):
             "unlocked_colors",
             "unlocked_wordlists",
         ]
-
+        read_only_fields = fields
 
 class NyancoinsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["nyancoins"]
-
+        read_only_fields = fields
 
 class ColorsSerializer(serializers.ModelSerializer):
     unlocked_colors = serializers.StringRelatedField(many=True, read_only=True)
@@ -57,7 +56,7 @@ class ColorsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["unlocked_colors"]
-
+        read_only_fields = fields
 
 class PixelsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,9 +67,10 @@ class PixelsSerializer(serializers.ModelSerializer):
             "regeneration_delay",
             "next_regeneration",
         ]
-
+        read_only_fields = fields
 
 class MaxPixelsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["max_placable_pixels"]
+        read_only_fields = fields
