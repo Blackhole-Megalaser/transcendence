@@ -1,21 +1,21 @@
 <template>
-  <section class="h-full p-2 sm:p-4 text-text-main">
-    <div>
-      <textarea 
-        class="chatbox" 
-        id="chat-log" 
-        v-model="chatLog" 
-        disabled
+  <section class="h-[calc(100vh-160px)] p-2 sm:p-4 text-text-main flex flex-col">
+    <textarea
+      class="w-full p-4 resize-none flex-1" 
+      id="chat-log" 
+      v-model="chatLog"
+      disabled
+    />
+    <div class="flex-center h-8 w-full gap-3 flex-none">
+      <input class="border border-text-main rounded-full py-2 px-4 w-full"
+        id="chat-message-input"
+        v-model="messageInput"
+        @keyup.enter="sendMessage"
+        placeholder="Type a meowssage..."
       />
-      <div class="flex-center w-full">
-        <input class="inputbox"
-          id="chat-message-input"
-          v-model="messageInput"
-          @keyup.enter="sendMessage"
-          placeholder="Type a meowssage..."
-        />
-        <Button class="sendbox" id="chat-message-submit" @click="sendMessage">Send</Button>
-	    </div>
+      <div class="w-28">
+        <Button id="chat-message-submit" @click="sendMessage">Send</Button>
+      </div>
     </div>
   </section>
 </template>
@@ -25,7 +25,6 @@ import Button from '@components/Button.vue';
 </script>
 
 <script>
-
 export default {
   props: {
     initialRoomName: {
@@ -89,23 +88,4 @@ export default {
 <style scoped>
 @import "@/style.css";
 
-.chatbox {
-	height:100%;
-	width:100%;
-	border: 4mm ridge rgb(211 220 50 / 0.6);
-	margin-top:5%;
-	padding:0.4%;
-}
-
-.inputbox {
-	border: solid white;
-	margin-top:1%;
-	margin-bottom:1%;
-	padding:0.4%;
-}
-
-.sendbox {
-	width:15%;
-	margin-left:5%;
-}
 </style>

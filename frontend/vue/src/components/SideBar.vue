@@ -48,7 +48,7 @@
             </div>
           </li>
           <li class="h-10 flex items-center">
-            <a href="/chat/cat_hideout" class="w-full">
+            <a href="/chat" class="w-full">
               <ButtonSideBar>Chat rooms</ButtonSideBar>
             </a>
           </li>
