@@ -6,7 +6,8 @@ import datetime
 
 
 class Color(models.Model):
-    color = models.TextField()
+    name = models.TextField()
+    hex_code = models.TextField()
     cost = models.IntegerField(validators=[MinValueValidator(0)], default=0)
 
 
