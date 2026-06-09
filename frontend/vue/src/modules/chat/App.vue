@@ -1,13 +1,13 @@
 <template>
-  <BasePage class="flex">
+  <BasePage>
     <SelectChat
       @general="changeChannel('general')"
       @naughty="changeChannel('naughtyCatHideout')"
       @cute="changeChannel('cutieCardboardBox')"
-      class="fixed"
+      class="fixed z-15"
     />
-    <section class="pl-72 xl:pl-80">
-      <div class="w-full flex-center py-6 bg-pink-100 shadow-sm">
+    <section class="pl-72 xl:pl-80 z-10">
+      <div class="w-full flex justify-center py-6 bg-navbar shadow-sm">
         <h2 class="text-title text-xl font-bold">{{ formatChanName(currentChannel) }}</h2>
       </div>
       <Chat
