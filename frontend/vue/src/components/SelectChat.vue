@@ -6,10 +6,13 @@
     <hr>
     <ul>
       <li>
-        <a href="/chat/cat_hideout">Cat Hideout</a>
+        <button @click="$emit('general')">General</button>
       </li>
       <li>
-        <a href="/chat/cardboard_box">Cardboard Box</a>
+        <button @click="$emit('naughty')">Naughty Cat Hideout</button>
+      </li>
+      <li>
+        <button @click="$emit('cute')">Cutie Cardboard Box</button>
       </li>
     </ul>
   </div>
@@ -19,17 +22,19 @@
 import { ref, computed }  from 'vue';
 import { useBreakpoints } from '@vueuse/core';
 
+
+defineEmits(['general', 'naughty', 'cute']);
+
 const props = defineProps({
   openSelect: {
     type: Boolean,
     default: false
   }
-})
+});
 
 const breakpoints   = useBreakpoints({ xl: 1280 });
 const isSmallScreen = breakpoints.smaller("xl");
 const isOpen        = ref("yes");
-
 </script>
 
 <style scoped>
@@ -39,9 +44,9 @@ hr {
   @apply h-px border-sidebar-border my-6 mx-4;
 }
 li {
-  @apply w-full text-text-main font-semibold text-lg flex items-center pl-12
+  @apply w-full text-text-main font-semibold text-lg flex items-center px-6
 }
-a {
-  @apply w-full hover:bg-button-2-normal px-4 py-2 rounded-full
+button {
+  @apply w-full hover:bg-button-2-normal px-6 py-2 rounded-full
 }
 </style>

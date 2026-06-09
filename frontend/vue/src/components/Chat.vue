@@ -1,24 +1,27 @@
 <template>
-  <section class="h-full bg-bg-main p-2 sm:p-4 text-text-main">
+  <section class="h-full p-2 sm:p-4 text-text-main">
     <div>
-    <textarea class="chatbox" id="chat-log" v-model="chatLog" readonly></textarea>
-   <center>
-	  <input class="inputbox"
-        id="chat-message-input"
-        v-model="messageInput"
-        @keyup.enter="sendMessage"
-        placeholder="Type a meowssage..."
-       />
-      <Button class="sendbox" id="chat-message-submit" @click="sendMessage">Send</Button>
-	</center>
-  </div>
+      <textarea 
+        class="chatbox" 
+        id="chat-log" 
+        v-model="chatLog" 
+        disabled
+      />
+      <div class="flex-center w-full">
+        <input class="inputbox"
+          id="chat-message-input"
+          v-model="messageInput"
+          @keyup.enter="sendMessage"
+          placeholder="Type a meowssage..."
+        />
+        <Button class="sendbox" id="chat-message-submit" @click="sendMessage">Send</Button>
+	    </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-
 import Button from '@components/Button.vue';
-
 </script>
 
 <script>
@@ -85,15 +88,6 @@ export default {
 
 <style scoped>
 @import "@/style.css";
-
-textarea {
-	cursor: pointer;
-	height: auto;
-	min-width: 30em;
-  max-width: 100%;
-  min-height: 10em;
-	overflow: auto;
-}
 
 .chatbox {
 	height:100%;
