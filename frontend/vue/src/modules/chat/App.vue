@@ -4,31 +4,43 @@
       @general="changeChannel('general')"
       @naughty="changeChannel('naughtyCatHideout')"
       @cute="changeChannel('cutieCardboardBox')"
-      class="fixed z-15"
+      class="fixed z-15 transition-transform duration-200"
+      :class="openRoomSelection ? 'translate-x-0' : '-translate-x-300'"
     />
-    <section class="pl-72 xl:pl-80 z-10">
-      <div class="w-full flex justify-center py-6 bg-navbar shadow-sm">
+    <section 
+      :class="openRoomSelection ? 'pl-72 xl:pl-80' : 'pl-0'"
+      class="z-10"
+    >
+      <div class="w-full flex justify-center items-center py-6 bg-navbar shadow-sm">
+        <component 
+          :is="menu"
+          class="text-navbar-menu size-8"
+        />
         <h2 class="text-title text-xl font-bold">{{ formatChanName(currentChannel) }}</h2>
       </div>
-      <Chat
-        initialRoomName="general"
-        v-if="currentChannel === 'general'" 
-      />
-      <Chat
-        initialRoomName="naughty_cat_hideout"
-        v-else-if="currentChannel === 'naughtyCatHideout'" 
-      />
-      <Chat
-        initialRoomName="cutie_cardboard_box"
-        v-else-if="currentChannel === 'cutieCardboardBox'" 
-      />
+      <div class="h-[calc(100dvh-160px)]">
+        <Chat
+          initialRoomName="general"
+          v-if="currentChannel === 'general'" 
+        />
+        <Chat
+          initialRoomName="naughty_cat_hideout"
+          v-else-if="currentChannel === 'naughtyCatHideout'" 
+        />
+        <Chat
+          initialRoomName="cutie_cardboard_box"
+          v-else-if="currentChannel === 'cutieCardboardBox'" 
+        />
+      </div>
     </section>
   </BasePage>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted }  from 'vue';
+import menu                             from '@assets/menu-chat.svg'
 
+const openRoomSelection = ref(false);
 const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox']
 const currentChannel    = ref('general')
 

@@ -3,8 +3,8 @@ import { useThemeStore }  from '@storage/theme';
 import { setupPinia }     from '@shared';
 import BasePage           from '@components/BasePage.vue';
 import Chat               from '@components/Chat.vue'; 
+import SelectChat         from '@components/SelectChat.vue';
 import App                from './App.vue';
-import SelectChat         from '../../components/SelectChat.vue';
 
 const app = createApp(App);
 const pinia = setupPinia();
