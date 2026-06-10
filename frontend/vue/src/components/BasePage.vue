@@ -1,10 +1,11 @@
 <template>
   <navBar
+    @showProfile="toggleSideProfile"
     @changeStatus="toggleSideBar"
     class="z-60"
-    @showProfile="toggleSideProfile"
     :mobileProfile="MaskNavIcons"
     :isLogin="islogin"
+    :variant="navBarVariant"
   />
   <SideProfile :open="showProfile" @keydown.=""/>
   <main class="fscreen" @click="closeProfile">
@@ -29,6 +30,10 @@ const props = defineProps({
   islogin: {
     type: Boolean,
     default: false
+  },
+  navBarVariant: {
+    type: String,
+    default: 'home'
   }
 })
 

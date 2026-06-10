@@ -1,5 +1,5 @@
 <template>
-  <BasePage>
+  <BasePage :navBarVariant="navBarControl">
     <div class="p-8 sm:p-12 sm:my-12 lg:p-20 lg:my-6 text-text-main">
       <h2 class="text-title text-3xl sm:text-5xl font-bold mb-8 self-center">Terms of Services</h2>
       <span class="my-12">
@@ -61,6 +61,22 @@
 
 
 <script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
+const scrollY = ref(0);
+const navBarControl = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+
+function handleScroll() {
+  scrollY.value = window.scrollY
+  console.log(navBarControl.value);
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+})
 </script>
 
 <style scoped>

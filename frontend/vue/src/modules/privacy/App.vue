@@ -1,5 +1,5 @@
 <template>
-  <BasePage>
+  <BasePage :navBarVariant="navBarControl">
     <div class="p-8 sm:p-12 sm:my-12 lg:p-20 lg:my-6 text-text-main">
       <h2 class="text-title text-3xl sm:text-5xl font-bold mb-8 self-center">
         Privacy Policy
@@ -13,17 +13,17 @@
           <h3>1. Information We Collect</h3>
           <p>
             Because you must create a profile to use the site, we collect:<br>
-            <ul>
-              <li class="pl-4 flex items-center gap-2.5">
-                <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="important">Account Data</span>: Username and password (stored locally for authentication purposes).</span>
-              </li>
-              <li class="pl-4 flex items-center gap-2.5 mt-0.5">
-                <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="important">User Content</span>: Profile pictures uploaded by the user.</span>
-              </li>
-            </ul>
           </p>
+          <ul>
+            <li class="pl-4 flex items-center gap-2.5">
+              <span class="size-1.5 rounded-full bg-title shrink-0"></span>
+              <span><span class="important">Account Data</span>: Username and password (stored locally for authentication purposes).</span>
+            </li>
+            <li class="pl-4 flex items-center gap-2.5 mt-0.5">
+              <span class="size-1.5 rounded-full bg-title shrink-0"></span>
+              <span><span class="important">User Content</span>: Profile pictures uploaded by the user.</span>
+            </li>
+          </ul>
         </li>
         <li class="caseli">
           <h3>2. How We Use Your Information</h3>
@@ -58,6 +58,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
+const scrollY = ref(0);
+const navBarControl = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+
+function handleScroll() {
+  scrollY.value = window.scrollY
+  console.log(navBarControl.value);
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+})
 </script>
 
 <style scoped>

@@ -1,5 +1,7 @@
 <template>
-  <BasePage>
+  <BasePage
+      navBarVariant="nav"
+  >
     <Update />
   </BasePage>
 </template>

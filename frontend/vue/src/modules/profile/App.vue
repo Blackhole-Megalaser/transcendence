@@ -1,5 +1,7 @@
 <template>
-  <BasePage>
+  <BasePage
+    NavBarVariant="nav"
+  >
     <Profile />
   </BasePage>
 </template>
