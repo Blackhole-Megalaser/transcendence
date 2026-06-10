@@ -3,12 +3,15 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
 from .serializers import (
+    UserSerializer,
     TplaceSerializer,
     NyancoinsSerializer,
     ColorsSerializer,
@@ -76,8 +79,45 @@ def account_modify(request):
 
 
 # /users/
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+    lookup_field = "username"
+    lookup_value_regex = "[a-zA-Z0-9-_@.+]+"
+
+    @action(
+        detail=False,
+        url_path="me",
+        methods=["get"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def me(self, request):
+        serializer = self.get_serializer(request.user, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        data = serializer.data
+
+        # fmt: off
+        # Add available nested routes
+        data["available_routes"] = {
+            "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
+            "nyancoins": request.build_absolute_uri(f"/api/users/{user.username}/nyancoins/"),
+            "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
+            "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
+            "max-pixels": request.build_absolute_uri(f"/api/users/{user.username}/max-pixels/"),
+        }
+        # fmt: on
+
+        return Response(data)
+
+
 class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
 
     def get_parent_user(self):
         username = self.kwargs.get("user_username")
