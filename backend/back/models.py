@@ -10,6 +10,9 @@ class Color(models.Model):
     hex_code = models.TextField()
     cost = models.IntegerField(validators=[MinValueValidator(0)], default=0)
 
+    def __str__(self):
+        return self.hex_code
+
 
 class WordList(models.Model):
     name = models.TextField(max_length=255)
