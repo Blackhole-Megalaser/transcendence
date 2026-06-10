@@ -1,5 +1,7 @@
 <template>
-  <BasePage>
+  <BasePage
+    navBarVariant="nav"
+  >
     <SelectChat
       @general="changeChannel('general')"
       @naughty="changeChannel('naughtyCatHideout')"
