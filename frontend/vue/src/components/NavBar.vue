@@ -43,7 +43,7 @@
                   Log in
                 </ButtonLogIn>
               </a>
-              <a href="signup" class="h-10 sm:w-28 hidden xl:flex justify-center items-center">
+              <a href="signup" class="h-10 sm:w-32 hidden xl:flex justify-center items-center">
                 <ButtonLogIn>
                   Sign Up
                 </ButtonLogIn>
