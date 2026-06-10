@@ -49,7 +49,7 @@ SILENCED_SYSTEM_CHECKS = [
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "front"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
