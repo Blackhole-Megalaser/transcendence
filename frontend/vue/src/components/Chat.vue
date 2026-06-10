@@ -46,9 +46,6 @@ export default {
   },
   beforeUnmount() {
     if (this.chatSocket) {
-      this.chatSocket.onclose = null;
-      this.chatSocket.onerror = null;
-      this.chatSocket.onmessage = null;
       this.chatSocket.close();
     }
   },

@@ -35,9 +35,27 @@ import { ref, onMounted, onUnmounted }  from 'vue';
 import { useBreakpoints }               from '@vueuse/core';
 import menu                             from '@assets/menu-chat.svg';
 
+const getChannelOnLoad  = () => {
+  if (typeof window === 'undefined') return 'general';
+  const URLParams = new URLSearchParams(window.location.search);
+  const room      = URLParams.get('room');
+  if (!room) {
+    const newURL = `${window.location.pathname}?room=general`;
+    window.history.pushState({ path: newURL }, '', newURL )
+    return 'general';
+  }
+  else if (!existingChannels.find((chan) => chan === room)) {
+    window.location.href = '/error_404';
+    return 'general';
+  }
+  else {
+    return room;
+  }
+}
+
 const openRoomSelection = ref(false);
 const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox'];
-const currentChannel    = ref('general');
+const currentChannel    = ref(getChannelOnLoad());
 const breakpoints       = useBreakpoints({ sm: 640 });
 const isSmallScreen     = breakpoints.smaller("sm");
 
@@ -52,7 +70,7 @@ const getChannelFromUrl = () => {
   if (!room) {
     const newURL = `${window.location.pathname}?room=general`;
     window.history.pushState({ path: newURL }, '', newURL )
-    currentChannel.value = 'general';
+    changeChannel('general');
     return ;
   }
   else if (!existingChannels.find((chan) => chan === room)) {
@@ -60,9 +78,8 @@ const getChannelFromUrl = () => {
     return ;
   }
   else {
-    currentChannel.value = room;
+    changeChannel(room);
   }
-  document.title = `Chat - ${currentChannel.value}`;
 }
 
 const changeChannel   = (channelName) => {
