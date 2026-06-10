@@ -25,8 +25,6 @@ export default defineConfig({
         tplace:         resolve(__dirname, 'tplace.html'),
         privacy:        resolve(__dirname, 'privacy.html'),
         terms:          resolve(__dirname, 'terms.html'),
-        cat_hideout:    resolve(__dirname, 'cat_hideout.html'),
-        cardboard_box:  resolve(__dirname, 'cardboard_box.html'),
         chat:           resolve(__dirname, 'chat.html'),
         login:          resolve(__dirname, 'login.html'),
         signup:         resolve(__dirname, 'signup.html'),

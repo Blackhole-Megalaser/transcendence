@@ -8,7 +8,7 @@
       :class="openRoomSelection ? 'translate-x-0' : '-translate-x-300'"
     />
     <section 
-      :class="openRoomSelection ? 'pl-72 xl:pl-80' : 'pl-0'"
+      :class="openRoomSelection ? 'pl-0 sm:pl-72 xl:pl-80' : 'pl-0'"
       class="z-10 transition-transform duration-200"
     >
       <div class="w-full flex justify-between px-4 items-center bg-navbar shadow-sm">
@@ -22,16 +22,8 @@
       </div>
       <div class="h-[calc(100dvh-160px)]">
         <Chat
-          initialRoomName="general"
-          v-if="currentChannel === 'general'" 
-        />
-        <Chat
-          initialRoomName="naughty_cat_hideout"
-          v-else-if="currentChannel === 'naughtyCatHideout'" 
-        />
-        <Chat
-          initialRoomName="cutie_cardboard_box"
-          v-else-if="currentChannel === 'cutieCardboardBox'" 
+          :key="currentChannel"
+          :initialRoomName="currentChannel"
         />
       </div>
     </section>
@@ -40,11 +32,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted }  from 'vue';
+import { useBreakpoints }               from '@vueuse/core';
 import menu                             from '@assets/menu-chat.svg';
 
 const openRoomSelection = ref(false);
 const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox'];
 const currentChannel    = ref('general');
+const breakpoints       = useBreakpoints({ sm: 640 });
+const isSmallScreen     = breakpoints.smaller("sm");
 
 const formatChanName  = (str) => {
   const lowerCaseWithSpaces = str.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
@@ -71,6 +66,7 @@ const getChannelFromUrl = () => {
 }
 
 const changeChannel   = (channelName) => {
+  if (isSmallScreen.value) openRoomSelection.value = false;
   if (currentChannel === channelName) return;
   const newURL = `${window.location.pathname}?room=${channelName}`;
   currentChannel.value = channelName;
