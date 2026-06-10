@@ -90,12 +90,11 @@ const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
 const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
-const isLogged    = ref(true);
+const isLogged    = ref(false);
 
 defineProps ({
   variant: {
     type: String,
-    default: "home"
   },
   mobileProfile: {
     type: Boolean,
@@ -113,7 +112,7 @@ defineProps ({
 @import "@/style.css";
 
 nav {
-  @apply fixed w-full top-0 h-20 lg:h-40
+  @apply fixed w-full top-0
 }
 button {
   @apply cursor-pointer
