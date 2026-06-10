@@ -306,39 +306,41 @@ const runFillSilently = (startX, startY, targetColor) => {
 
 <template>
 	<div class="w-full h-full">
-		{{ width }} / {{ height }}
-		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr]
+		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr_0.30fr]
 			gap-2 w-full h-full max-w-full max-h-full p-4
 			bg-bg-main">
 			<div class="order-2 lg:order-1 row-start-2 lg:row-start-1 
 				w-full h-full min-h-0
-				border-4 border-solid border-blue-500 bg-white">
+				border-4 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
 				<div class="bg-white ">
-					
+					<p>COUCOU</p>
 				</div>
 			</div>
 
 			<canvas :style="cursorStyle" ref="canvasRef"
 				class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
-                     border-4 border-solid border-red-500 bg-white
+                     border-4 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg
                      w-full h-full min-h-0 block"
 				@mousedown="start"
 				@mousemove="draw"
 				@mouseup="stop"
 				@mouseleave="stop">
 			</canvas>
+
 			<div class="order-3 row-start-2 lg:row-start-1
 				w-full h-full min-h-0
-				border-4 border-solid border-green-500 bg-white">
+				border-4 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
 				<div class="bg-white">
-	
+					<p>COUCOU</p>
+					<p>CA VA?</p>
 				</div>
 			</div>
+
 			<div :style="[cursorStyle, {backgroundColor: penColor}]" 
 				class="order-4 row-start-3 lg:row-start-2  col-start-1 lg:col-start-2
 					grid grid-flow-col grid-rows-1 justify-center
-					h-full lg:h-1/2 w-full max-w-full max-h-full min-h-0
-					bg-sidebar border-4 border-solid rounded-lg border-pink-pastel-300">
+					h-full w-full max-w-full max-h-full min-h-0 
+					bg-sidebar border-4 border-solid rounded-full overflow-hidden border-button-1-normal">
 				<button :style="[cursorStyle, {backgroundColor: penColor}]"
 					class="bg-sidebar w-full h-full">
 					<svg class="stroke-[0.5]  w-full h-full"
@@ -376,14 +378,15 @@ const runFillSilently = (startX, startY, targetColor) => {
 					</svg>
 				</button>
 			</div>
+
 			<div :style="{cursorStyle}" 
-				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 rounded-lg
-				w-full h-full lg:h-1/2 max-w-full max-h-full min-h-0
-				bg-sidebar border-4 border-solid border-pink-pastel-300">
+				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-full
+				w-full h-full max-w-full max-h-full min-h-0
+				bg-sidebar border-4 border-solid border-button-1-normal">
 				<button :style="cursorStyle" 
 					class="col-span-1 col-end-2
 					w-full h-full
-					bg-sidebar hover:bg-lavender-pastel-200 flex justify-center" 
+					bg-sidebar hover:bg-navbar-menu flex justify-center" 
 					@click="clear">
 					<svg 
 						class=" h-full w-full" 
@@ -412,8 +415,8 @@ const runFillSilently = (startX, startY, targetColor) => {
 					</svg>
 				</button>
 				<button :style="cursorStyle"
-					:class="isBucket ? 'bg-sidebar' : 'bg-lavender-pastel-200'"
-					class="hover:bg-lavender-pastel-200 w-full h-full" 
+					:class="isBucket ? 'bg-sidebar' : 'bg-button-sidebar-2-hover'"
+					class="hover:bg-button-sidebar-2-hover w-full h-full" 
 					@click="isBucket = false">
 					<svg 
 						xmlns="http://www.w3.org/2000/svg"
@@ -423,8 +426,8 @@ const runFillSilently = (startX, startY, targetColor) => {
 					</svg>
 				</button>
 				<button :style="cursorStyle"
-					:class="isBucket ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
-					class="col-start-3 col-end-4 hover:bg-lavender-pastel-200" 
+					:class="isBucket ? 'bg-button-sidebar-2-hover' : 'bg-sidebar'"
+					class="col-start-3 col-end-4 hover:bg-button-sidebar-2-hover" 
 					@click="isBucket = true">
 					<svg 
 						xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -472,66 +475,67 @@ const runFillSilently = (startX, startY, targetColor) => {
 					</svg>
 				</button>
 				<button :style="cursorStyle"
-					:class="penSizeActive == 1 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
-					class="flex justify-center col-start-1 hover:bg-lavender-pastel-200"
+					:class="penSizeActive == 1 ? 'bg-button-sidebar-2-hover' : 'bg-sidebar'"
+					class="flex justify-center col-start-1 hover:bg-button-sidebar-2-hover"
 					@click="penStroke = '4', penSizeActive = 1">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
 					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
-						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+						<circle class="fill-button-sidebar-2-hover stroke-black stroke-2" cx="50" cy="50" r="25" />
 						<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
-						<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="2" />
+						<circle class="fill-button-sidebar-2-hover" cx="50" cy="50" r="2" />
 					</svg>			
 				</button>
 				<button :style="cursorStyle"
-					:class="penSizeActive === 2 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
-					class="flex justify-center hover:bg-lavender-pastel-200"
+					:class="penSizeActive === 2 ? 'bg-button-sidebar-2-hover' : 'bg-sidebar'"
+					class="flex justify-center hover:bg-button-sidebar-2-hover"
 					@click="penStroke = '8', penSizeActive = 2">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
 					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
-						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+						<circle class="fill-button-sidebar-2-hover stroke-black stroke-2" cx="50" cy="50" r="25" />
 						<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
-						<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="4" />
+						<circle class="fill-button-sidebar-2-hover" cx="50" cy="50" r="4" />
 					</svg>			
 				</button>
 				<button :style="cursorStyle"
-					:class="penSizeActive === 3 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
+					:class="penSizeActive === 3 ? 'bg-button-sidebar-2-hover' : 'bg-sidebar'"
 					class="flex justify-center 
 					w-full h-full
-					hover:bg-lavender-pastel-200"
+					hover:bg-button-sidebar-2-hover"
 					@click="penStroke = '16', penSizeActive = 3">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
 					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
-						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+						<circle class="fill-button-sidebar-2-hover stroke-black stroke-2" cx="50" cy="50" r="25" />
 						<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
-						<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="8" />
+						<circle class="fill-button-sidebar-2-hover" cx="50" cy="50" r="8" />
 					</svg>			
 				</button>
 				<button :style="cursorStyle"
-					:class="penSizeActive === 4 ? 'bg-lavender-pastel-200' : 'bg-sidebar'"
-					class="flex justify-center hover:bg-lavender-pastel-200"
+					:class="penSizeActive === 4 ? 'bg-button-sidebar-2-hover' : 'bg-sidebar'"
+					class="flex justify-center hover:bg-button-sidebar-2-hover"
 					@click="penStroke = '32', penSizeActive = 4">
 					<svg 
 					xmlns="http://www.w3.org/2000/svg"
 					class="h-full w-full"
 					viewBox="0 0 100 100" 
 					>
-						<circle class="fill-lavender-pastel-200 stroke-black stroke-2" cx="50" cy="50" r="25" />
+						<circle class="fill-button-sidebar-2-hover stroke-black stroke-2" cx="50" cy="50" r="25" />
 						<circle class="fill-[#917F97]" cx="50" cy="50" r="22" />
-						<circle class="fill-lavender-pastel-200" cx="50" cy="50" r="16" />
+						<circle class="fill-button-sidebar-2-hover" cx="50" cy="50" r="16" />
 					</svg>			
 				</button>
 					<!-- <input type="range" min="4" max="20" step="2" 
 					class="col-start-1 col-end-5 w-full h-25 bg-neutral-quaternary rounded-full appearance-none cursor-pointer"> -->
 			</div>
+
 		</div>
 	</div>
 		
