@@ -95,17 +95,22 @@ class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
             .filter(user=parent_user)
         )
 
+
 class TplaceViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = TplaceSerializer
+
 
 class NyancoinsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = NyancoinsSerializer
 
+
 class ColorsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = ColorsSerializer
 
+
 class PixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = PixelsSerializer
+
 
 class MaxPixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = MaxPixelsSerializer
