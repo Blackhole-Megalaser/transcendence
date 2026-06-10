@@ -70,7 +70,7 @@ const getChannelFromUrl = () => {
   if (!room) {
     const newURL = `${window.location.pathname}?room=general`;
     window.history.pushState({ path: newURL }, '', newURL )
-    changeChannel('general');
+    currentChannel.value = 'general'
     return ;
   }
   else if (!existingChannels.find((chan) => chan === room)) {
@@ -78,7 +78,7 @@ const getChannelFromUrl = () => {
     return ;
   }
   else {
-    changeChannel(room);
+    currentChannel.value = room;
   }
 }
 
