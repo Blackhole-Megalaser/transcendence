@@ -28,6 +28,7 @@ def get_image_path(instance, filename):
     path = os.path.join("profile_images/", str(instance.id))
     return path
 
+
 class UserProfile(models.Model):
     class Meta:
         constraints = [
