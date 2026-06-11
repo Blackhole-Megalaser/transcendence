@@ -1,12 +1,12 @@
 <template>
   <div class="w-full flex-center flex-col">
     <img 
-      :src='ProfilePicture' alt="profile picture" 
+      :src='profilePic' alt="profile picture" 
       class="size-20 rounded-full"
     >
     <h2 class="mt-6 text-center font-bold text-2xl text-title">
       Hello
-      <br class="xs:hidden"> {{ UserName }} !</h2>
+      <br class="xs:hidden"> {{ username }} !</h2>
   </div>
   <hr>
   <div class="flex flex-col gap-2 my-2">
@@ -29,17 +29,22 @@ import { computed, ref, watch } from 'vue';
 import defaultcat               from '@assets/default_cat.png';
 import Button                   from '../Button.vue';
 
-const username = ref("");
-const profilePic = ref(null);
-const randomName = "Stranger";
-
-const ProfilePicture = computed (() => {
-  return profilePic.value ?? defaultcat;
+const props = defineProps({
+  propsUserInfo: {
+    type: Object,
+    default: null
+  }
 })
 
-const UserName = computed (() => {
-  return username.value || randomName
+const randomName      = "Stranger";
+const username        = ref(null);
+const profilePic      = ref(null);
+
+watch(() => props.propsUserInfo, (val) => {
+  username.value    = val.username ? val.username : randomName;
+  profilePic.value  = val.profile_image ? val.profile_image : defaultcat;
 })
+
 </script>
 
 <style>

@@ -45,6 +45,8 @@ services:
             - .jj
             - .git
             - .direnv
+    # ports:
+    #   - "8000:8000"
 
   front:
     build: ./frontend

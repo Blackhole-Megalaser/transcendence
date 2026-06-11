@@ -1,10 +1,19 @@
 <template>
   <button class="size-10 rounded-full overflow-hidden outline-0
     hover:outline-4 outline-navbar-profile-outline duration-150">
-    <img src="../assets/default_cat.png" alt="profile_pic">
+    <img :src="profilePicture !== '' ? profilePicture : defaultCat" alt="profile_pic">
   </button>
 </template>
 
-<style scoped>
+<script setup>
+import { ref, watch } from 'vue';
 
-</style>
+import defaultCat from '@assets/default_cat.png'
+
+defineProps({
+  profilePicture: {
+    type: String,
+    default: ''
+  }
+})
+</script>

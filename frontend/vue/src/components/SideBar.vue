@@ -65,17 +65,19 @@
 </template>
 
 <script setup>
+import { computed, ref } 	from 'vue';
+
 import { useThemeStore } 	from '@storage/theme.js';
 import ThemeButton 			from './ThemeButton.vue';
-import { computed, ref } 	from 'vue';
 import ButtonSideBar 		from './ButtonSideBar.vue';
+
 import mean_cat 			from '@assets/logo-dark-tr.png'
 import cute_cat 			from '@assets/logo1-tr.png'
 
-const theme = useThemeStore();
-const themeIndex = computed (() => theme.getThemeIndex())
-const showGames = ref(false);
-const showFriendList = ref(false);
+const theme           = useThemeStore();
+const themeIndex      = computed (() => theme.getThemeIndex())
+const showGames       = ref(false);
+const showFriendList  = ref(false);
 
 </script>
 
