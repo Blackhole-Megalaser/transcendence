@@ -1,12 +1,31 @@
 <template>
   <section class="h-full text-text-main flex flex-col">
-    <ul class="w-full px-4 pt-4 flex-1 overflow-auto">
+    <ul class="w-full px-4 pt-4 flex-1 overflow-auto" id="chat-log">
       <li
-        class="w-full"
+        class="w-full flex gap-4"
+        :class="!message.isSameAuthor ? 'pt-2' : ''"
         :key="index"
         v-for="( message, index ) in chatLog"
       >
-        <p>{{ message }}</p>
+        <div class="w-12"><!-- INCOMING PROFILE PICTURE -->
+          <img 
+            :src="defaultcat" 
+            alt="Pfp"
+            class="size-12 rounded-full overload-hidden"
+            v-if="!message.isSameAuthor"
+          >
+        </div>
+        <div>
+          <h3 
+            class="text-lg font-semibold" 
+            v-if="!message.isSameAuthor"
+          >{{ message.author }}
+            <span class="text-sm opacity-60">
+              {{ message.date }}
+            </span>
+          </h3>
+          <p>{{ message.text }}</p>
+        </div>
       </li>
     </ul>
     <div class="flex-center h-auto w-full p-4 gap-3 flex-none border-t border-text-main">
@@ -24,7 +43,8 @@
 </template>
 
 <script setup>
-import Button from '@components/Button.vue';
+import Button     from '@components/Button.vue';
+import defaultcat from '@assets/default_cat.png';
 </script>
 
 <script>
@@ -40,7 +60,8 @@ export default {
       roomName: this.initialRoomName,
       chatSocket: null,
       chatLog: [],
-      messageInput: ''
+      messageInput: '',
+      lastMessageAuthor: ''
     };
   },
   mounted() {
@@ -112,23 +133,16 @@ export default {
       this.$nextTick(this.scrollText);
     },
 	  formatMessage(message) {
-        // if (typeof message === 'string') {
-        //   return message;
-        // }
-
-        const author = message.author || 'anonymous';
-        const text = message.text || message.message || '';
-
-        return text ? `${author}: ${text}` : '';
+      const author  = message.author || 'anonymous';
+      const isSameAuthor = author === this.lastMessageAuthor
+      this.lastMessageAuthor = author
+      const text    = message.text || message.message || '';
+      const date    = message.created_at;
+      return { author, date, text, isSameAuthor };
 	  },
 	  scrollText() {
-	      const textarea = document.getElementById('chat-log');
-
-          if (!textarea) {
-            return;
-          }
-
-	      textarea.scrollTop = textarea.scrollHeight;
+	      const div = document.getElementById('chat-log');
+	      div.scrollTop = div.scrollHeight;
 	  }
   }
 };
