@@ -1,9 +1,9 @@
 <template>
   <section class="h-full text-text-main flex flex-col">
-    <ul class="w-full px-4 pt-4 flex-1 overflow-auto" id="chat-log">
+    <ul class="w-full px-4 pt-4 pb-2 flex-1 overflow-auto" id="chat-log">
       <li
         class="w-full flex gap-4"
-        :class="!message.isSameAuthor ? 'pt-2' : ''"
+        :class="message.showAuthorInfos ? 'pt-2' : ''"
         :key="index"
         v-for="( message, index ) in chatLog"
       >
@@ -12,16 +12,16 @@
             :src="defaultcat" 
             alt="Pfp"
             class="size-12 rounded-full overload-hidden"
-            v-if="!message.isSameAuthor"
+            v-if="message.showAuthorInfos"
           >
         </div>
         <div>
           <h3 
             class="text-lg font-semibold" 
-            v-if="!message.isSameAuthor"
+            v-if="message.showAuthorInfos"
           >{{ message.author }}
             <span class="text-sm opacity-60">
-              {{ message.date }}
+              {{ message.formatedDate }}
             </span>
           </h3>
           <p>{{ message.text }}</p>
@@ -61,7 +61,7 @@ export default {
       chatSocket: null,
       chatLog: [],
       messageInput: '',
-      lastMessageAuthor: ''
+      lastMessageInfos: ''
     };
   },
   mounted() {
@@ -133,12 +133,16 @@ export default {
       this.$nextTick(this.scrollText);
     },
 	  formatMessage(message) {
-      const author  = message.author || 'anonymous';
-      const isSameAuthor = author === this.lastMessageAuthor
-      this.lastMessageAuthor = author
-      const text    = message.text || message.message || '';
-      const date    = message.created_at;
-      return { author, date, text, isSameAuthor };
+      const text            = message.text || message.message || '';
+      const author          = message.author || 'anonymous';
+      const date            = new Date(message.created_at);
+      const formatedDate    = date.toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit'}).split(" ")[1];
+      const isSameAuthor    = author === this.lastMessageInfos.Author;
+      const timestamp       = date.getTime();
+      const isWithinMinutes = (timestamp - this.lastMessageInfos.Timestamp) < 5 * 60 * 1000;
+      const showAuthorInfos = !isSameAuthor || !isWithinMinutes;     
+      this.lastMessageInfos = { Author: author, Timestamp: timestamp };
+      return { author, formatedDate, text, showAuthorInfos };
 	  },
 	  scrollText() {
 	      const div = document.getElementById('chat-log');
