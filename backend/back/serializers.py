@@ -79,3 +79,8 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ["max_placable_pixels"]
         read_only_fields = fields
+
+
+class LoginRequestSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()

@@ -1,3 +1,6 @@
+from django.http import JsonResponse
+from django.contrib.auth import authenticate, login
+from rest_framework.views import APIView
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -17,6 +20,7 @@ from .serializers import (
     ColorsSerializer,
     PixelsSerializer,
     MaxPixelsSerializer,
+    LoginRequestSerializer,
 )
 
 
@@ -154,3 +158,20 @@ class PixelsViewSet(NestedUserProfileReadOnlyViewSet):
 
 class MaxPixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = MaxPixelsSerializer
+
+
+# /login
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = authenticate(
+            request,
+            username=serializer.validated_data["username"],
+            password=serializer.validated_data["password"],
+        )
+        if user is None:
+            return JsonResponse({"detail": "Invalid credentials"}, status=401)
+        login(request, user)
+        data = UserSerializer(user, context={"request": request}).data
+        return JsonResponse(data)
