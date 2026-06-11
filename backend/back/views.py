@@ -1,6 +1,4 @@
-from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-from rest_framework.views import APIView
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -100,6 +98,26 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[],
+        serializer_class=LoginRequestSerializer,
+    )
+    def login(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = authenticate(
+            request,
+            username=serializer.validated_data["username"],
+            password=serializer.validated_data["password"],
+        )
+        if user is None:
+            return Response({"detail": "Invalid credentials"}, status=401)
+        login(request, user)
+        data = UserSerializer(user, context={"request": request}).data
+        return Response(data)
+
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(user)
@@ -158,20 +176,3 @@ class PixelsViewSet(NestedUserProfileReadOnlyViewSet):
 
 class MaxPixelsViewSet(NestedUserProfileReadOnlyViewSet):
     serializer_class = MaxPixelsSerializer
-
-
-# /login
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = authenticate(
-            request,
-            username=serializer.validated_data["username"],
-            password=serializer.validated_data["password"],
-        )
-        if user is None:
-            return JsonResponse({"detail": "Invalid credentials"}, status=401)
-        login(request, user)
-        data = UserSerializer(user, context={"request": request}).data
-        return JsonResponse(data)
