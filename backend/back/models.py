@@ -25,7 +25,7 @@ class Word(models.Model):
 
 
 def get_image_path(instance, filename):
-    path = os.path.join("profile_images/", str(instance.id))
+    path = os.path.join("profile_images/", str(instance.user.username))
     return path
 
 
