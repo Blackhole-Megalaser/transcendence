@@ -7,7 +7,7 @@
         :key="index"
         v-for="( message, index ) in chatLog"
       >
-        <div class="w-12"><!-- INCOMING PROFILE PICTURE -->
+        <div class="min-w-12"><!-- INCOMING PROFILE PICTURE -->
           <img 
             :src="defaultcat" 
             alt="Pfp"
@@ -17,13 +17,13 @@
         </div>
         <div>
           <h3 
-            class="text-lg font-semibold" 
+            class="text-lg font-semibold"
             v-if="message.showAuthorInfos"
           >{{ message.author }}
-            <span class="text-sm opacity-60">
-              {{ message.formatedDate }}
-            </span>
-          </h3>
+          <span class="inline-block font-normal text-xs opacity-60">
+            {{ message.formatedDate }}
+          </span>
+        </h3>
           <p>{{ message.text }}</p>
         </div>
       </li>
