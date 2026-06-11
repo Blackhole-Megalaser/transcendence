@@ -1,3 +1,6 @@
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -84,3 +87,16 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
 class LoginRequestSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+
+
+class SignupRequestSerializer(serializers.Serializer):
+    username = serializers.CharField(validators=[UnicodeUsernameValidator()])
+    email = serializers.EmailField()
+    password1 = serializers.CharField()
+    password2 = serializers.CharField()
+
+    def validate(self, attrs):
+        if attrs["password1"] != attrs["password2"]:
+            raise ValidationError("Passwords do not match")
+        validate_password(attrs["password1"])
+        return attrs

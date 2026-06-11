@@ -8,6 +8,7 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.decorators import action
+import logging
 
 from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
 from .models import UserProfile
@@ -19,7 +20,10 @@ from .serializers import (
     PixelsSerializer,
     MaxPixelsSerializer,
     LoginRequestSerializer,
+    SignupRequestSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -126,6 +130,32 @@ class UserViewSet(viewsets.ModelViewSet):
     def logout(self, request):
         logout(request)
         return Response({"detail": "Logged out."})
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[permissions.AllowAny],
+        serializer_class=SignupRequestSerializer,
+    )
+    def signup(self, request):
+        logging.info("here we are %s", request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        logging.info("data valid %s", validated_data)
+        password = validated_data["password1"]
+        print(validated_data)
+
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            password=password,
+            email=validated_data["email"],
+        )
+
+        login(request, user)
+        data = UserSerializer(user, context={"request": request}).data
+        return Response(data)
 
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
