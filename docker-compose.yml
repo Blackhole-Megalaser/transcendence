@@ -18,6 +18,7 @@ services:
       retries: 180
     ports:
       - "5444:5432"
+    command: ["postgres", "-c", "log_statement=all"]
   back:
     build: ./backend
     restart: unless-stopped
