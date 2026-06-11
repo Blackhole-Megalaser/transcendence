@@ -3,6 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 
 import datetime
+import os
 
 
 class Color(models.Model):
@@ -23,6 +24,10 @@ class Word(models.Model):
     list = models.ForeignKey(WordList, on_delete=models.RESTRICT)
 
 
+def get_image_path(instance, filename):
+    path = os.path.join("profile_images/", str(instance.id))
+    return path
+
 class UserProfile(models.Model):
     class Meta:
         constraints = [
@@ -37,7 +42,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_image = models.ImageField(
         max_length=255,
-        upload_to="profile_images/",
+        upload_to=get_image_path,
+        # upload_to="profile_images/",
         blank=True,
         null=True,
     )
@@ -50,6 +56,16 @@ class UserProfile(models.Model):
     next_regeneration = models.DateTimeField(default=datetime.datetime.now)
     unlocked_colors = models.ManyToManyField(Color)
     unlocked_wordlists = models.ManyToManyField(WordList)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            try:
+                old = UserProfile.objects.get(pk=self.pk)
+                if old.profile_image != self.profile_image:
+                    old.profile_image.delete(save=False)
+            except UserProfile.DoesNotExist:
+                pass
+        super().save(*args, **kwargs)
 
 
 class Pixel(models.Model):
