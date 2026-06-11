@@ -30,6 +30,8 @@ services:
       - ./volumes/backend-data:/media
     expose:
       - "8000"
+    ports:
+      - "8000:8000"
     networks:
       - ft_cat-network
     healthcheck:
