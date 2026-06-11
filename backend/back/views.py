@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -117,6 +117,15 @@ class UserViewSet(viewsets.ModelViewSet):
         login(request, user)
         data = UserSerializer(user, context={"request": request}).data
         return Response(data)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def logout(self, request):
+        logout(request)
+        return Response({"detail": "Logged out."})
 
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
