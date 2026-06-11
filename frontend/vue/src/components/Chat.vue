@@ -1,12 +1,15 @@
 <template>
-  <section class="h-full p-2 sm:p-4 text-text-main flex flex-col">
-    <textarea
-      class="w-full p-4 resize-none flex-1" 
-      id="chat-log" 
-      v-model="chatLog"
-      disabled
-    />
-    <div class="flex-center h-8 w-full gap-3 flex-none">
+  <section class="h-full text-text-main flex flex-col">
+    <ul class="w-full px-4 pt-4 flex-1 overflow-auto">
+      <li
+        class="w-full"
+        :key="index"
+        v-for="( message, index ) in chatLog"
+      >
+        <p>{{ message }}</p>
+      </li>
+    </ul>
+    <div class="flex-center h-auto w-full p-4 gap-3 flex-none border-t border-text-main">
       <input class="border border-text-main rounded-full py-2 px-4 w-full"
         id="chat-message-input"
         v-model="messageInput"
@@ -36,7 +39,7 @@ export default {
     return {
       roomName: this.initialRoomName,
       chatSocket: null,
-      chatLog: '',
+      chatLog: [],
       messageInput: ''
     };
   },
@@ -69,14 +72,9 @@ export default {
       const data = JSON.parse(e.data);
 
       if (data.type === 'history' && Array.isArray(data.messages)) {
-        this.chatLog = data.messages
+        this.chatLog.push(...data.messages
           .map((message) => this.formatMessage(message))
-          .filter(Boolean)
-          .join('\n');
-
-        if (this.chatLog) {
-          this.chatLog += '\n';
-        }
+          .filter(Boolean));
 
         this.$nextTick(this.scrollText);
         return;
@@ -110,17 +108,13 @@ export default {
         return;
       }
 
-      this.chatLog += formattedMessage + '\n';
+      this.chatLog.push(formattedMessage);
       this.$nextTick(this.scrollText);
     },
 	  formatMessage(message) {
-        if (typeof message === 'string') {
-          return message;
-        }
-
-        if (!message) {
-          return '';
-        }
+        // if (typeof message === 'string') {
+        //   return message;
+        // }
 
         const author = message.author || 'anonymous';
         const text = message.text || message.message || '';
@@ -139,8 +133,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-@import "@/style.css";
-
-</style>
