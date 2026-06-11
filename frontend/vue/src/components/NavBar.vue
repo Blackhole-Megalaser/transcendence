@@ -34,8 +34,11 @@
             <ThemeToggle />
           </div>
           <div class="flex items-center justify-end">
-            <ProfileButton v-if="isLogged" 
-              class="flex" @click="$emit('showProfile')"
+            <ProfileButton 
+              v-if="isLogged" 
+              class="flex" 
+              @click="$emit('showProfile')"
+              :profile-picture="userInfos.profile_image"
             />
             <div v-else class="flex">
               <a href="login" class="h-10 sm:w-28 flex-center">
@@ -72,8 +75,8 @@
 </template>
 
 <script setup>
+import { useThemeStore } 	                from '@storage/theme.js';
 import { computed, onBeforeMount, ref } 	from 'vue';
-import { useThemeStore } 	from '@storage/theme.js';
 
 import ButtonLogIn 			from './ButtonLogIn.vue';
 import ProfileButton 		from './ProfileButton.vue';
@@ -89,22 +92,9 @@ import ft_mean 				from '@assets/ft_cat-dark.png'
 const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
-const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
-const isLogged    = ref(false);
-// const userInfos   = ()
-
-async function getUserInfos() {
-  const url = '/api/users/me';
-  try {
-    const response  = await fetch(url);
-    if (!response.ok)
-      throw new Error('error')
-    isLogged.value = true;
-  }
-  catch {
-    isLogged.value = false;
-  }
-}
+const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin', 'userInfos']);
+const userInfos   = ref(null);
+const isLogged    = ref(null);
 
 defineProps ({
   variant: {
@@ -120,8 +110,24 @@ defineProps ({
   },
 });
 
-onBeforeMount(() => {
-  getUserInfos();
+async function getUserInfos() {
+  const url = '/api/users/me';
+  try {
+    const response  = await fetch(url);
+    if (response.status === 403)  return null;
+    if (!response.ok)             throw new Error('error')
+    const result  = await response.json();
+    return result;
+  }
+  catch {
+    return null;
+  }
+}
+
+onBeforeMount(async () => {
+  userInfos.value = await getUserInfos();
+  isLogged.value  = userInfos.value ? true : false;
+  emit('userInfos', userInfos.value);
 })
 
 </script>

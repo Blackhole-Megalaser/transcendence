@@ -24,7 +24,10 @@
       </button>
     </div>
     <hr>
-    <BasicInformations v-if="selectWindow === 0"/>
+    <BasicInformations 
+      v-if="selectWindow === 0"
+      :props-user-info="propsUserInfos"
+    />
     <Social v-else-if="selectWindow === 1"/>
     <Settings v-else/>
   </dialog>
@@ -32,24 +35,29 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+
 import settingsIcon             from '@assets/settings.svg';
 import profileIcon              from '@assets/profile.svg';
 import contacstIcon             from '@assets/contacts.svg';
+
 import BasicInformations        from './sideProfile/BasicInformations.vue';
 import Social                   from './sideProfile/Social.vue';
 import Settings                 from './sideProfile/Settings.vue';
 
-const props   = defineProps({open: Boolean});
-const dialog  = ref(null);
-const bar     = ref(0);
-
-const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2))
+const props   = defineProps({
+  open: Boolean,
+  propsUserInfos: {
+    type: Object,
+    default: null
+  }
+});
+const dialog        = ref(null);
+const bar           = ref(0);
+const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2));
 
 watch(() => props.open, (val) => {
-  val ? dialog.value.show() : dialog.value.close()
+  val ? dialog.value.show() : dialog.value.close();
 })
-
-// Futur getter par API
 </script>
 
 <style scoped>

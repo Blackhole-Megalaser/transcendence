@@ -68,7 +68,6 @@ const navBarControl = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
 
 function handleScroll() {
   scrollY.value = window.scrollY
-  console.log(navBarControl.value);
 }
 
 onMounted(() => {

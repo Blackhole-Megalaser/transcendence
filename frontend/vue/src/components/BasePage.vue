@@ -2,12 +2,16 @@
   <navBar
     @showProfile="toggleSideProfile"
     @changeStatus="toggleSideBar"
+    @userInfos="(data) => userInfos = data"
     class="z-60"
     :mobileProfile="MaskNavIcons"
     :isLogin="islogin"
     :variant="navBarVariant"
   />
-  <SideProfile :open="showProfile" @keydown.=""/>
+  <SideProfile 
+    :open="showProfile"
+    :propsUserInfos="userInfos"
+  />
   <main class="fscreen" @click="closeProfile">
     <sideBar 
       :class="!showSideBar ? '-translate-x-60 rotate-360' : 'translate-x-0 -rotate-360'"
@@ -24,9 +28,11 @@
 
 <script setup>
 import { useUi, Button, NavBar, SideBar, SideProfile } from '@shared'
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
-const props = defineProps({
+const userInfos = ref(null);
+
+defineProps({
   islogin: {
     type: Boolean,
     default: false
@@ -46,6 +52,7 @@ const {
     closeProfile,
     closeSideBar
 } = useUi();
+
 </script>
 
 <style scoped>
