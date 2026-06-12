@@ -15,11 +15,11 @@
             myPlaceholder="Enter your password"
             v-model="Password"
           />
-          <div class="flex-center h-10 w-18 self-center">
-            <p class="text-red-600">{{ apiError }}</p>
+          <div class="flex-center flex-col h-auto w-full self-center">
+            <p class="text-red-600 text-sm py-2">{{ apiError.detail }}</p>
             <input 
               type="submit" 
-              class="input"
+              class="input flex-center"
               value="Submit"
               :disabled="Username === '' || Password === ''"
             >
@@ -38,14 +38,14 @@ import HideableInput      from "@components/HideableInput.vue";
 
 const Username  = ref('');
 const Password  = ref('');
-const Error     = ref('');
+const apiError  = ref('');
 
 const submit    = async () => {
   try {
     const response  = await fetch('/api/users/login/', {
       
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         username: Username.value, 
         password: Password.value
       }),
@@ -55,8 +55,9 @@ const submit    = async () => {
       }
     });
     if (!response.ok) {
-      apiError  = response.detail;
-      throw new Error('Wrong informations inserted: ', response.status);
+      apiError.value  = await response.json();
+      console.log(apiError.value.detail);
+      throw new Error(`Wrong informations inserted: ${response.status}`)
     }
     console.log('done');
     window.location.href  = '/';
