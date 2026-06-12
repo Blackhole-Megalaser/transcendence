@@ -19,7 +19,11 @@
       <Button variant="secondary" side="left">Change user</Button>
     </div>
     <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
-      <Button variant="secondary" side="right">Log out</Button>
+      <Button 
+        variant="secondary" 
+        side="right"
+        @click="logout"
+      >Log out</Button>
     </div>
   </div>
 </template>
@@ -44,6 +48,39 @@ watch(() => props.propsUserInfo, (val) => {
   username.value    = val.username ? val.username : randomName;
   profilePic.value  = val.profile_image ? val.profile_image : defaultcat;
 })
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === name + '=') {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break ;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+const logout  = async () => {
+  try {
+    const response  = await fetch('/api/users/logout/', {
+      method: "POST",
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type': 'application/json'
+      }
+    })
+    if (!response.ok)
+      throw new Error(`Couldn't disconnect: ${response.status}`);
+    window.location.reload();
+  }
+  catch (error) {
+    console.error(error.message);
+  }
+}
 
 </script>
 
