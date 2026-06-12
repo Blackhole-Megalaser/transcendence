@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from redis import asyncio as redis
@@ -46,7 +47,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         text = text[: settings.CHAT_MESSAGE_MAX_LENGTH]
-        message = self.build_message(text)
+        message = await self.build_message(text)
         serialized_message = json.dumps(message)
 
         redis_client = get_redis_client()
@@ -91,16 +92,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
+    @sync_to_async
     def build_message(self, text):
         user = self.scope.get("user")
         author = "anonymous"
+        image = None
 
         if user is not None and user.is_authenticated:
             author = user.username
+            image = user.userprofile.profile_image
 
         return {
             "id": str(uuid.uuid4()),
             "author": author,
             "text": text,
+            "picture": str(image.url) if image else None,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
