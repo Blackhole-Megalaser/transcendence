@@ -41,6 +41,7 @@ const Password  = ref('');
 const apiError  = ref('');
 
 const submit    = async () => {
+  apiError.value = '';
   try {
     const response  = await fetch('/api/users/login/', {
       
