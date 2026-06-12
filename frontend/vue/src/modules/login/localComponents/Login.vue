@@ -5,24 +5,26 @@
         Log In
       </h2>
       <div class="flex-center flex-col">
-        <HideableInput
-          :key="Username"
-          myPlaceholder="Enter your username"
-          v-model="Username"
-        />
-        <HideableInput
-          :key="Password"
-          :isPassword="true"
-          myPlaceholder="Enter your password"
-          v-model="Password"
-        />
-        <div class="flex-center h-10 w-18 self-center">
-          <button 
-            class="input"
-            :disabled="Username === '' || Password === '' ? true : false" 
-            @click="submit"
-          >send</button>
-        </div>
+        <form @submit.prevent="submit" class="flex flex-col">
+          <HideableInput
+            myPlaceholder="Enter your username"
+            v-model="Username"
+          />
+          <HideableInput
+            :isPassword="true"
+            myPlaceholder="Enter your password"
+            v-model="Password"
+          />
+          <div class="flex-center h-10 w-18 self-center">
+            <p class="text-red-600">{{ apiError }}</p>
+            <input 
+              type="submit" 
+              class="input"
+              value="Submit"
+              :disabled="Username === '' || Password === ''"
+            >
+          </div>
+        </form>
       </div>
       <p class="text-sm text-sidebar-text-1">Don't have an account yet ?<a href="signup" class="underline"> Sign Up !</a></p>
     </div>
@@ -36,10 +38,12 @@ import HideableInput      from "@components/HideableInput.vue";
 
 const Username  = ref('');
 const Password  = ref('');
+const Error     = ref('');
 
 const submit    = async () => {
   try {
     const response  = await fetch('/api/users/login/', {
+      
       method: 'POST',
       body: JSON.stringify({ 
         username: Username.value, 
@@ -51,8 +55,10 @@ const submit    = async () => {
       }
     });
     if (!response.ok) {
+      apiError  = response.detail;
       throw new Error('Wrong informations inserted: ', response.status);
     }
+    console.log('done');
     window.location.href  = '/';
   }
   catch (error) {
