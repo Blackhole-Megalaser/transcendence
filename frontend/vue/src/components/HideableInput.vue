@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full h-auto">
     <input 
       :type="isPassword ? inputType : 'text'" 
       class="informations w-full"
