@@ -3,7 +3,7 @@
     <input 
       :type="isPassword ? inputType : 'text'" 
       class="informations w-full"
-      :class="isPassword ? 'pr-8' : ''"
+      :class="isPassword ? 'pr-10' : 'pr-3'"
       :placeholder="myPlaceholder"
       v-model="model"
     >
@@ -17,9 +17,9 @@
 </template>
 
 <script setup>
-import visible from "@assets/visible.svg"
-import nonVisible from "@assets/non-visible.svg"
-import { computed, ref } from "vue";
+import { computed, ref, watch }  from "vue";
+import visible            from "@assets/visible.svg"
+import nonVisible         from "@assets/non-visible.svg"
 
 const showPassword  = ref(false);
 const inputType     = computed(() => showPassword.value ? "text" : "password");
@@ -36,12 +36,13 @@ const props = defineProps({
     default: "Default Placeholder (change it)"
   }
 });
+
 </script>
 
 <style scoped>
 @import '@/style.css';
 
 .informations {
-  @apply my-1 py-1 px-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
+  @apply my-1 py-1 pl-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
 }
 </style>

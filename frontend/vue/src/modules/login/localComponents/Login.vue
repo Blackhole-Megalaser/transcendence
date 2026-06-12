@@ -5,18 +5,24 @@
         Log In
       </h2>
       <div class="flex-center flex-col">
-        <form action="post" class="flex flex-col">
-          <HideableInput
-            myPlaceholder="Enter your username" 
-          />
-          <HideableInput 
-            :isPassword="true"
-            myPlaceholder="Enter your password"
-          />
-          <div class="flex-center h-10 w-18 self-center">
-            <input type="submit" class="px-4 py-1 rounded-full mt-1 input" value="Send">
-          </div>
-        </form>
+        <HideableInput
+          :key="Username"
+          myPlaceholder="Enter your username"
+          v-model="Username"
+        />
+        <HideableInput
+          :key="Password"
+          :isPassword="true"
+          myPlaceholder="Enter your password"
+          v-model="Password"
+        />
+        <div class="flex-center h-10 w-18 self-center">
+          <button 
+            class="input"
+            :disabled="Username === '' || Password === '' ? true : false" 
+            @click="submit"
+          >send</button>
+        </div>
       </div>
       <p class="text-sm text-sidebar-text-1">Don't have an account yet ?<a href="signup" class="underline"> Sign Up !</a></p>
     </div>
@@ -24,8 +30,34 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import HideableInput from "@components/HideableInput.vue";
+import { ref, computed }  from 'vue';
+import { getCookie }      from '@shared/cookieGetter';
+import HideableInput      from "@components/HideableInput.vue";
+
+const Username  = ref('');
+const Password  = ref('');
+
+const submit    = async () => {
+  try {
+    const response  = await fetch('/api/users/login/', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        username: Username.value, 
+        password: Password.value
+      }),
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Wrong informations inserted: ', response.status);
+    }
+    window.location.href  = '/';
+  }
+  catch (error) {
+  }
+}
 
 </script>
 
@@ -33,18 +65,9 @@ import HideableInput from "@components/HideableInput.vue";
 @import '@/style.css';
 
 .input {
-  @apply shadow-button-2-normal;
-  background-color: var(--color-button-2-normal);
-  color: var(--color-text-button-2);
-}
-.input:hover {
-  background-color: var(--color-button-2-hover);
+  @apply shadow-button-2-normal bg-button-2-normal text-text-button-2 hover:bg-button-2-hover disabled:bg-button-2-disable px-4 py-1 rounded-full mt-1 cursor-pointer;
 }
 .input:active {
   @apply duration-100 px-3.5 py-0.5;
-  background-color: var(--);
-}
-.input:disabled {
-  background-color: var(--color-button-2-disable);
 }
 </style>
