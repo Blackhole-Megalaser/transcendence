@@ -9,11 +9,11 @@
       >
         <div class="min-w-12"><!-- INCOMING PROFILE PICTURE -->
           <img 
-            :src="defaultcat" 
+            :src="message.profile_pic ? message.profile_pic : defaultcat"
             alt="Pfp"
             class="size-12 rounded-full overload-hidden"
             v-if="message.showAuthorInfos"
-          >
+            >
         </div>
         <div>
           <h3 
@@ -135,6 +135,7 @@ export default {
 	  formatMessage(message) {
       const text            = message.text || message.message || '';
       const author          = message.author || 'anonymous';
+      const profile_pic     = message.picture;
       const date            = new Date(message.created_at);
       const formatedDate    = date.toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit'}).split(" ")[1];
       const isSameAuthor    = author === this.lastMessageInfos.Author;
@@ -142,7 +143,7 @@ export default {
       const isWithinMinutes = (timestamp - this.lastMessageInfos.Timestamp) < 5 * 60 * 1000;
       const showAuthorInfos = !isSameAuthor || !isWithinMinutes;     
       this.lastMessageInfos = { Author: author, Timestamp: timestamp };
-      return { author, formatedDate, text, showAuthorInfos };
+      return { author, formatedDate, text, showAuthorInfos, profile_pic };
 	  },
 	  scrollText() {
 	      const div = document.getElementById('chat-log');
