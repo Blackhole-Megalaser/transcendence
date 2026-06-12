@@ -30,8 +30,9 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { getCookie }            from '@shared';
 import defaultcat               from '@assets/default_cat.png';
-import Button                   from '../Button.vue';
+import Button                   from '@components/Button.vue';
 
 const props = defineProps({
   propsUserInfo: {
@@ -48,21 +49,6 @@ watch(() => props.propsUserInfo, (val) => {
   username.value    = val.username ? val.username : randomName;
   profilePic.value  = val.profile_image ? val.profile_image : defaultcat;
 })
-
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === name + '=') {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break ;
-      }
-    }
-  }
-  return cookieValue;
-}
 
 const logout  = async () => {
   try {
