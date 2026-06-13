@@ -7,6 +7,8 @@ import SelectChat                   from '@components/SelectChat.vue';
 import App                          from './App.vue';
 
 const userInfos = await getUserInfos();
+if (!userInfos)
+    window.location.href = '/login?next=chat';
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);

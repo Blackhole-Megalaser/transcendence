@@ -32,13 +32,17 @@
 </template>
 
 <script setup>
-import { ref, computed }  from 'vue';
-import { getCookie }      from '@shared/cookieGetter';
-import HideableInput      from "@components/HideableInput.vue";
+import { ref }        from 'vue';
+import { getCookie }  from '@shared';
+import HideableInput  from "@components/HideableInput.vue";
 
 const Username  = ref('');
 const Password  = ref('');
 const apiError  = ref('');
+const nextPage  = () => { 
+  const nextURL = new URLSearchParams(window.location.search).get('next');
+  return nextURL ? nextURL : '/';
+}
 
 const submit    = async () => {
   apiError.value = '';
@@ -60,8 +64,7 @@ const submit    = async () => {
       console.log(apiError.value.detail);
       throw new Error(`Wrong informations inserted: ${response.status}`)
     }
-    console.log('done');
-    window.location.href  = '/';
+    window.location.href  = nextPage();
   }
   catch (error) {
   }
