@@ -4,17 +4,17 @@
       class="absolute w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
       :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
-      <informations :password-check="password"/>
+      <informations :password-check="Password"/>
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
       <h2 class="text-title text-4xl">
         Sign Up
       </h2>
       <div class="flex-center flex-col">
-        <form action="post" class="flex flex-col">
+        <form  @submit.prevent="submit" class="flex flex-col">
           <div class="flex">
             <Input
-              v-model="username"
+              v-model="Username"
               :input-validate="validateUser"
               p-holder="Enter your Username"
               input-type="text"
@@ -22,7 +22,7 @@
           </div>
           <div class="flex">
             <Input
-              v-model="email"
+              v-model="Email"
               :input-validate="validateEmail"
               p-holder="Enter your Email"
               input-type="text"
@@ -30,7 +30,7 @@
           </div>
           <div class="flex">
             <Input 
-              v-model="password" 
+              v-model="Password" 
               :input-validate="validatePass"
               p-holder="Enter your Password"
               input-type="password"
@@ -51,7 +51,7 @@
           </div>
           <div class="flex">
             <Input
-              v-model="passwordRepeat"
+              v-model="PasswordRepeat"
               :input-validate="validatePassRep"
               p-holder="Repeat your Password"
               input-type="password"
@@ -63,6 +63,7 @@
               type="submit" 
               value="Send"
               class="px-4 py-1 rounded-full mt-1 input"
+              :class="validateForm ? 'cursor-pointer' : ''"
               :disabled="!validateForm"
             >
             <div class="size-4">
@@ -70,7 +71,7 @@
           </div>
         </form>
       </div>
-      <p class="text-sm text-sidebar-text-1">Already have an account ?<a href="login" class="underline"> Log in !</a></p>
+      <p class="text-sm text-sidebar-text-1">Already have an account ?<a :href="`login?next=${nextPage()}`" class="underline"> Log in !</a></p>
     </div>
     <aside 
       v-if="!ismobile"
@@ -80,7 +81,7 @@
         : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
-      <informations :password-check="password"/>
+      <informations :password-check="Password"/>
     </aside>
   </section>
 </template>
@@ -88,6 +89,7 @@
 <script setup>
 import { ref, computed }  from 'vue'
 import { useBreakpoints } from '@vueuse/core';
+import { getCookie }      from '@shared';
 import forbiddenUsername  from '@shared/forbiddenUsernames.json'
 import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
 import Input              from './Input.vue';    
@@ -95,13 +97,17 @@ import informations       from './informations.vue'
 
 import interogation       from '@assets/interrogation.svg'
 
-const email           = ref("");
-const username        = ref("");
-const password        = ref("");
-const passwordRepeat  = ref("");
+const Email           = ref("");
+const Username        = ref("");
+const Password        = ref("");
+const PasswordRepeat  = ref("");
+const apiError        = ref("");
 const OpenInfoBar     = ref(false);
 const OpenInfoBox     = ref(false);
-
+const nextPage  = () => { 
+  const nextURL = new URLSearchParams(window.location.search).get('next');
+  return nextURL ? nextURL : '/';
+}
 
 const breakpoints = useBreakpoints({ sm: 640 });
 const ismobile    = breakpoints.smaller("sm");
@@ -111,16 +117,16 @@ const validateForm    = computed(() => {
   else { return false }
 })
 
-const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(password.value.toLowerCase))
-const hasUppercase        = computed(() => /[A-Z]/.test(password.value))
-const hasNumber           = computed(() => /[0-9]/.test(password.value))
-const isLongEnough        = computed(() => password.value.trim().length >= 8)
+const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(Password.value.toLowerCase()))
+const hasUppercase        = computed(() => /[A-Z]/.test(Password.value))
+const hasNumber           = computed(() => /[0-9]/.test(Password.value))
+const isLongEnough        = computed(() => Password.value.trim().length >= 8)
 
 const validatePass        = computed(() => {
   if (isMostUsedPassword.value) { return false }
-  if (!isLongEnough.value) { return false }
-  if (!hasUppercase.value) { return false }
-  if (!hasNumber.value) { return false }
+  if (!isLongEnough.value)      { return false }
+  if (!hasUppercase.value)      { return false }
+  if (!hasNumber.value)         { return false }
   return true
 })
 
@@ -134,24 +140,24 @@ const passwordStatus  = computed(() => {
 })
 
 const validatePassRep = computed(() => {
-  if (password.value === passwordRepeat.value) { return true }
+  if (Password.value === PasswordRepeat.value) { return true }
   else { return false }
 })
 
 const validateUser    = computed(() => {
-  let lowerCaseUsername = username.value.toLowerCase();
+  let lowerCaseUsername = Username.value.toLowerCase();
 
-  if (forbiddenUsername.usernames.includes(lowerCaseUsername)) { return false }
+  if (forbiddenUsername.usernames.includes(lowerCaseUsername))                              { return false }
   else if (forbiddenUsername.prefixes.some(prefix => lowerCaseUsername.startsWith(prefix))) { return false }
-  else if (forbiddenUsername.suffixes.some(suffix => lowerCaseUsername.endsWith(suffix))) { return false }
-  else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word))) { return false }
-  else if (!/[a-z]/.test(lowerCaseUsername)) { return false } // si aucuns characteres alphabetiques ne sont trouvers return false 
-  else if (username.length < 3) { return false }
-  else { return true }
+  else if (forbiddenUsername.suffixes.some(suffix => lowerCaseUsername.endsWith(suffix)))   { return false }
+  else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word)))       { return false }
+  else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false 
+  else if (Username.value.length < 3)                                                       { return false }
+  else                                                                                      { return true  }
 })
 
 const validateEmail   = computed(() => {
-  const cleanEmail      = email.value ? email.value.trim() : "";
+  const cleanEmail      = Email.value ? Email.value.trim() : "";
 
   if ((cleanEmail.match(/@/g) || []).length !== 1) { return false }
   
@@ -183,6 +189,35 @@ const validateEmail   = computed(() => {
   if ((domainPart.match(/\./g) || []).length < 1 ) { return false }
   return true
 })
+
+const submit    = async () => {
+  apiError.value = '';
+  try {
+    const response  = await fetch('/api/users/signup/', {
+      
+      method: 'POST',
+      body: JSON.stringify({
+        username:               Username.value, 
+        email:                  Email.value,
+        password:               Password.value,
+        password_confirmation:  PasswordRepeat.value
+      }),
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      apiError.value  = await response.json();
+      console.log(apiError.value.detail);
+      throw new Error(`Wrong informations inserted: ${response.status}`)
+    }
+    window.location.href  = nextPage();
+  }
+  catch (error) {
+    console.error("error catched :", error);
+  }
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-center">
+  <div class="flex-center w-full">
     <div class="size-9 flex-center">
       <component
         :is="status"
@@ -21,11 +21,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed }         from 'vue'
 import { useBreakpoints } 	from '@vueuse/core';
-import HideableInput from '@components/HideableInput.vue';
-import cross        from '@assets/wrong_cross.svg'
-import check        from '@assets/check-mark.svg'
+import HideableInput        from '@components/HideableInput.vue';
+import cross                from '@assets/wrong_cross.svg'
+import check                from '@assets/check-mark.svg'
 
 const model = defineModel();
 const props = defineProps({

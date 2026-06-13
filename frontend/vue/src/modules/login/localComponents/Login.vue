@@ -26,7 +26,7 @@
           </div>
         </form>
       </div>
-      <p class="text-sm text-sidebar-text-1">Don't have an account yet ?<a href="signup" class="underline"> Sign Up !</a></p>
+      <p class="text-sm text-sidebar-text-1">Don't have an account yet ?<a :href="`signup?next=${nextPage()}`" class="underline"> Sign Up !</a></p>
     </div>
   </section>
 </template>
