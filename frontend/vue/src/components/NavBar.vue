@@ -75,8 +75,8 @@
 </template>
 
 <script setup>
-import { useThemeStore } 	                from '@storage/theme.js';
-import { computed, onBeforeMount, ref } 	from 'vue';
+import { computed, inject, onBeforeMount, ref } 	from 'vue';
+import { useThemeStore } 	                        from '@storage/theme.js';
 
 import ButtonLogIn 			from './ButtonLogIn.vue';
 import ProfileButton 		from './ProfileButton.vue';
@@ -93,8 +93,8 @@ const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
 const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin', 'userInfos']);
-const userInfos   = ref(null);
-const isLogged    = ref(null);
+const userInfos   = inject('userInfos');
+const isLogged    = ref(userInfos.value ? true : false);
 
 defineProps ({
   variant: {
@@ -110,23 +110,8 @@ defineProps ({
   },
 });
 
-async function getUserInfos() {
-  const url = '/api/users/me';
-  try {
-    const response  = await fetch(url);
-    if (response.status === 403)  return null;
-    if (!response.ok)             throw new Error('error')
-    const result  = await response.json();
-    return result;
-  }
-  catch {
-    return null;
-  }
-}
-
 onBeforeMount(async () => {
-  userInfos.value = await getUserInfos();
-  isLogged.value  = userInfos.value ? true : false;
+  console.log(userInfos.value);
   emit('userInfos', userInfos.value);
 })
 
