@@ -34,10 +34,10 @@ import { getCookie }                    from '@shared';
 import defaultCat                       from '@assets/default_cat.png';
 import Button                           from '@components/Button.vue';
 
-const userInfos       = inject('userInfos', ref(null));
-const randomName      = "Stranger";
-const username        = userInfos.value ? userInfos.value.username : randomName;
-const profilePic      = userInfos.value ? userInfos.value.profile_image : defaultCat;
+const userInfos   = inject('userInfos', ref(null));
+const randomName  = "Stranger";
+const username    = userInfos.value ? userInfos.value.username : randomName;
+const profilePic  = userInfos.value ? userInfos.value.profile_image : defaultCat;
 
 const logout  = async () => {
   try {
