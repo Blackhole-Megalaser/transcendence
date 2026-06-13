@@ -24,10 +24,7 @@
       </button>
     </div>
     <hr>
-    <BasicInformations 
-      v-if="selectWindow === 0"
-      :props-user-info="propsUserInfos"
-    />
+    <BasicInformations v-if="selectWindow === 0"/>
     <Social v-else-if="selectWindow === 1"/>
     <Settings v-else/>
   </dialog>
@@ -44,13 +41,7 @@ import BasicInformations        from './sideProfile/BasicInformations.vue';
 import Social                   from './sideProfile/Social.vue';
 import Settings                 from './sideProfile/Settings.vue';
 
-const props   = defineProps({
-  open: Boolean,
-  propsUserInfos: {
-    type: Object,
-    default: null
-  }
-});
+const props         = defineProps({ open: Boolean });
 const dialog        = ref(null);
 const bar           = ref(0);
 const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2));

@@ -29,26 +29,15 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { getCookie }            from '@shared';
-import defaultcat               from '@assets/default_cat.png';
-import Button                   from '@components/Button.vue';
+import { computed, inject, ref, watch } from 'vue';
+import { getCookie }                    from '@shared';
+import defaultCat                       from '@assets/default_cat.png';
+import Button                           from '@components/Button.vue';
 
-const props = defineProps({
-  propsUserInfo: {
-    type: Object,
-    default: null
-  }
-})
-
+const userInfos       = inject('userInfos', ref(null));
 const randomName      = "Stranger";
-const username        = ref(null);
-const profilePic      = ref(null);
-
-watch(() => props.propsUserInfo, (val) => {
-  username.value    = val.username ? val.username : randomName;
-  profilePic.value  = val.profile_image ? val.profile_image : defaultcat;
-})
+const username        = userInfos.value ? userInfos.value.username : randomName;
+const profilePic      = userInfos.value ? userInfos.value.profile_image : defaultCat;
 
 const logout  = async () => {
   try {
@@ -67,7 +56,6 @@ const logout  = async () => {
     console.error(error.message);
   }
 }
-
 </script>
 
 <style>
