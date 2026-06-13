@@ -19,4 +19,5 @@ Once in postgres, use **\d** to list relations, **\du** to see the database user
 To see the user list:
 
 `SELECT * FROM auth_user;` (django users)
+
 `SELECT * FROM back_userprofile;` (userprofile as defined in models.py)

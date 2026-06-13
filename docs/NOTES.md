@@ -115,4 +115,4 @@ Cette reunion etait place sous le signe de la patoune
 
 ## Resume de la reunion 5 (29/05/26)
 
-placeholder
+Durant cette reunion, un point a ete fait sur l'avancement, aucun point ni objectif particulier n'a ete souleve, l'etat d'esprit general au sein du groupe est un "il faut juste continuer d'avancer sur nos parties"

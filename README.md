@@ -4,7 +4,9 @@
 
 # Description
 
-Transcendence is a **group project (4-5 people)** intended to  boost creativity, self-confidence, adaptability and teamwork skills by creating a real-world webapp as a team.
+Transcendence is a **group project (4-5 people)** intended to  boost creativity, self-confidence, adaptability and teamwork skills by creating a real-world webapp as a team. (*Subject version: 21.1*)
+
+Project Repo link: https://github.com/Blackhole-Megalaser/transcendence
 
 # Instructions
 
@@ -15,7 +17,7 @@ You will need:
 - gnumake
 - docker with working docker-compose
 
-TODO: check what version of python, django are installed on the school computers and ensure that our project is compatible.
+<br>
 
 Present on school computer: (hopefully the same on all PCs)
 - Docker 28.1.1
@@ -25,20 +27,33 @@ Present on school computer: (hopefully the same on all PCs)
 - node 12.22.9
 - npm 8.5.1
 - Tailwind 4.2.4
-- Vue not installed
+- Vue/Vite not installed
 
 ## Configuration
-
-TODO: add instructions on how to configure the project
 
 - `cp .env.example .env`
 - Change settings as desired
 
+Make sure to have the **DEBUG** key set to **False** in production
+
+Note: If the .env file doesn't exist, our makefile create one AND generate a secret key for django (**make .env**)
+
 ## Running
 
-TODO: add instructions on how to build and start the project
+To build and start the project you can use either:
 
+- `make`
+- `make run`
 - `make dev`
+
+Then to reach the website:
+
+- `https://localhost:1443/`
+- `https://{server_ip_here}:{port}/`
+
+You can replace localhost with the server ip address to access it from outside.
+
+The default port used is **1443**, you can change that in the **EXTERNAL_PORT** variable in your environment file.
 
 # Resources
 
@@ -51,7 +66,7 @@ TODO: add instructions on how to build and start the project
 
 # Team Information
 
-## tlair - Product owner
+## [tlair](https://github.com/La-Fougere) - Product owner
 
 Defines the product vision, prioritizes features, and ensures the project meets user needs.
 - Maintains the product backlog.
@@ -59,7 +74,7 @@ Defines the product vision, prioritizes features, and ensures the project meets 
 - Validates completed work.
 - Communicates with stakeholders (evaluators, peers).
 
-## kcolin - Technical lead
+## [kcolin](https://github.com/logistic-bot) - Technical lead
 
 Oversees technical decisions and architecture
 - Defines technical architecture.
@@ -67,7 +82,7 @@ Oversees technical decisions and architecture
 - Ensures code quality and best practices.
 - Reviews critical code changes.
 
-## lvan-bre - Project manager
+## [lvan-bre](https://github.com/Sellith) - Project manager
 
 Facilitates team coordination and removes obstacles.
 - Organizes team meetings and planning sessions.
@@ -75,7 +90,7 @@ Facilitates team coordination and removes obstacles.
 - Ensures team communication.
 - Manages risks and blockers.
 
-## ael-ghaz & cczerwin - Developer
+## [ael-ghaz](https://github.com/ael-ghaz) & [cczerwin](https://github.com/Xblugs) - Developer
 
 - Write code for assigned features.
 - Participate in code reviews.
@@ -110,9 +125,11 @@ TODO: add database diagram and description of schema
 
 TODO: For each feature, add a subheading with description and who worked on it
 
+The project feature a pictionnary-like game (skribl.io like), a collaborative canvas (like reddit /r/place) with associated chatrooms.
+
 # Modules
 
-**All of our modules listed below amount for a total of 23pts**
+**All of our modules listed below amount for a total of 24pts**
 
 TODO: for each module, add a justification for the choice, how the module was implemented, and who worked on it
 
@@ -120,11 +137,9 @@ TODO: for each module, add a justification for the choice, how the module was im
 
 ### Major: Use a framework for both the frontend and backend
 
-TODO: justification
-
 We used Vue + Tailwind for the frontend, and Django for the backend.
 
-We all worked on it.
+We all worked on this module.
 
 ### Minor: Use a frontend framework
 
@@ -132,7 +147,9 @@ TODO: justification
 
 We used Vue + Tailwind for the frontend.
 
-**lvan-bre** worked on the frontend.
+**lvan-bre** worked on the main site appearance.<br>
+**tlair** worked on the tplace feature.<br>
+**ael-ghaz** worked on the skribble feature.
 
 ### Minor: Use a backend framework
 
@@ -140,7 +157,7 @@ TODO: justification
 
 We used django for the backend.
 
-**kcolin** worked on the backend.
+**kcolin** and **cczerwin** worked on the backend.
 
 ### Major: Implement realtime features using WebSockets or similar technology
 
@@ -150,7 +167,7 @@ We used django for the backend.
 
 This module is necessary to implement our collaborative drawing game properly.
 
-**ael-ghaz** and **tlair** worked on this module.
+**cczerwin** worked on this module.
 
 ### Major: Allow users to interact with other users
 
@@ -160,7 +177,8 @@ This module is necessary to implement our collaborative drawing game properly.
 
 This module is important for the social aspect needed for collaborative oriented projects.
 
-**cczerwin** worked on this module.
+**cczerwin** worked on the chat.<br>
+**lvan-bre** worked on the profile page and friend system.
 
 ### Minor: Use an ORM for the database
 
@@ -169,6 +187,16 @@ This is included in Django features, ORM (Object–relational mapping) helps for
 **kcolin** worked on this module.
 
 ### Minor: Real-time collaborative features (shared workspaces, live editing, collaborative drawing, etc.)
+
+The tplace cover this module, it's a collaborative drawing canvas (/r/place like)
+
+**tlair** worked on this module.
+
+### Minor: Custom-made design system with reusable components, including a proper color palette, typography, and icons (minimum: 10 reusable components).
+
+Thanks to Vue system, all of our components are re-usable, they react to our theme button as well
+
+**lvan-bre** worked on this module.
 
 ### Minor: File upload and management system
 
@@ -208,6 +236,7 @@ Everyone worked on this module.
 This module pairs with the basic interaction module, here focusing on making the actual profiles.
 
 **cczerwin** and **kcolin** worked on this module.
+**lvan-bre** connected the front and made the friendlist and profile page.
 
 ### Minor: Game statistics and match history (requires a game module)
 
@@ -262,7 +291,9 @@ We also have a collaborative drawing platform (/r/place like), this is the corre
 
 Before starting a game, different game mode can be selected.
 
-TODO: Add things depending on what we implement in the final game
+In our implementation the player creating the room can select differents wordlists, during the game each room the player drawing can choose between differents words to draw with an indicated level of difficulty (rewarding with more points)
+
+The drawing time can be changed
 
 **ael-ghaz** worked on this module.
 
@@ -296,6 +327,9 @@ NB: I added some initial contributions from what I could remember, feel free to 
 ## tlair
 
 - Created team on the intranet
+- Made the tplace feature
+- Created the website graphical assets with AI
+- Installed [font-awesome](https://fontawesome.com/)
 
 ## kcolin
 
@@ -308,20 +342,29 @@ NB: I added some initial contributions from what I could remember, feel free to 
 - Setup dockerfile to create a backend image
 - Use docker-compose to run the db and backend
 - Enforce health check on db to prevent backend to start too soon
+- Worked on the API
 
 ## cczerwin
 
 - Created initial choice of module proposition
-- Populated the readme
+- Populated and updated the readme + docs
 - Added ssl termination on nginx
 - Configured the websocket server
 - Tweaked the dockerfiles / docker compose
 - Added aliases in Vue
 - Worked on the project folder structure
-- Made the chat
+- Made the base chat and the associated websocket/redis configuration
+- Modified how the profile picture are stored (one per user, delete old on modify)
+- Worked on the API
 
 ## lvan-bre
+
+- Made the base website and it's components
+- Added a theme button (light/dark)
+- Reworked the chat to have a discord-like appearance
 
 ## ael-ghaz
 
 - Setup first team meeting to decide on project roles
+- Made the skribble game
+- Fought against the canvas anti-aliasing and won
