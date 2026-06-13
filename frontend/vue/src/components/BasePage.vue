@@ -2,7 +2,6 @@
   <navBar
     @showProfile="toggleSideProfile"
     @changeStatus="toggleSideBar"
-    @userInfos="(data) => userInfos = data"
     class="z-60"
     :mobileProfile="MaskNavIcons"
     :isLogin="islogin"
@@ -10,7 +9,6 @@
   />
   <SideProfile 
     :open="showProfile"
-    :propsUserInfos="userInfos"
   />
   <main class="fscreen" @click="closeProfile">
     <sideBar 
@@ -29,8 +27,6 @@
 <script setup>
 import { useUi, Button, NavBar, SideBar, SideProfile } from '@shared'
 import { computed, onMounted, ref } from 'vue';
-
-const userInfos = ref(null);
 
 defineProps({
   islogin: {

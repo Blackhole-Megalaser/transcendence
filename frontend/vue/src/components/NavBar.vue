@@ -93,7 +93,7 @@ const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
 const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin', 'userInfos']);
-const userInfos   = inject('userInfos');
+const userInfos   = inject('userInfos', ref(null));
 const isLogged    = ref(userInfos.value ? true : false);
 
 defineProps ({
@@ -109,12 +109,6 @@ defineProps ({
     default: false,
   },
 });
-
-onBeforeMount(async () => {
-  console.log(userInfos.value);
-  emit('userInfos', userInfos.value);
-})
-
 </script>
 
 <style scoped>
