@@ -15,7 +15,7 @@ document.documentElement.setAttribute("data-theme", savedTheme.current);
 const userStore = useUserStore();
 userStore.initUserInfos();
 
-app.component('Skribbl', Skribbl);
 app.component('BasePage', BasePage);
+app.component('Skribbl', Skribbl);
 
 app.mount('#app');
