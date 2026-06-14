@@ -4,7 +4,7 @@
     <img 
       :src="profilePic" 
       alt="profile_pic"
-      loading="eager"
+      loading="eagere"
     >
   </button>
 </template>

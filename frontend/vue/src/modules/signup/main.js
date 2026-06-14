@@ -1,5 +1,5 @@
 import { createApp }                from 'vue';
-import { useThemeStore }            from '@storage/theme';
+import { useThemeStore }            from '@storage';
 import { setupPinia, fetchUserInfos } from '@shared';
 import BasePage                     from '@components/BasePage.vue';
 import Signup                       from './localComponents/Signup.vue'; 

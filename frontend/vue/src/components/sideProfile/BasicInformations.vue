@@ -54,6 +54,7 @@ const logout  = async () => {
     })
     if (!response.ok)
       throw new Error(`Couldn't disconnect: ${response.status}`);
+    userStore.clear()
     window.location.reload();
   }
   catch (error) {

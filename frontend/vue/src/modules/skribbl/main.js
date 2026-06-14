@@ -1,5 +1,5 @@
 import { createApp, ref }                from 'vue';
-import { useThemeStore }            from '@storage/theme';
+import { useThemeStore }            from '@storage';
 import { setupPinia, fetchUserInfos } from '@shared';
 import BasePage                     from '@components/BasePage.vue';
 import Skribbl                      from './game/Skribbl.vue';
