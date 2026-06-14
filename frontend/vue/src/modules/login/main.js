@@ -1,11 +1,11 @@
 import { createApp }                from 'vue';
 import { useThemeStore }            from '@storage/theme';
-import { setupPinia, getUserInfos } from '@shared';
+import { setupPinia, fetchUserInfos } from '@shared';
 import BasePage                     from '@components/BasePage.vue';
 import Login                        from './localComponents/Login.vue'; 
 import App                          from './App.vue';
 
-const userInfos = await getUserInfos();
+const userInfos = await fetchUserInfos();
 if (userInfos) {
   const queryParams     = new URLSearchParams(window.location.search);
   const room            = queryParams.get('room');

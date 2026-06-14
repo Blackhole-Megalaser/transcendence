@@ -1,11 +1,11 @@
 import { createApp, ref }                from 'vue';
 import { useThemeStore }            from '@storage/theme';
-import { setupPinia, getUserInfos } from '@shared';
+import { setupPinia, fetchUserInfos } from '@shared';
 import BasePage                     from '@components/BasePage.vue';
 import App                          from './App.vue';
 import Update                       from './update.vue'
 
-const userInfos = await getUserInfos();
+const userInfos = await fetchUserInfos();
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);

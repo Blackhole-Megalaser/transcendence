@@ -34,15 +34,14 @@
             <ThemeToggle />
           </div>
           <div class="flex items-center justify-end">
-            <ProfileButton 
+            <ProfileButton
               v-if="isLogged" 
               class="flex" 
               @click="$emit('showProfile')"
-              :profile-picture="userInfos.profile_image"
             />
             <div v-else class="flex">
               <a href="login" class="h-10 sm:w-28 flex-center">
-                <ButtonLogIn>
+                <ButtonLogIn @click="displayInfos">
                   Log in
                 </ButtonLogIn>
               </a>
@@ -75,8 +74,10 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeMount, ref } 	from 'vue';
-import { useThemeStore } 	                        from '@storage/theme.js';
+import { computed, onBeforeMount, ref } from 'vue';
+import { storeToRefs }                  from 'pinia';
+
+import { useThemeStore, useUserStore } 	from '@storage';
 
 import ButtonLogIn 			from './ButtonLogIn.vue';
 import ProfileButton 		from './ProfileButton.vue';
@@ -92,9 +93,9 @@ import ft_mean 				from '@assets/ft_cat-dark.png'
 const theme       = useThemeStore();
 const themeIndex  = computed (() => theme.getThemeIndex());
 const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
-const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin', 'userInfos']);
-const userInfos   = inject('userInfos', ref(null));
-const isLogged    = ref(userInfos.value ? true : false);
+const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
+const userStore   = useUserStore()
+const isLogged    = userStore.getLoggedStatus;
 
 defineProps ({
   variant: {
