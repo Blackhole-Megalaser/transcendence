@@ -3,19 +3,19 @@ import { defineStore }    from "pinia";
 import { fetchUserInfos } from "@shared";
 
 export const useUserStore = defineStore('user', () => {
-  const CACHE_KEY       ='user_infos_cache';
-  const userInfos       = ref(JSON.parse(sessionStorage.getItem(CACHE_KEY)) ?? null);
-  const getLoggedStatus = computed(() => userInfos.value ? true : false);
+  const STORAGE_KEY     ='user_infos_cache';
+  const userInfos       = ref(JSON.parse(sessionStorage.getItem(STORAGE_KEY)) ?? null);
+  const getLoggedStatus = computed(() => !!userInfos.value);
   const getProfilePic   = computed(() => userInfos.value ? userInfos.value.profile_image : null);
 
   function set(infos) {
     userInfos.value = infos;
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(infos));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(infos));
   }
 
   function clear() {
     userInfos.value = null;
-    sessionStorage.removeItem(CACHE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
   }
 
   async function fetchInfos() {
