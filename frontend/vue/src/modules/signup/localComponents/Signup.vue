@@ -153,7 +153,8 @@ const validateUser    = computed(() => {
   else if (forbiddenUsername.suffixes.some(suffix => lowerCaseUsername.endsWith(suffix)))   { return false }
   else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word)))       { return false }
   else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false 
-  else if (Username.value.length < 3)                                                       { return false }
+  else if (lowerCaseUsername.includes(' '))                                                 { return false }
+  else if (lowerCaseUsername.length < 3)                                                    { return false }
   else                                                                                      { return true  }
 })
 
