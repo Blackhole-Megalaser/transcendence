@@ -16,7 +16,7 @@
   <ul class="space-y-2.5 text-sm font-semibold text-text-main">
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">At least <span class="text-title font-bold">8</span> characters</span>
+      <span class="w-86 sm:w-56">At least <span class="text-title font-bold">8</span> characters, and less than <span class="text-title font-bold">40</span> characters</span>
       <component 
         class="size-4 right-0"
         :is="isLongEnough ? check : cross"
