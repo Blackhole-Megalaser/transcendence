@@ -30,16 +30,18 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { storeToRefs }          from 'pinia';
 import { useUserStore }         from '@storage';
 import { getCookie }            from '@shared';
 
 import defaultCat from '@assets/default_cat.png';
 import Button     from '@components/Button.vue';
 
-const userInfos   = useUserStore().getUserInfos;
-const randomName  = "Stranger";
-const username    = userInfos.value ? userInfos.value.username : randomName;
-const profilePic  = userInfos.value ? userInfos.value.profile_image : defaultCat;
+const userStore     = useUserStore();
+const { userInfos } = storeToRefs(userStore);
+const randomName    = "Stranger";
+const username      = userInfos.value ? userInfos.value.username : randomName;
+const profilePic    = userInfos.value ? userInfos.value.profile_image : defaultCat;
 
 const logout  = async () => {
   try {
