@@ -67,7 +67,7 @@
 <script setup>
 import { computed, ref } 	from 'vue';
 
-import { useThemeStore } 	from '@storage/theme.js';
+import { useThemeStore } 	from '@storage';
 import ThemeButton 			from './ThemeButton.vue';
 import ButtonSideBar 		from './ButtonSideBar.vue';
 

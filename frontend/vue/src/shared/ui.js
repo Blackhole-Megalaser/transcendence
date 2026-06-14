@@ -1,6 +1,11 @@
-import { useThemeStore } 	from '@storage/theme.js';
-import { hasOwn, useBreakpoints } 	from '@vueuse/core';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { 
+  ref, 
+  onMounted, 
+  onUnmounted, 
+  computed 
+} from 'vue';
+import { useThemeStore }          from '@storage';
+import { hasOwn, useBreakpoints } from '@vueuse/core';
 
 export function useUi() {
   const breakpoints = useBreakpoints({sm: 640 });

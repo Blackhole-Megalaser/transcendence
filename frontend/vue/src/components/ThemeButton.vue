@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { useThemeStore } 	from '@storage/theme.js';
+import { useThemeStore } 	from '@storage';
 import imp 					from '@assets/smiling_imp_emoji.png';
 import sakura 				from '@assets/cherry-blossom_emoji.png';
 
