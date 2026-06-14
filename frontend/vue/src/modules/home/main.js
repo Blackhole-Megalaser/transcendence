@@ -12,7 +12,7 @@ const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
 const userStore = useUserStore()
-const userInfos = await userStore.initUserInfos();
+userStore.initUserInfos();
 
 app.component('BasePage', BasePage);
 

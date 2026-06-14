@@ -1,11 +1,10 @@
-import { createApp, ref }                             from 'vue';
-import { useThemeStore }                              from '@storage';
-import { setupPinia, fetchUserInfos, setupFontAwesome } from '@shared';
-import BasePage                                       from '@components/BasePage.vue';
-import TPlace                                         from './game/TPlace.vue'; 
-import App                                            from './TplaceApp.vue';
+import { createApp, ref }               from 'vue';
+import { useThemeStore, useUserStore }  from '@storage';
+import { setupPinia, setupFontAwesome } from '@shared';
+import BasePage                         from '@components/BasePage.vue';
+import TPlace                           from './game/TPlace.vue'; 
+import App                              from './TplaceApp.vue';
 
-const userInfos = await fetchUserInfos();
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);
@@ -13,9 +12,11 @@ app.use(pinia);
 const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
+const userStore = useUserStore();
+await userStore.initUserInfos();
+
 app.component('TPlace', TPlace);
 app.component('BasePage', BasePage);
-app.provide('userInfos', ref(userInfos));
 setupFontAwesome(app);
 
 app.mount('#app')

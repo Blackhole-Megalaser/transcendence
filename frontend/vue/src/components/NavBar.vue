@@ -35,7 +35,7 @@
           </div>
           <div class="flex items-center justify-end">
             <ProfileButton
-              v-if="isLogged" 
+              v-if="getLoggedStatus" 
               class="flex" 
               @click="$emit('showProfile')"
             />
@@ -90,12 +90,12 @@ import mean_paw 			from '@assets/mean_paw.svg?component';
 import ft_cat 				from '@assets/ft_cat.png';
 import ft_mean 				from '@assets/ft_cat-dark.png'
 
-const theme       = useThemeStore();
-const themeIndex  = computed (() => theme.getThemeIndex());
-const currentPaw  = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
-const emit        = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
-const userStore   = useUserStore()
-const isLogged    = userStore.getLoggedStatus;
+const theme               = useThemeStore();
+const themeIndex          = computed (() => theme.getThemeIndex());
+const currentPaw          = computed (() => themeIndex.value === 0 ? cute_paw : mean_paw);
+const emit                = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
+const userStore           = useUserStore();
+const { getLoggedStatus } = storeToRefs(userStore);
 
 defineProps ({
   variant: {
