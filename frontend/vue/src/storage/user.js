@@ -5,7 +5,6 @@ import { fetchUserInfos } from "@shared";
 export const useUserStore = defineStore('user', () => {
   const CACHE_KEY       ='user_infos_cache';
   const userInfos       = ref(JSON.parse(sessionStorage.getItem(CACHE_KEY)) ?? null);
-  const getUserInfos    = computed(() => userInfos.value);
   const getLoggedStatus = computed(() => userInfos.value ? true : false);
   const getProfilePic   = computed(() => userInfos.value ? userInfos.value.profile_image : null);
 
@@ -37,8 +36,8 @@ export const useUserStore = defineStore('user', () => {
     clear,
     fetchInfos,
     initUserInfos,
-    getUserInfos,
     getLoggedStatus,
-    getProfilePic
+    getProfilePic,
+    userInfos
   }
 })
