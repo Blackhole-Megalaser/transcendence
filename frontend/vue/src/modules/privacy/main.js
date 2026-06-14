@@ -15,6 +15,5 @@ const userStore = useUserStore();
 userStore.initUserInfos();
 
 app.component('BasePage', BasePage);
-app.provide('userInfos', ref(userInfos));
 
-app.mount('#app')
+app.mount('#app');

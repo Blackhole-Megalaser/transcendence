@@ -1,6 +1,6 @@
 import { createApp }                    from 'vue';
 import { useThemeStore, useUserStore }  from '@storage';
-import { setupPinia, fetchUserInfos }   from '@shared';
+import { setupPinia }                   from '@shared';
 import BasePage                         from '@components/BasePage.vue';
 import Signup                           from './localComponents/Signup.vue'; 
 import App                              from './App.vue';
@@ -12,7 +12,7 @@ app.use(pinia);
 const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 const userInfos = await userStore.initUserInfos();
 if (userInfos) {
   const queryParams     = new URLSearchParams(window.location.search);
@@ -29,4 +29,4 @@ if (userInfos) {
 app.component('Signup', Signup);
 app.component('BasePage', BasePage);
 
-app.mount('#app')
+app.mount('#app');

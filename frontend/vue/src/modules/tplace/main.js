@@ -13,10 +13,10 @@ const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
 const userStore = useUserStore();
-await userStore.initUserInfos();
+userStore.initUserInfos();
 
-app.component('TPlace', TPlace);
 app.component('BasePage', BasePage);
+app.component('TPlace', TPlace);
 setupFontAwesome(app);
 
-app.mount('#app')
+app.mount('#app');

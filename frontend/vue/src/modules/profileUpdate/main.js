@@ -1,11 +1,10 @@
-import { createApp, ref }                from 'vue';
-import { useThemeStore }            from '@storage';
-import { setupPinia, fetchUserInfos } from '@shared';
-import BasePage                     from '@components/BasePage.vue';
-import App                          from './App.vue';
-import Update                       from './update.vue'
+import { createApp, ref }               from 'vue';
+import { useThemeStore, useUserStore }  from '@storage';
+import { setupPinia }                   from '@shared';
+import BasePage                         from '@components/BasePage.vue';
+import Update                           from './update.vue'
+import App                              from './App.vue';
 
-const userInfos = await fetchUserInfos();
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);
@@ -13,8 +12,10 @@ app.use(pinia);
 const savedTheme = useThemeStore();
 document.documentElement.setAttribute("data-theme", savedTheme.current);
 
+const userStore = useUserStore();
+userStore.initUserInfos();
+
 app.component('BasePage', BasePage);
 app.component('Profile', Profile);
-app.provide('userInfos', ref(userInfos));
 
-app.mount('#app')
+app.mount('#app');
