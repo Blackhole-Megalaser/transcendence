@@ -8,7 +8,7 @@ import App                          from './App.vue';
 
 const userInfos = await getUserInfos();
 if (!userInfos)
-    window.location.href = '/login?next=chat';
+    window.location.href = '/login?next=/chat';
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);

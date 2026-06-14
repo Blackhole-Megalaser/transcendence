@@ -40,7 +40,8 @@ const Username  = ref('');
 const Password  = ref('');
 const apiError  = ref('');
 const nextPage  = () => { 
-  const nextURL = new URLSearchParams(window.location.search).get('next');
+  let nextURL = new URLSearchParams(window.location.search).get('next') ?? '/';
+  if (!nextURL.startsWith('/')) nextURL = '/' + nextURL;
   return nextURL ? nextURL : '/';
 }
 
