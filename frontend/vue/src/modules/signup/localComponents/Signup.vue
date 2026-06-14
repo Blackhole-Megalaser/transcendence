@@ -4,7 +4,7 @@
       class="absolute w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
       :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
-      <informations :password-check="Password"/>
+      <Informations :password-check="Password"/>
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
       <h2 class="text-title text-4xl">
@@ -81,7 +81,7 @@
         : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
-      <informations :password-check="Password"/>
+      <Informations :password-check="Password"/>
     </aside>
   </section>
 </template>
@@ -93,7 +93,7 @@ import { getCookie }      from '@shared';
 import forbiddenUsername  from '@shared/forbiddenUsernames.json'
 import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
 import Input              from './Input.vue';    
-import informations       from './informations.vue'
+import Informations       from './Informations.vue'
 
 import interogation       from '@assets/interrogation.svg'
 
@@ -118,10 +118,10 @@ const validateForm    = computed(() => {
   else { return false }
 })
 
-const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(Password.value.toLowerCase()))
-const hasUppercase        = computed(() => /[A-Z]/.test(Password.value))
-const hasNumber           = computed(() => /[0-9]/.test(Password.value))
-const isLongEnough        = computed(() => Password.value.trim().length >= 8)
+const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(Password.value.toLowerCase()));
+const hasUppercase        = computed(() => /[A-Z]/.test(Password.value));
+const hasNumber           = computed(() => /[0-9]/.test(Password.value));
+const isLongEnough        = computed(() => Password.value.length >= 8 && Password.value.length <= 40);
 
 const validatePass        = computed(() => {
   if (isMostUsedPassword.value) { return false }
@@ -136,7 +136,8 @@ const passwordStatus  = computed(() => {
     isValidUppercase:         hasUppercase.value,
     isValidNumber:            hasNumber.value,
     isValidLength:            isLongEnough.value,
-    isValidMostUsedPassword:  isMostUsedPassword.value
+    isValidMostUsedPassword:  isMostUsedPassword.value,
+
   }
 })
 
@@ -154,7 +155,7 @@ const validateUser    = computed(() => {
   else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word)))       { return false }
   else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false 
   else if (lowerCaseUsername.includes(' '))                                                 { return false }
-  else if (lowerCaseUsername.length < 3)                                                    { return false }
+  else if (lowerCaseUsername.length < 3 || lowerCaseUsername.length > 12)                   { return false }
   else                                                                                      { return true  }
 })
 
@@ -212,7 +213,7 @@ const submit    = async () => {
     if (!response.ok) {
       apiError.value  = await response.json();
       console.log(apiError.value.detail);
-      throw new Error(`Wrong informations inserted: ${response.status}`)
+      throw new Error(`Wrong Informations inserted: ${response.status}`)
     }
     window.location.href  = nextPage();
   }
