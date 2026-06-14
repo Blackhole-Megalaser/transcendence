@@ -16,7 +16,11 @@
   </div>
   <div class="flex-center flex-col xs:flex-row">
     <div class="h-10 w-full xs:w-1/2 flex-center">
-      <Button variant="secondary" side="left">Change user</Button>
+      <Button 
+        variant="secondary" 
+        side="left"
+        @click="displayInfos"
+      >Change user</Button>
     </div>
     <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
       <Button 
@@ -40,8 +44,12 @@ import Button     from '@components/Button.vue';
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const randomName    = "Stranger";
-const username      = userInfos.value ? userInfos.value.username : randomName;
-const profilePic    = userInfos.value ? userInfos.value.profile_image : defaultCat;
+const username      = ref(userInfos.value ? userInfos.value.username : randomName);
+const profilePic    = ref(userInfos.value ? userInfos.value.profile_image : defaultCat);
+
+const displayInfos  = () => {
+  console.log(userInfos.value);
+}
 
 const logout  = async () => {
   try {
