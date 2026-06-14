@@ -105,7 +105,7 @@ const apiError        = ref("");
 const OpenInfoBar     = ref(false);
 const OpenInfoBox     = ref(false);
 const nextPage  = () => { 
-  let nextURL = new URLSearchParams(window.location.search).get('next');
+  let nextURL = new URLSearchParams(window.location.search).get('next') ?? '/';
   if (!nextURL.startsWith('/')) nextURL = '/' + nextURL;
   return nextURL ? nextURL : '/';
 }
