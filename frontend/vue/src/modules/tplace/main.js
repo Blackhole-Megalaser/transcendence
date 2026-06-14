@@ -1,11 +1,11 @@
 import { createApp, ref }                             from 'vue';
 import { useThemeStore }                              from '@storage/theme';
-import { setupPinia, getUserInfos, setupFontAwesome } from '@shared';
+import { setupPinia, fetchUserInfos, setupFontAwesome } from '@shared';
 import BasePage                                       from '@components/BasePage.vue';
 import TPlace                                         from './game/TPlace.vue'; 
 import App                                            from './TplaceApp.vue';
 
-const userInfos = await getUserInfos();
+const userInfos = await fetchUserInfos();
 const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);

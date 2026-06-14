@@ -4,25 +4,18 @@
     <img 
       :src="profilePic" 
       alt="profile_pic"
+      loading="eager"
     >
   </button>
 </template>
 
 <script setup>
-import { inject, onBeforeMount, ref } from 'vue';
+import { ref, watchEffect } from 'vue';
+import { useUserStore }     from '@storage';
+import defaultCat           from '@assets/default_cat.png'
+import { storeToRefs }      from 'pinia';
 
-import defaultCat from '@assets/default_cat.png'
-
-const userInfos   = inject('userInfos', ref(null));
-const profilePic  = ref(defaultCat);
-const isLoaded    = ref(false);
-
-onBeforeMount(() => {
-  if (userInfos.value?.profile_image) {
-    const userPicture = userInfos.value.profile_image;
-    const imgLoader   = new Image();
-    imgLoader.src     = userPicture;
-    imgLoader.onload  = () => profilePic.value = userPicture;
-  }
-})
+const userStore         = useUserStore();
+const { getProfilePic } = storeToRefs(userStore);
+const profilePic        = ref(getProfilePic ?? defaultCat);
 </script>
