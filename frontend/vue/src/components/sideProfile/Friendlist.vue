@@ -13,7 +13,7 @@
         <div class="relative">
           <img
             alt="Profile Picture"
-            class="size-10 z-11 rounded-full"
+            class="size-10 min-w-10 z-11 rounded-full"
             :src="friend.profilePicture"
           >
           <div
@@ -32,12 +32,12 @@
           >
           <a 
             :href="`/users/${friend.username}`"
-            class="w-1/2 px-4 flex-center text-text-main hover:bg-button-sidebar-2-active"
+            class="w-1/2 px-4 flex items-center justify-center text-center text-text-main hover:bg-button-sidebar-2-active"
             :class="friend.isOpen ? 'py-2' : 'py-0'"
           >See Profile
           </a>
           <button 
-            class="px-4 text-text-main w-1/2 hover:bg-button-sidebar-2-active"
+            class="px-4 cursor-pointer text-text-main w-1/2 flex items-center justify-center text-center hover:bg-button-sidebar-2-active"
             :class="friend.isOpen ? 'py-2' : 'py-0'"
           >Delete Friend</button>
         </div>
