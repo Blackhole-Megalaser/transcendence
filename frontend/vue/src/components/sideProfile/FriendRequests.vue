@@ -22,7 +22,9 @@
           </a>
         </div>
         <p class="text-text-main text-lg font-semibold truncate max-w-44 flex-1">{{ friend.username }}</p>
-        <div class="hidden group-hover:flex flex-none gap-2 right-0">
+        <div 
+          class="flex md:hidden md:group-hover:flex flex-none gap-2 right-0"
+        >
           <component :is="check" class="size-4 cursor-pointer"/>
           <component :is="cross" class="size-4 fill-red-600 cursor-pointer"/>
         </div>
