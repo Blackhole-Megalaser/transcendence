@@ -9,12 +9,12 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue';
+import { onMounted, ref, watchEffect } from 'vue';
 import { useUserStore }     from '@storage';
 import defaultCat           from '@assets/default_cat.png'
 import { storeToRefs }      from 'pinia';
 
 const userStore         = useUserStore();
 const { getProfilePic } = storeToRefs(userStore);
-const profilePic        = ref(getProfilePic ?? defaultCat);
+const profilePic        = ref(getProfilePic.value ?? defaultCat);
 </script>

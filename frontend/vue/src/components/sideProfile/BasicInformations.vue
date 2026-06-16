@@ -44,8 +44,8 @@ import Button     from '@components/Button.vue';
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const randomName    = "Stranger";
-const username      = ref(userInfos.value ? userInfos.value.username : randomName);
-const profilePic    = ref(userInfos.value ? userInfos.value.profile_image : defaultCat);
+const username      = ref(userInfos.value?.username ?? randomName);
+const profilePic    = ref(userInfos.value?.profile_image ?? defaultCat);
 
 const reAuth  = async () => {
   const currentURI  = window.location.href.slice(window.location.origin.length).replace('?', '&');
