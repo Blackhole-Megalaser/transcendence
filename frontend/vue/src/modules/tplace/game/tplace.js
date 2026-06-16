@@ -64,6 +64,8 @@ export function runTplace() {
 	let isPanning = false
 	let lastPanX = 0
 	let lastPanY = 0
+	let touchMode = null
+	let lastTouchDistance = 0
 	let resizeObserver = null
 	let zoom = 1
 
@@ -129,7 +131,7 @@ export function runTplace() {
 		return canvasRef.value
 	}
 
-	function getViewportMousePos(event) {
+	function getViewportPoint(clientX, clientY) {
 		const canvas = getCanvas()
 		const rect = canvas.getBoundingClientRect()
 		const style = getComputedStyle(canvas)
@@ -142,14 +144,21 @@ export function runTplace() {
 		const drawableHeight = Math.max(1, rect.height - borderTop - borderBottom)
 		const scaleX = canvas.width / drawableWidth
 		const scaleY = canvas.height / drawableHeight
-		const mouseX = (event.clientX - rect.left - borderLeft) * scaleX
-		const mouseY = (event.clientY - rect.top - borderTop) * scaleY
+		const mouseX = (clientX - rect.left - borderLeft) * scaleX
+		const mouseY = (clientY - rect.top - borderTop) * scaleY
 
 		return { mouseX, mouseY }
 	}
 
-	function getMousePos(event) {
-		const { mouseX, mouseY } = getViewportMousePos(event)
+	function getViewportMousePos(event) {
+		return getViewportPoint(event.clientX, event.clientY)
+	}
+
+	function getTouchViewportPos(touch) {
+		return getViewportPoint(touch.clientX, touch.clientY)
+	}
+
+	function getCellFromViewportPos(mouseX, mouseY) {
 		const worldX = cameraX + mouseX / zoom
 		const worldY = cameraY + mouseY / zoom
 		const cellX = clamp(Math.floor(worldX / CELL_SIZE), 0, WORLD_X_MAX - 1)
@@ -158,6 +167,18 @@ export function runTplace() {
 		pointerStatus.value = `Mouse pos (x,y): ${cellX},${cellY}`
 
 		return { cellX, cellY }
+	}
+
+	function getMousePos(event) {
+		const { mouseX, mouseY } = getViewportMousePos(event)
+
+		return getCellFromViewportPos(mouseX, mouseY)
+	}
+
+	function getTouchPos(touch) {
+		const { mouseX, mouseY } = getTouchViewportPos(touch)
+
+		return getCellFromViewportPos(mouseX, mouseY)
 	}
 
 	function syncCanvasSize(centerCamera = false) {
@@ -303,6 +324,18 @@ export function runTplace() {
 		currentStroke = null
 	}
 
+	function cancelStroke() {
+		if (currentStroke === null) {
+			return
+		}
+
+		currentStroke.forEach((change) => {
+			pixels[change.y][change.x] = change.oldColor
+		})
+		placed = Math.max(0, placed - currentStroke.length)
+		currentStroke = null
+	}
+
 	function applyStroke(stroke, direction) {
 		stroke.forEach((change) => {
 			pixels[change.y][change.x] = direction === 'undo' ? change.oldColor : change.newColor
@@ -335,10 +368,14 @@ export function runTplace() {
 		undoStack.push(stroke)
 	}
 
+	function colorizeCell(cellX, cellY) {
+		recordPixelChange(cellX, cellY, selectedColor.value)
+	}
+
 	function colorize(event) {
 		const pos = getMousePos(event)
 
-		recordPixelChange(pos.cellX, pos.cellY, selectedColor.value)
+		colorizeCell(pos.cellX, pos.cellY)
 	}
 
 	function beginPan(event) {
@@ -353,8 +390,7 @@ export function runTplace() {
 		lastPanY = mouseY
 	}
 
-	function panCamera(event) {
-		const { mouseX, mouseY } = getViewportMousePos(event)
+	function panCameraTo(mouseX, mouseY) {
 		const deltaX = mouseX - lastPanX
 		const deltaY = mouseY - lastPanY
 
@@ -367,24 +403,123 @@ export function runTplace() {
 		pointerStatus.value = `Camera (x,y): ${Math.round(cameraX)},${Math.round(cameraY)}`
 	}
 
+	function panCamera(event) {
+		const { mouseX, mouseY } = getViewportMousePos(event)
+
+		panCameraTo(mouseX, mouseY)
+	}
+
+	function zoomAtViewportPoint(mouseX, mouseY, nextZoom) {
+		const clampedZoom = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM)
+
+		if (clampedZoom === zoom) {
+			return false
+		}
+
+		const worldXBeforeZoom = cameraX + mouseX / zoom
+		const worldYBeforeZoom = cameraY + mouseY / zoom
+
+		zoom = clampedZoom
+		cameraX = worldXBeforeZoom - mouseX / zoom
+		cameraY = worldYBeforeZoom - mouseY / zoom
+		clampCamera()
+
+		return true
+	}
+
 	function handleWheel(event) {
 		event.preventDefault()
 
 		const { mouseX, mouseY } = getViewportMousePos(event)
-		const worldXBeforeZoom = cameraX + mouseX / zoom
-		const worldYBeforeZoom = cameraY + mouseY / zoom
 		const zoomFactor = event.deltaY < 0 ? 1.1 : 1 / 1.1
-		const nextZoom = clamp(zoom * zoomFactor, MIN_ZOOM, MAX_ZOOM)
 
-		if (nextZoom === zoom) {
-			return
+		if (zoomAtViewportPoint(mouseX, mouseY, zoom * zoomFactor)) {
+			pointerStatus.value = `Zoom: ${Math.round(zoom * 100)}%`
+		}
+	}
+
+	function getTouchGesture(touches) {
+		const first = getTouchViewportPos(touches[0])
+		const second = getTouchViewportPos(touches[1])
+		const deltaX = second.mouseX - first.mouseX
+		const deltaY = second.mouseY - first.mouseY
+
+		return {
+			centerX: (first.mouseX + second.mouseX) / 2,
+			centerY: (first.mouseY + second.mouseY) / 2,
+			distance: Math.hypot(deltaX, deltaY),
+		}
+	}
+
+	function beginTouchPan(touch) {
+		const { mouseX, mouseY } = getTouchViewportPos(touch)
+
+		touchMode = 'pan'
+		isPanning = true
+		isDrawing = false
+		hoverCell = null
+		commitStroke()
+		lastPanX = mouseX
+		lastPanY = mouseY
+	}
+
+	function beginTouchDraw(touch) {
+		touchMode = 'draw'
+		isPanning = false
+		isDrawing = true
+		beginStroke()
+
+		const pos = getTouchPos(touch)
+
+		hoverCell = {
+			x: pos.cellX,
+			y: pos.cellY,
+		}
+		colorizeCell(pos.cellX, pos.cellY)
+	}
+
+	function beginTouchPanZoom(touches) {
+		const gesture = getTouchGesture(touches)
+
+		if (touchMode === 'draw') {
+			cancelStroke()
+		} else {
+			commitStroke()
 		}
 
-		zoom = nextZoom
-		cameraX = worldXBeforeZoom - mouseX / zoom
-		cameraY = worldYBeforeZoom - mouseY / zoom
-		clampCamera()
-		pointerStatus.value = `Zoom: ${Math.round(zoom * 100)}%`
+		touchMode = 'pan-zoom'
+		isPanning = true
+		isDrawing = false
+		hoverCell = null
+		lastPanX = gesture.centerX
+		lastPanY = gesture.centerY
+		lastTouchDistance = gesture.distance
+	}
+
+	function updateTouchDraw(touch) {
+		const pos = getTouchPos(touch)
+
+		hoverCell = {
+			x: pos.cellX,
+			y: pos.cellY,
+		}
+		colorizeCell(pos.cellX, pos.cellY)
+	}
+
+	function updateTouchPanZoom(touches) {
+		const gesture = getTouchGesture(touches)
+
+		if (lastTouchDistance > 0 && gesture.distance > 0) {
+			zoomAtViewportPoint(
+				gesture.centerX,
+				gesture.centerY,
+				zoom * (gesture.distance / lastTouchDistance),
+			)
+		}
+
+		panCameraTo(gesture.centerX, gesture.centerY)
+		lastTouchDistance = gesture.distance
+		pointerStatus.value = `Camera (x,y): ${Math.round(cameraX)},${Math.round(cameraY)} Zoom: ${Math.round(zoom * 100)}%`
 	}
 
 	function handleMouseMove(event) {
@@ -458,6 +593,82 @@ export function runTplace() {
 		}
 
 		isDrawing = false
+		commitStroke()
+	}
+
+	function handleTouchStart(event) {
+		event.preventDefault()
+
+		if (event.touches.length >= 2) {
+			beginTouchPanZoom(event.touches)
+			return
+		}
+
+		if (event.touches.length !== 1) {
+			return
+		}
+
+		if (isPaintMode.value) {
+			beginTouchDraw(event.touches[0])
+		} else {
+			beginTouchPan(event.touches[0])
+		}
+	}
+
+	function handleTouchMove(event) {
+		event.preventDefault()
+
+		if (event.touches.length >= 2) {
+			if (touchMode !== 'pan-zoom') {
+				beginTouchPanZoom(event.touches)
+			} else {
+				updateTouchPanZoom(event.touches)
+			}
+			return
+		}
+
+		if (event.touches.length !== 1) {
+			return
+		}
+
+		if (touchMode === 'draw') {
+			updateTouchDraw(event.touches[0])
+		} else if (touchMode === 'pan') {
+			const { mouseX, mouseY } = getTouchViewportPos(event.touches[0])
+
+			panCameraTo(mouseX, mouseY)
+		}
+	}
+
+	function handleTouchEnd(event) {
+		event.preventDefault()
+
+		if (event.touches.length >= 2) {
+			beginTouchPanZoom(event.touches)
+			return
+		}
+
+		if (touchMode === 'pan-zoom' && event.touches.length === 1 && !isPaintMode.value) {
+			beginTouchPan(event.touches[0])
+			return
+		}
+
+		if (event.touches.length === 0) {
+			isDrawing = false
+			isPanning = false
+			touchMode = null
+			lastTouchDistance = 0
+			commitStroke()
+		}
+	}
+
+	function handleTouchCancel(event) {
+		event.preventDefault()
+		isDrawing = false
+		isPanning = false
+		touchMode = null
+		lastTouchDistance = 0
+		hoverCell = null
 		commitStroke()
 	}
 
@@ -544,6 +755,10 @@ export function runTplace() {
 		handleMouseLeave,
 		handleMouseMove,
 		handleMouseUp,
+		handleTouchCancel,
+		handleTouchEnd,
+		handleTouchMove,
+		handleTouchStart,
 		handleWheel,
 		isPaintMode,
 		isToolMenuOpen,
