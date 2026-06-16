@@ -44,8 +44,13 @@ import Button     from '@components/Button.vue';
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const randomName    = "Stranger";
+<<<<<<< HEAD
 const username      = computed(() => userInfos.value?.username ?? randomName);
 const profilePic    = computed(() => userInfos.value?.profile_image ?? defaultCat);
+=======
+const username      = ref(userInfos.value?.username ?? randomName);
+const profilePic    = ref(userInfos.value?.profile_image ?? defaultCat);
+>>>>>>> 9fa89d8 (Fix: bug when there was no profile picture)
 
 const reAuth  = async () => {
   const currentURI  = window.location.href.slice(window.location.origin.length).replace('?', '&');
