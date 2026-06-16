@@ -44,9 +44,8 @@ import Button     from '@components/Button.vue';
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const randomName    = "Stranger";
-<<<<<<< HEAD
-const username      = ref(userInfos.value?.username ?? randomName);
-const profilePic    = ref(userInfos.value?.profile_image ?? defaultCat);
+const username      = computed(() => userInfos.value?.username ?? randomName);
+const profilePic    = computed(() => userInfos.value?.profile_image ?? defaultCat);
 
 const reAuth  = async () => {
   const currentURI  = window.location.href.slice(window.location.origin.length).replace('?', '&');
@@ -56,10 +55,6 @@ const reAuth  = async () => {
   if (isLogedOut)
     window.location.href = URI;
 }
-=======
-const username      = computed(() => userInfos.value?.username ?? randomName);
-const profilePic    = computed(() => userInfos.value?.profile_image ?? defaultCat);
->>>>>>> 1ea96be (Fix: now basic informations succesfully load infos and update them)
 
 const logout  = async (reload) => {
   try {
