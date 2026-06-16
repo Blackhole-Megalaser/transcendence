@@ -203,16 +203,25 @@ export function runTplace() {
 		clampCamera()
 	}
 
+	function getScreenCellBounds(x, y) {
+		const left = Math.floor((x * CELL_SIZE - cameraX) * zoom)
+		const top = Math.floor((y * CELL_SIZE - cameraY) * zoom)
+		const right = Math.ceil((((x + 1) * CELL_SIZE) - cameraX) * zoom)
+		const bottom = Math.ceil((((y + 1) * CELL_SIZE) - cameraY) * zoom)
+
+		return {
+			left,
+			top,
+			width: Math.max(1, right - left),
+			height: Math.max(1, bottom - top),
+		}
+	}
+
 	function drawPixel(x, y, color) {
-		const screenCellSize = getScreenCellSize()
+		const bounds = getScreenCellBounds(x, y)
 
 		ctx.fillStyle = color
-		ctx.fillRect(
-			(x * CELL_SIZE - cameraX) * zoom,
-			(y * CELL_SIZE - cameraY) * zoom,
-			screenCellSize,
-			screenCellSize,
-		)
+		ctx.fillRect(bounds.left, bounds.top, bounds.width, bounds.height)
 	}
 
 	function drawPixels() {
@@ -268,15 +277,9 @@ export function runTplace() {
 			return
 		}
 
-		const screenCellSize = getScreenCellSize()
+		const bounds = getScreenCellBounds(hoverCell.x, hoverCell.y)
 
-		ctx.drawImage(
-			hoverImage,
-			(hoverCell.x * CELL_SIZE - cameraX) * zoom,
-			(hoverCell.y * CELL_SIZE - cameraY) * zoom,
-			screenCellSize,
-			screenCellSize,
-		)
+		ctx.drawImage(hoverImage, bounds.left, bounds.top, bounds.width, bounds.height)
 	}
 
 	function beginStroke() {
