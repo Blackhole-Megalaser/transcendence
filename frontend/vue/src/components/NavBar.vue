@@ -40,12 +40,12 @@
               @click="$emit('showProfile')"
             />
             <div v-else class="flex">
-              <a href="login" class="h-10 sm:w-28 flex-center">
-                <ButtonLogIn @click="displayInfos">
+              <a :href="`login${URI}`" class="h-10 sm:w-28 flex-center">
+                <ButtonLogIn>
                   Log in
                 </ButtonLogIn>
               </a>
-              <a href="signup" class="h-10 sm:w-32 hidden xl:flex justify-center items-center">
+              <a :href="`signup${URI}`" class="h-10 sm:w-32 hidden xl:flex justify-center items-center">
                 <ButtonLogIn>
                   Sign Up
                 </ButtonLogIn>
@@ -96,7 +96,10 @@ const currentPaw          = computed (() => themeIndex.value === 0 ? cute_paw : 
 const emit                = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
 const userStore           = useUserStore();
 const { getLoggedStatus } = storeToRefs(userStore);
-const nextPage  = () => { 
+const currentURI          = window.location.href.slice(window.location.origin.length).replace('?', '&');
+const URI                 = currentURI !== '/' ? `?next=${currentURI}` : '';
+
+const nextPage            = () => { 
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
   if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
