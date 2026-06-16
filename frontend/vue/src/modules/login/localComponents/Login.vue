@@ -40,9 +40,11 @@ const Username  = ref('');
 const Password  = ref('');
 const apiError  = ref('');
 const nextPage  = () => { 
-  let nextURL = new URLSearchParams(window.location.search).get('next') ?? '/';
-  if (!nextURL.startsWith('/')) nextURL = '/' + nextURL;
-  return nextURL ? nextURL : '/';
+  let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
+  let isSafeURL = true
+  if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
+  if (nextURL.length > 1)       isSafeURL  = !nextURL.startsWith('//');
+  return isSafeURL ? nextURL : '/';
 }
 
 const submit    = async () => {
