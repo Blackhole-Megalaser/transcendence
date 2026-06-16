@@ -83,6 +83,10 @@ export function runTplace() {
 		}
 	}
 
+	function toggleToolMenu() {
+		isToolMenuOpen.value = !isToolMenuOpen.value
+	}
+
 	function clamp(value, min, max) {
 		return Math.max(min, Math.min(max, value))
 	}
@@ -769,6 +773,7 @@ export function runTplace() {
 		selectedColor,
 		showGrid,
 		togglePaintMode,
+		toggleToolMenu,
 		undo,
 	}
 }
