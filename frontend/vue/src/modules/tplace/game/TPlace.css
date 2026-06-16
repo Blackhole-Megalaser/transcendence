@@ -42,10 +42,10 @@ body {
 
 .overlay-right {
 	top: 50%;
-	right: 1.25rem;
+	right: 0.75rem;
 	flex-direction: column;
-	align-items: stretch;
-	gap: 0.75rem;
+	align-items: flex-end;
+	gap: 0.5rem;
 	opacity: 0;
 	pointer-events: none;
 	transform: translateY(-50%) translateX(18px) scale(0.96);
@@ -62,6 +62,50 @@ body {
 	pointer-events: auto;
 	transform: translateY(-50%) translateX(0) scale(1);
 	visibility: visible;
+}
+
+.tool-menu-panel {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	align-self: flex-end;
+	gap: 0.75rem;
+	min-width: max-content;
+	transition:
+		opacity 0.22s ease,
+		transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+		visibility 0.22s ease;
+	transform-origin: right center;
+}
+
+.tool-menu-panel.is-collapsed {
+	opacity: 0;
+	pointer-events: none;
+	transform: translateX(calc(100% + 0.75rem));
+	visibility: hidden;
+}
+
+.tool-menu-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	align-self: flex-end;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	border: 2px solid var(--color-borders-outline);
+	border-radius: 8px;
+	background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
+	color: var(--color-text-main);
+	box-shadow: 0 8px 18px color-mix(in srgb, var(--color-navbar-border) 24%, transparent);
+	cursor: pointer;
+	font-size: 16px;
+	transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.tool-menu-toggle:hover {
+	background: color-mix(in srgb, var(--color-button-2-normal) 28%, var(--color-bg-card));
+	box-shadow: 0 0 14px color-mix(in srgb, var(--color-button-2-normal) 35%, transparent);
 }
 
 .overlay-bottom {
@@ -267,56 +311,58 @@ body {
 	transition: all 0.8s ease;
 }
 
-.pretty-button:hover {
-	background: var(--color-button-1-active);
-	box-shadow: 0 0 25px color-mix(in srgb, var(--color-button-1-hover) 60%, transparent);
-	color: var(--color-text-button-1);
-}
-
 .pretty-button.is-open {
 	box-shadow:
 		0 0 0 3px color-mix(in srgb, var(--color-button-2-normal) 55%, transparent),
 		0 0 24px color-mix(in srgb, var(--color-button-1-hover) 55%, transparent);
 }
 
-.pretty-button:hover .star {
-	filter:
-		drop-shadow(0 0 10px var(--color-text-button-1))
-		drop-shadow(1px 0 0 var(--color-button-2-normal))
-		drop-shadow(-1px 0 0 var(--color-button-2-normal))
-		drop-shadow(0 1px 0 var(--color-button-2-normal))
-		drop-shadow(0 -1px 0 var(--color-button-2-normal));
-	z-index: 2;
-}
+@media (hover: hover) and (pointer: fine) {
+	.pretty-button:hover {
+		background: var(--color-button-1-active);
+		box-shadow: 0 0 25px color-mix(in srgb, var(--color-button-1-hover) 60%, transparent);
+		color: var(--color-text-button-1);
+	}
 
-.pretty-button:hover .star-1 {
-	top: -80%;
-	left: -30%;
-}
+	.pretty-button:hover .star {
+		filter:
+			drop-shadow(0 0 10px var(--color-text-button-1))
+			drop-shadow(1px 0 0 var(--color-button-2-normal))
+			drop-shadow(-1px 0 0 var(--color-button-2-normal))
+			drop-shadow(0 1px 0 var(--color-button-2-normal))
+			drop-shadow(0 -1px 0 var(--color-button-2-normal));
+		z-index: 2;
+	}
 
-.pretty-button:hover .star-2 {
-	top: -25%;
-	left: 10%;
-}
+	.pretty-button:hover .star-1 {
+		top: -80%;
+		left: -30%;
+	}
 
-.pretty-button:hover .star-3 {
-	top: 55%;
-	left: 25%;
-}
+	.pretty-button:hover .star-2 {
+		top: -25%;
+		left: 10%;
+	}
 
-.pretty-button:hover .star-4 {
-	top: 30%;
-	left: 80%;
-}
+	.pretty-button:hover .star-3 {
+		top: 55%;
+		left: 25%;
+	}
 
-.pretty-button:hover .star-5 {
-	top: 25%;
-	left: 115%;
-}
+	.pretty-button:hover .star-4 {
+		top: 30%;
+		left: 80%;
+	}
 
-.pretty-button:hover .star-6 {
-	top: 5%;
-	left: 60%;
+	.pretty-button:hover .star-5 {
+		top: 25%;
+		left: 115%;
+	}
+
+	.pretty-button:hover .star-6 {
+		top: 5%;
+		left: 60%;
+	}
 }
 
 .pretty-button .fil0 {
@@ -326,7 +372,7 @@ body {
 @media (max-width: 900px) {
 	.overlay-right {
 		top: auto;
-		right: 0.75rem;
+		right: 0.5rem;
 		bottom: 5.25rem;
 		transform: translateY(14px) scale(0.96);
 		transform-origin: right bottom;

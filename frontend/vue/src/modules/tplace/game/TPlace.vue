@@ -9,38 +9,49 @@
 				id="tplace-tools"
 				class="canvas-overlay overlay-right"
 				:class="{ 'is-open': isPaintMode }"
-				:aria-hidden="!isToolMenuOpen"
 			>
-				<div class="history-controls" aria-label="History controls">
-					<button class="history-button" type="button" title="Annuler" aria-label="Undo" @click="undo">
-						<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-left']" />
-					</button>
-					<button class="history-button" type="button" title="Refaire" aria-label="Redo" @click="redo">
-						<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-right']" />
-					</button>
-				</div>
+				<button
+					class="tool-menu-toggle"
+					type="button"
+					:aria-expanded="isToolMenuOpen"
+					aria-controls="tplace-tools"
+					@click="toggleToolMenu"
+				>
+					<FontAwesomeIcon :icon="byPrefixAndName.fas['bars']" />
+				</button>
 
-				<div class="color-palette" aria-label="Color palette">
-					<button
-						v-for="color in colors"
-						:key="color.value"
-						class="color-swatch"
-						:class="{ 'is-selected': selectedColor === color.value }"
-						type="button"
-						:style="{ '--swatch-color': color.value }"
-						:title="color.name"
-						:aria-label="color.name"
-						@click="selectColor(color.value)"
-					/>
-				</div>
+				<div class="tool-menu-panel" :class="{ 'is-collapsed': !isToolMenuOpen }" :aria-hidden="!isToolMenuOpen">
+					<div class="history-controls" aria-label="History controls">
+						<button class="history-button" type="button" title="Annuler" aria-label="Undo" @click="undo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-left']" />
+						</button>
+						<button class="history-button" type="button" title="Refaire" aria-label="Redo" @click="redo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-right']" />
+						</button>
+					</div>
 
-				<label class="grid-toggle">
-					<input v-model="showGrid" type="checkbox">
-					<span class="grid-toggle-track">
-						<span class="grid-toggle-thumb"></span>
-					</span>
-					<span class="grid-toggle-label">{{ gridLabel }}</span>
-				</label>
+					<div class="color-palette" aria-label="Color palette">
+						<button
+							v-for="color in colors"
+							:key="color.value"
+							class="color-swatch"
+							:class="{ 'is-selected': selectedColor === color.value }"
+							type="button"
+							:style="{ '--swatch-color': color.value }"
+							:title="color.name"
+							:aria-label="color.name"
+							@click="selectColor(color.value)"
+						/>
+					</div>
+
+					<label class="grid-toggle">
+						<input v-model="showGrid" type="checkbox">
+						<span class="grid-toggle-track">
+							<span class="grid-toggle-thumb"></span>
+						</span>
+						<span class="grid-toggle-label">{{ gridLabel }}</span>
+					</label>
+				</div>
 			</div>
 
 			<div class="canvas-overlay overlay-bottom">
@@ -119,6 +130,7 @@ const {
 	selectedColor,
 	showGrid,
 	togglePaintMode,
+	toggleToolMenu,
 	undo,
 } = runTplace()
 </script>
