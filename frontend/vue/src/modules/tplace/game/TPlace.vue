@@ -76,13 +76,17 @@
 
 			<canvas
 				ref="canvasRef"
-				class="block h-full w-full bg-bg-card" :class="isPaintMode ? 'cursor-crosshair' : 'cursor-grab'"
+				class="tplace-canvas block h-full w-full bg-bg-card" :class="isPaintMode ? 'cursor-crosshair' : 'cursor-grab'"
 				width="896"
 				height="608"
 				@mousemove="handleMouseMove"
 				@mouseleave="handleMouseLeave"
 				@mousedown="handleMouseDown"
 				@mouseup="handleMouseUp"
+				@touchstart.prevent="handleTouchStart"
+				@touchmove.prevent="handleTouchMove"
+				@touchend.prevent="handleTouchEnd"
+				@touchcancel.prevent="handleTouchCancel"
 				@wheel.prevent="handleWheel"
 			/>
 		</section>
@@ -101,6 +105,10 @@ const {
 	handleMouseLeave,
 	handleMouseMove,
 	handleMouseUp,
+	handleTouchCancel,
+	handleTouchEnd,
+	handleTouchMove,
+	handleTouchStart,
 	handleWheel,
 	isPaintMode,
 	isToolMenuOpen,
