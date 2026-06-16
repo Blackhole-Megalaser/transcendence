@@ -19,14 +19,14 @@
       <Button 
         variant="secondary" 
         side="left"
-        @click="displayInfos"
+        @click="reAuth"
       >Change user</Button>
     </div>
     <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
       <Button 
         variant="secondary" 
         side="right"
-        @click="logout"
+        @click="logout(true)"
       >Log out</Button>
     </div>
   </div>
@@ -47,11 +47,16 @@ const randomName    = "Stranger";
 const username      = ref(userInfos.value ? userInfos.value.username : randomName);
 const profilePic    = ref(userInfos.value ? userInfos.value.profile_image : defaultCat);
 
-const displayInfos  = () => {
-  console.log(userInfos.value);
+const reAuth  = async () => {
+  const currentURI  = window.location.href.slice(window.location.origin.length).replace('?', '&');
+  const URI         = `/login${currentURI !== '/' ? `?next=${currentURI}` : ''}`
+  
+  const isLogedOut  = await logout(false);
+  if (isLogedOut)
+    window.location.href = URI;
 }
 
-const logout  = async () => {
+const logout  = async (reload) => {
   try {
     const response  = await fetch('/api/users/logout/', {
       method: "POST",
@@ -62,11 +67,15 @@ const logout  = async () => {
     })
     if (!response.ok)
       throw new Error(`Couldn't disconnect: ${response.status}`);
-    userStore.clear()
-    window.location.reload();
+    userStore.clear();
+    if (reload) 
+      window.location.reload();
+    else
+      return true;
   }
   catch (error) {
     console.error(error.message);
+    return false;
   }
 }
 </script>
