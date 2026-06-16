@@ -57,7 +57,7 @@
         <div v-else>
           <div v-if="isLogin">
             <button class="size-10 flex-center">
-              <a href="/">
+              <a :href="nextPage()">
                 <component :is=cross alt="close window" class="size-8 fill-exit-cross" />
               </a>
             </button>
@@ -96,6 +96,13 @@ const currentPaw          = computed (() => themeIndex.value === 0 ? cute_paw : 
 const emit                = defineEmits(['changeStatus', 'showProfile', 'exitLogin']);
 const userStore           = useUserStore();
 const { getLoggedStatus } = storeToRefs(userStore);
+const nextPage  = () => { 
+  let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
+  let isSafeURL = true;
+  if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
+  if (nextURL.length > 1)       isSafeURL  = !nextURL.startsWith('//');
+  return isSafeURL ? nextURL : '/';
+}
 
 defineProps ({
   variant: {
