@@ -22,6 +22,9 @@
         vueCanvas.value = canvasRef.value.getContext("2d");
         resizeObserver = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
+		penColor.value = '#ffffff';
+		fill(1,1);
+		penColor.value = '#000000';
     });
 
     onUnmounted(() => {
