@@ -7,7 +7,7 @@
         :key="index"
         v-for="( message, index ) in chatLog"
       >
-        <div class="min-w-12"><!-- INCOMING PROFILE PICTURE -->
+        <div class="min-w-12">
           <img 
             :src="message.profile_pic ? message.profile_pic : defaultcat"
             alt="Pfp"
@@ -36,7 +36,9 @@
         placeholder="Type a meowssage..."
       />
       <div class="w-28">
-        <Button id="chat-message-submit" @click="sendMessage">Send</Button>
+        <Button id="chat-message-submit" @click="sendMessage"
+          :disabled="!isConnected"
+        >Send</Button>
       </div>
     </div>
   </section>
@@ -61,31 +63,79 @@ export default {
       chatSocket: null,
       chatLog: [],
       messageInput: '',
-      lastMessageInfos: ''
+      lastMessageInfos: '',
+      isConnecting: false,
+      isConnected: false,
+      baseDelay: 300,     // divided by 10 to stay with int
+      currentDelay: 3000,
+      connectionAttempt: -1,
+      intervalId: 0,
     };
   },
   mounted() {
+    // connect on start and monitor the ws state
     this.connectWebSocket();
+    this.intervalId = setInterval(this.refreshDelay, this.currentDelay);
   },
   beforeUnmount() {
+    clearInterval(this.intervalId);
     if (this.chatSocket) {
       this.chatSocket.close();
     }
   },
   methods: {
+    refreshDelay() {
+      // console.log(this.currentDelay);
+      if (!this.isConnected && !this.isConnecting) {
+        this.connectWebSocket();
+        clearInterval(this.intervalId);
+        this.currentDelay = this.baseDelay * (10 + (this.connectionAttempt));
+        // console.log(this.currentDelay);
+        this.intervalId = setInterval(this.refreshDelay, this.currentDelay);
+      }
+      else if (this.isConnected) {
+        // delay is auto reset on next attempt
+        this.connectionAttempt  = -1;
+      }
+    },
     connectWebSocket() {
-	  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-	  const host = window.location.host;
-	
-      const wsUrl = `${protocol}//${host}/ws/chat/${this.roomName}/`;
-      this.chatSocket = new WebSocket(wsUrl);
+      if (this.chatSocket?.readyState == WebSocket.OPEN) {
+        this.isConnecting       = false;
+        this.isConnected        = true;
+        this.connectionAttempt  = -1;
+        return
+      }
 
-	  console.log('Chat socket connected to ' + this.roomName);
+    this.isConnected = false;
+    this.connectionAttempt++;
+    console.log("Attempting to connect to chat...");
+
+	  const protocol      = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	  const host          = window.location.host;
+	
+      const wsUrl       = `${protocol}//${host}/ws/chat/${this.roomName}/`;
+      this.chatSocket   = new WebSocket(wsUrl);
+      this.isConnecting = true;
+
+      this.chatSocket.onopen = (e) => {
+        this.isConnecting = false;
+        this.isConnected = true;
+        console.log('Chat socket connected to ' + this.roomName);
+      }
+
+      this.chatSocket.onerror = (e) => {
+        this.isConnecting = false;
+        this.isConnected = false;
+        console.log("Failed to reach server: Retrying in", this.currentDelay, "ms");
+      }
+
       this.chatSocket.onmessage = (e) => {
         this.handleSocketMessage(e);
       };
 
       this.chatSocket.onclose = (e) => {
+        this.isConnecting = false;
+        this.isConnected = false;
         console.log('Chat socket closed');
       };
     },
@@ -114,13 +164,13 @@ export default {
       const message = this.messageInput.trim();
 
       if (!message || !this.chatSocket || this.chatSocket.readyState !== WebSocket.OPEN) {
-        return;
+         return;
       }
-
+      
       this.chatSocket.send(JSON.stringify({
-        message
-      }));
-      this.messageInput = '';
+          message
+        }));
+        this.messageInput = '';
     },
     appendMessage(message) {
       const formattedMessage = this.formatMessage(message);
@@ -141,14 +191,15 @@ export default {
       const isSameAuthor    = author === this.lastMessageInfos.Author;
       const timestamp       = date.getTime();
       const isWithinMinutes = (timestamp - this.lastMessageInfos.Timestamp) < 5 * 60 * 1000;
-      const showAuthorInfos = !isSameAuthor || !isWithinMinutes;     
+      const showAuthorInfos = !isSameAuthor || !isWithinMinutes;
+      const isConnected     = this.isConnected;
       this.lastMessageInfos = { Author: author, Timestamp: timestamp };
-      return { author, formatedDate, text, showAuthorInfos, profile_pic };
+      return { author, formatedDate, text, showAuthorInfos, profile_pic, isConnected};
 	  },
 	  scrollText() {
 	      const div = document.getElementById('chat-log');
 	      div.scrollTop = div.scrollHeight;
 	  }
-  }
+  },
 };
 </script>
