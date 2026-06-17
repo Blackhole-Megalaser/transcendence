@@ -129,7 +129,7 @@ The project feature a pictionnary-like game (skribl.io like), a collaborative ca
 
 # Modules
 
-**All of our modules listed below amount for a total of 24pts**
+**All of our modules listed below amount for a total of 22pts**
 
 TODO: for each module, add a justification for the choice, how the module was implemented, and who worked on it
 
@@ -238,17 +238,6 @@ This module pairs with the basic interaction module, here focusing on making the
 **cczerwin** and **kcolin** worked on this module.
 **lvan-bre** connected the front and made the friendlist and profile page.
 
-### Minor: Game statistics and match history (requires a game module)
-
-- Track user game statistics (wins, losses, ranking, level, etc.).
-- Display match history (1v1 games, dates, results, opponents).
-- Show achievements and progression.
-- Leaderboard integration.
-
-TODO: add text like others modules
-
-**ael-ghaz** worked on this module.
-
 ## Gaming and user experience modules (starting on subject page 16)
 
 ### Major: Implement a complete web-based game where users can play against each other
@@ -296,17 +285,6 @@ In our implementation the player creating the room can select differents wordlis
 The drawing time can be changed
 
 **ael-ghaz** worked on this module.
-
-### Minor: A gamification system to reward users for their actions
-
-- Implement at least 3 of the following: achievements, badges, leaderboards, XP/level system, daily challenges, rewards.
-- System must be persistent (stored in database).
-- Visual feedback for users (notifications, progress bars, etc.).
-- Clear rules and progression mechanics.
-
-This module helps adding to the collaborative aspect.
-
-**cczerwin** worked on this module.
 
 ### Minor: Implement spectator mode for games
 
