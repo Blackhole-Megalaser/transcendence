@@ -15,7 +15,20 @@
     const penStroke = ref('4');
     let penSizeActive = ref('1');
     const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
-    const history = ref([]); 
+    const paletteRGB = [
+		{ r: 59,  g: 130, b: 246, hex: '#3b82f6'}, // Blue
+		{ r: 239, g: 68,  b: 68 , hex: '#ef4444'}, // Red
+		{ r: 34,  g: 197, b: 94 , hex: '#22c55e'}, // Green
+		{ r: 234, g: 179, b: 8  , hex: '#eab308'}, // Yellow
+		{ r: 0,   g: 0,   b: 0  , hex: '#000000'}, // Black
+		{ r: 236, g: 72,  b: 153, hex: '#ec4899'}, // Pink
+		{ r: 139, g: 92,  b: 246, hex: '#8b5cf6'}, // Purple
+		{ r: 133, g: 77,  b: 14 , hex: '#854d0e'}, // Brown
+		{ r: 107, g: 114, b: 128, hex: '#6b7280'}, // Gray
+		{ r: 255, g: 255, b: 255, hex: '#ffffff'}  // White
+	];
+	
+	const history = ref([]); 
     let currentPath = null;
     
     onMounted(() => {
@@ -175,7 +188,7 @@
 		const startG = data[startPos + 1];
 		const startB = data[startPos + 2];
 		const startA = data[startPos + 3];
-	
+		const paletteBorder = paletteRGB.filter(c => c.r !== startR || c.g !== startG || c.b !== startB);
 		const [fillR, fillG, fillB] = hexToRgb(targetColor);
 	
 		if (startA === 255 && startR === fillR && startG === fillG && startB === fillB) return;
@@ -194,11 +207,13 @@
 			if (startA < 10) {
 				return a < 230;
 			} else {
-				const tolerance = 175;
-				return Math.abs(r - startR) <= tolerance &&
-					   Math.abs(g - startG) <= tolerance &&
-					   Math.abs(b - startB) <= tolerance &&
-					   Math.abs(a - startA) <= 200;
+				for (let i = 0; i < paletteBorder.length; i++) {
+					const c = paletteBorder[i];
+					if (c.r === r && c.g === g && c.b === b) {
+						return false;
+					}
+				}
+				return true;
 			}
 		};
 	
