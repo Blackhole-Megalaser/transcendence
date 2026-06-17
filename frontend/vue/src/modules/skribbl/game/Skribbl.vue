@@ -310,7 +310,7 @@
 					h-full w-full max-w-full max-h-full min-h-0 
 					bg-sidebar border-5 border-solid rounded-full overflow-hidden border-button-1-normal">
 				<button :style="[cursorStyle, {backgroundColor: penColor}]"
-					class="bg-sidebar w-full h-full">
+					class="bg-sidebar w-full h-full overflow-hidden">
 					<svg class="stroke-[0.5]  w-full h-full"
 							xlms="http://www.w3.org/2000/svg"
 							viewBox="0 0 32 32"
@@ -328,7 +328,7 @@
 					</svg>
 				</button>
 				<button :style="[cursorStyle, {backgroundColor: penColor}]"
-					class="bg-sidebar w-full h-full">
+					class="bg-sidebar w-full h-full overflow-hidden">
 					<svg class="stroke-[0.5]  w-full h-full"
 							xlms="http://www.w3.org/2000/svg"
 							viewBox="0 0 32 32"
