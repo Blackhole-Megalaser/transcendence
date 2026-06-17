@@ -68,6 +68,8 @@ export default {
       isConnected: false,
       baseDelay: 300,     // divided by 10 to stay with int
       currentDelay: 3000,
+      jitter: 0.05,
+      jitterValue: 0,
       connectionAttempt: -1,
       intervalId: 0,
     };
@@ -89,8 +91,16 @@ export default {
       if (!this.isConnected && !this.isConnecting) {
         this.connectWebSocket();
         clearInterval(this.intervalId);
+
+        // Add ± jitter % of current value to prevent mass reconnecting
         this.currentDelay = this.baseDelay * (10 + (this.connectionAttempt));
-        // console.log(this.currentDelay);
+        this.jitterValue  = Math.floor(this.currentDelay * (Math.random() * 2 - 1) * this.jitter);
+
+        // console.log("curDelay =", this.currentDelay);
+        // console.log("jitValue =", this.jitterValue);
+        this.currentDelay = this.currentDelay + this.jitterValue;
+
+        // console.log("Total Delay ="this.currentDelay);
         this.intervalId = setInterval(this.refreshDelay, this.currentDelay);
       }
       else if (this.isConnected) {
