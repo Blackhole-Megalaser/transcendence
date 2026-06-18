@@ -57,12 +57,12 @@
               input-type="password"
             />
           </div>
-          <div class="flex-center h-10 w-26 self-end">
+          <div class="flex-center h-10 w-26 self-end mr-3">
             <div class="size-4"/>
             <input 
               type="submit" 
               value="Send"
-              class="px-4 py-1 rounded-full mt-1 input"
+              class="px-4 py-1 rounded-full mt-1 input "
               :class="validateForm ? 'cursor-pointer' : ''"
               :disabled="!validateForm"
             >
@@ -71,7 +71,10 @@
           </div>
         </form>
       </div>
-      <p class="text-sm text-sidebar-text-1">Already have an account ?<a :href="`login?next=${nextPage()}`" class="underline"> Log in !</a></p>
+      <p class="text-sm text-sidebar-text-1 mt-4 mb-2">
+        Already have an account ?
+        <a :href="`login?next=${nextPage()}`" class="underline"> Log in !
+        </a></p>
     </div>
     <aside 
       v-if="!ismobile"
