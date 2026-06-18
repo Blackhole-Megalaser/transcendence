@@ -2,9 +2,10 @@
   <section class="text-text-main h-full w-full flex-center gap-4 sm:px-6 overflow-hidden">
     <div
       class="fixed w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
-      :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
+      :class="OpenBox && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
-      <Informations :password-check="Password"/>
+      <UsernameInformations :username-check="Username" v-if="OpenInfoUserBar"/>
+      <Informations :password-check="Password" v-if="OpenInfoBar"/>
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:h-auto sm:rounded-4xl shadow-xl py-4">
       <h2 class="text-title text-4xl xl:my-4">
@@ -18,7 +19,13 @@
               :input-validate="validateUser"
               p-holder="Enter your Username"
               input-type="text"
-            />
+            >
+              <component 
+                :is="interogation"
+                class="size-4 flex items-center fill-sidebar-text-2 cursor-help"
+                @click="userInfoBar"
+              />
+            </Input>
           </div>
           <div class="flex">
             <Input
@@ -36,16 +43,9 @@
               input-type="password"
             >
               <component 
-                v-if="ismobile"
-                :is="interogation"
-                class="size-4 flex items-center fill-sidebar-text-2 cursor-pointer"
-                @click="OpenInfoBar = !OpenInfoBar"
-              />
-              <component 
-                v-else-if="!ismobile"
                 :is="interogation"
                 class="size-4 flex items-center fill-sidebar-text-2 cursor-help"
-                @click="OpenInfoBox = !OpenInfoBox"
+                @click="passwordInfoBar"
               />
             </Input>
           </div>
@@ -76,26 +76,34 @@
     <aside 
       v-if="!ismobile"
       class="hidden sm:block bg-navbar rounded-4xl shadow-xl transition-all duration-300 transform"
-      :class="OpenInfoBox 
-        ? 'max-w-80 p-6 opacity-100 translate-x-0 max-h-96 rotate-360' 
+      :class="OpenBox
+        ? 'max-w-88 p-6 opacity-100 translate-x-0 max-h-96 rotate-360' 
         : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
-      <Informations :password-check="Password"/>
+      <div v-show="OpenInfoUserBar">
+        <UsernameInformations :username-check="Username"/>
+      </div>
+      <div v-show="OpenInfoBar">
+        <Informations :password-check="Password"/>
+      </div>
     </aside>
   </section>
 </template>
 
 <script setup>
-import { ref, computed }  from 'vue'
-import { useBreakpoints } from '@vueuse/core';
-import { getCookie }      from '@shared';
-import forbiddenUsername  from '@shared/forbiddenUsernames.json'
-import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
-import Input              from './Input.vue';    
-import Informations       from './Informations.vue'
+import { ref, computed }    from 'vue'
+import { useBreakpoints }   from '@vueuse/core';
 
-import interogation       from '@assets/interrogation.svg'
+import { getCookie }        from '@shared';
+import forbiddenUsername    from '@shared/forbiddenUsernames.json'
+import mostUsedPasswords    from '@shared/1000_mostUsedPasswords.json'
+
+import Input                from './Input.vue';    
+import UsernameInformations from './UsernameInformations.vue';
+import Informations         from './Informations.vue'
+
+import interogation         from '@assets/interrogation.svg'
 
 const Email           = ref("");
 const Username        = ref("");
@@ -103,11 +111,32 @@ const Password        = ref("");
 const PasswordRepeat  = ref("");
 const apiError        = ref("");
 const OpenInfoBar     = ref(false);
-const OpenInfoBox     = ref(false);
+const OpenInfoUserBar = ref(false);
+const OpenBox         = ref(false);
 const nextPage  = () => { 
   let nextURL = new URLSearchParams(window.location.search).get('next') ?? '/';
   if (!nextURL.startsWith('/')) nextURL = '/' + nextURL;
   return nextURL ? nextURL : '/';
+}
+
+const userInfoBar = () => {
+  if (OpenInfoBar.value) {
+    OpenInfoBar.value = false;
+    OpenInfoUserBar.value = true;
+    return ;
+  }
+  OpenInfoUserBar.value = true;
+  OpenBox.value = !OpenBox.value;
+}
+
+const passwordInfoBar = () => {
+  if (OpenInfoUserBar.value) {
+    OpenInfoUserBar.value = false;
+    OpenInfoBar.value = true;
+    return ;
+  }
+  OpenInfoBar.value = true;
+  OpenBox.value = !OpenBox.value;
 }
 
 const breakpoints = useBreakpoints({ sm: 640 });
