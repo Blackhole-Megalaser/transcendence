@@ -121,11 +121,11 @@ const validateForm    = computed(() => {
 const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(Password.value.toLowerCase()));
 const hasUppercase        = computed(() => /[A-Z]/.test(Password.value));
 const hasNumber           = computed(() => /[0-9]/.test(Password.value));
-const isLongEnough        = computed(() => Password.value.length >= 8 && Password.value.length <= 40);
+const hasGootLenght        = computed(() => Password.value.length >= 8 && Password.value.length <= 40);
 
 const validatePass        = computed(() => {
   if (isMostUsedPassword.value) { return false }
-  if (!isLongEnough.value)      { return false }
+  if (!hasGootLenght.value)      { return false }
   if (!hasUppercase.value)      { return false }
   if (!hasNumber.value)         { return false }
   return true
@@ -135,7 +135,7 @@ const passwordStatus  = computed(() => {
   return {
     isValidUppercase:         hasUppercase.value,
     isValidNumber:            hasNumber.value,
-    isValidLength:            isLongEnough.value,
+    isValidLength:            hasGootLenght.value,
     isValidMostUsedPassword:  isMostUsedPassword.value,
 
   }
