@@ -476,10 +476,14 @@
 					class="grid grid-cols-1">
 					<button class="hover:bg-navbar-menu h-full disabled:opacity-50 disabled:pointer-events-none"
 						:disabled="history.length <= 1"
-						@click="undo">Undo</button>
+						@click="undo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-left']" />
+						</button>
 					<button class="hover:bg-navbar-menu h-full disabled:opacity-50 disabled:pointer-events-none"
 						:disabled="tmpHistory.length === 0"
-						@click="redo">Redo</button>
+						@click="redo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-right']" />
+						</button>
 				</div>
 
 				<button :style="cursorStyle"
