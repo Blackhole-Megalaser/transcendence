@@ -14,39 +14,39 @@
   </p>
 
   <ul class="space-y-2.5 text-sm font-semibold text-text-main text-justify">
-    <li class="flex items-center gap-2.5">
+    <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">At least <span class="text-title font-bold">8</span> characters, and a maximum of <span class="text-title font-bold">40</span> characters</span>
+      <span class=" text-left flex-1">At least <span class="text-title font-bold">8</span> characters, and a maximum of <span class="text-title font-bold">40</span> characters</span>
       <component 
-        class="size-4 right-0"
+        class="size-4 right-0 shrink-0"
         :is="isValidLength ? check : cross"
         :class="isValidLength ? '' : 'fill-red-600'"
       />
     </li>
-    <li class="flex items-center gap-2.5">
+    <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">One uppercase letter <span class="text-xs text-text-main/50 font-normal">(A-Z)</span></span>
+      <span class="w-86 sm:w-auto flex flex-1">One uppercase letter <span class="text-xs text-text-main/50 font-normal">(A-Z)</span></span>
       <component 
-        class="size-4 right-0"
+        class="size-4 right-0 shrink-0"
         :is="hasUppercase ? check : cross"
         :class="hasUppercase ? '' : 'fill-red-600'"
       />
     </li>
-    <li class="flex items-center gap-2.5">
+    <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">One number <span class="text-xs text-text-main/50 font-normal">(0-9)</span></span>
+      <span class="w-86 sm:w-auto flex flex-1">One number <span class="text-xs text-text-main/50 font-normal">(0-9)</span></span>
       <component 
-        class="size-4 right-0"
+        class="size-4 right-0 shrink-0"
         :is="hasNumber ? check : cross"
         :class="hasNumber ? '' : 'fill-red-600'"
       />
     </li>
-    <li class="flex items-center gap-2.5">
+    <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">Must not be in the top 1000 most used passwords </span>
+      <span class="w-86 sm:w-auto flex flex-1">Must not be in the top 1000 most used passwords </span>
       <component 
         v-if="!emptyPassword"
-        class="size-4 right-0"
+        class="size-4 right-0 shrink-0"
         :is="isMostUsedPassword ? cross : check"
         :class="isMostUsedPassword ? 'fill-red-600' : ''"
       />
