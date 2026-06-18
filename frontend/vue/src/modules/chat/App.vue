@@ -22,7 +22,7 @@
         <h2 class="text-title h-6 md:h-8 text-xl font-bold my-4">{{ formatChanName(currentChannel) }}</h2>
         <div class="size-10"></div>
       </div>
-      <div class="h-[calc(100dvh-136px)] sm:h-[calc(100dvh-144px)]">
+      <div class="h-[calc(100dvh-136px)] md:h-[calc(100dvh-144px)]">
         <Chat
           :key="currentChannel"
           :initialRoomName="currentChannel"
