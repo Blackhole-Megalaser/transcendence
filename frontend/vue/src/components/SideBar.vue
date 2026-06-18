@@ -52,6 +52,10 @@
               <ButtonSideBar>Chat rooms</ButtonSideBar>
             </a>
           </li>
+          <li class="h-10 w-full flex items-center gap-4 text-sidebar-text-1 pl-5 py-2 font-bold sm:hidden">
+            <p>Change theme</p>
+            <ThemeToggle />
+          </li>
         </ul>
       </section>
       <footer class="flex-none text-xs underline text-sidebar-footer">
@@ -65,14 +69,16 @@
 </template>
 
 <script setup>
-import { computed, ref } 	from 'vue';
+import { computed, ref }  from 'vue';
+import { useBreakpoints } from '@vueuse/core';
 
-import { useThemeStore } 	from '@storage';
-import ThemeButton 			from './ThemeButton.vue';
-import ButtonSideBar 		from './ButtonSideBar.vue';
+import { useThemeStore }  from '@storage';
+import ThemeToggle        from './ThemeToggle.vue';
+import ThemeButton        from './ThemeButton.vue';
+import ButtonSideBar      from './ButtonSideBar.vue';
 
-import mean_cat 			from '@assets/logo-dark-tr.png'
-import cute_cat 			from '@assets/logo1-tr.png'
+import mean_cat from '@assets/logo-dark-tr.png'
+import cute_cat from '@assets/logo1-tr.png'
 
 const theme           = useThemeStore();
 const themeIndex      = computed (() => theme.getThemeIndex())

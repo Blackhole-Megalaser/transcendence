@@ -25,7 +25,7 @@ const emit = defineEmits(['changeStatus']);
 @import "@/style.css";
 
 .btn-base {
-  @apply px-6 py-2 w-full rounded-full font-bold transition-all duration-300 cursor-pointer flex justify-start;
+  @apply px-5 py-2 w-full rounded-full font-bold transition-all duration-300 cursor-pointer flex justify-start;
 }
 .btn-primary {
   color: var(--color-sidebar-text-1);
