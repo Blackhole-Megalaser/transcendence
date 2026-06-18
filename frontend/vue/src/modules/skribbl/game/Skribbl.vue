@@ -12,8 +12,8 @@
     const isBucket = ref(false);
     const coord = ref({x: 0, y: 0});
     const penColor = ref('#000000');
-    const penStroke = ref('4');
-    let penSizeActive = ref('1');
+    const penStroke = ref('8');
+    let penSizeActive = ref(2);
     const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
     const paletteRGB = [
 		{ r: 59,  g: 130, b: 246, hex: '#3b82f6'}, // Blue
@@ -30,11 +30,17 @@
 	
 	const history = ref([]); 
     let currentPath = null;
+
+	const tmpHistory = ref([]);
+
     
     onMounted(() => {
         vueCanvas.value = canvasRef.value.getContext("2d");
         resizeObserver = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
+		penColor.value = '#ffffff';
+		fill(1,1);
+		penColor.value = '#000000';
     });
 
     onUnmounted(() => {
@@ -42,6 +48,16 @@
             resizeObserver.disconnect();
         }
     });
+
+	const undo = () => {
+		tmpHistory.value.push(history.value.pop());
+		redrawLines();
+	}
+
+	const redo = () => {
+		history.value.push(tmpHistory.value.pop());
+		redrawLines();
+	}
 
     const resizeCanvas = () => {
         const canvas = canvasRef.value;
@@ -97,13 +113,11 @@
         if (!isDrawing.value) return;
     
         const ctx = vueCanvas.value;
-    
         ctx.beginPath();
         ctx.lineWidth = parseInt(penStroke.value);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.strokeStyle = penColor.value;
-    
         ctx.moveTo(coord.value.x, coord.value.y);
         reposition(event);
         ctx.lineTo(coord.value.x, coord.value.y);
@@ -155,7 +169,7 @@
 				if (action.points.length < 2) return;
 			
 				const baseStroke = action.stroke ? parseInt(action.stroke) : 4; 
-				ctx.lineWidth = baseStroke + 1.5; 
+				ctx.lineWidth = baseStroke; 
 				
 				ctx.lineCap = 'round';
 				ctx.lineJoin = 'round';
@@ -372,7 +386,7 @@
 					bg-sidebar hover:bg-navbar-menu flex justify-center" 
 					@click="clear">
 					<svg 
-						class=" h-full w-full" 
+						class=" h-full w-full"
 						viewBox="0 0 512 512" 
 						xmlns="http://www.w3.org/2000/svg">
 						<g>
@@ -457,6 +471,21 @@
 						</g>
 					</svg>
 				</button>
+
+				<div :style="cursorStyle"
+					class="grid grid-cols-1">
+					<button class="hover:bg-navbar-menu h-full disabled:opacity-50 disabled:pointer-events-none"
+						:disabled="history.length <= 1"
+						@click="undo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-left']" />
+						</button>
+					<button class="hover:bg-navbar-menu h-full disabled:opacity-50 disabled:pointer-events-none"
+						:disabled="tmpHistory.length === 0"
+						@click="redo">
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-rotate-right']" />
+						</button>
+				</div>
+
 				<button :style="cursorStyle"
 					:class="penSizeActive === 1 ? 'bg-theme-button' : 'bg-sidebar'"
 					class="flex justify-center col-start-1 hover:bg-navbar-menu"

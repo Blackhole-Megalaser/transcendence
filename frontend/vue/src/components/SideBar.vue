@@ -56,7 +56,7 @@
       </section>
       <footer class="flex-none text-xs underline text-sidebar-footer">
         <hr>
-        <a href="terms">Termes of service</a>
+        <a href="terms">Terms of service</a>
         <br>
         <a href="privacy">Privacy policy</a>
       </footer>

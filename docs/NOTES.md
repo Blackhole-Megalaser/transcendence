@@ -116,3 +116,19 @@ Cette reunion etait place sous le signe de la patoune
 ## Resume de la reunion 5 (29/05/26)
 
 Durant cette reunion, un point a ete fait sur l'avancement, aucun point ni objectif particulier n'a ete souleve, l'etat d'esprit general au sein du groupe est un "il faut juste continuer d'avancer sur nos parties"
+
+## Resume de la reunion 6 (17/06/26)
+
+Pendant cette reunion, nous avons aborde l'etat d'avancement du projet et le travail encore a accomplir.
+
+Nous avons decides de retirer (au moins pour le moment) les modules mineurs de Gamification ainsi que de Game statistics and match history (-2 point sur le total).
+
+Certains modules on ete discutes car potentiellement deja fait avec notre architecture actuelle:
+
+- Le module de microservices (nos services sont decouples dans leurs containers docker)
+- Le module d'advanced permissions (ajouter une possibilite d'editer le profil des autres aux membres admins)
+- Le module d'API publique (total de nyancoins en circulation, nombre de pixels de X couleur etc), a re-confirmer plus tard
+
+Le travail est soit deja fait soit facilement realisable selon ce dont on dispose.
+
+    Bref, on a pas le temps de se spéculer le transcendance
