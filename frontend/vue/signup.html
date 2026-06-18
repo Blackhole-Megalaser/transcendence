@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./src/style.css">
     <title>Sign Up</title>
+    <script>
+      (function () {
+        try {
+          const persisted = localStorage.getItem('app-theme');
+          if (persisted) {
+            const store = JSON.parse(persisted);
+            if (store?.current) {
+              document.documentElement.setAttribute('data-theme', store.current);
+              return;
+            }
+          }
+        } catch (e) { console.error(e); }
+        document.documentElement.setAttribute('data-theme', 'light');
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
