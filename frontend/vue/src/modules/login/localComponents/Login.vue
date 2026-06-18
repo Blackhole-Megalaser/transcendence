@@ -6,20 +6,28 @@
       </h2>
       <div class="flex-center flex-col">
         <form @submit.prevent="submit" class="flex flex-col">
+          <h3 
+            v-if="!isSmallScreen"
+            class="font-bold text-text-main pl-2"
+          >Enter your username :</h3>
           <HideableInput
-            myPlaceholder="Enter your username"
+            :myPlaceholder="isSmallScreen ? '' : 'Enter your username'"
             v-model="Username"
           />
+          <h3 
+            v-if="!isSmallScreen"
+            class="font-bold text-text-main pl-2 mt-2"
+          >Enter your password :</h3>
           <HideableInput
             :isPassword="true"
-            myPlaceholder="Enter your password"
+            :myPlaceholder="isSmallScreen ? '' : 'Enter your password'"
             v-model="Password"
           />
           <div class="flex-center flex-col h-auto w-full self-center">
             <p class="text-red-600 text-sm py-2">{{ apiError.detail }}</p>
             <input 
               type="submit" 
-              class="input flex-center"
+              class="input flex-center h-8"
               value="Submit"
               :disabled="Username === '' || Password === ''"
             >
@@ -32,14 +40,18 @@
 </template>
 
 <script setup>
-import { ref }        from 'vue';
-import { getCookie }  from '@shared';
-import HideableInput  from "@components/HideableInput.vue";
+import { ref }            from 'vue';
+import { useBreakpoints } from '@vueuse/core';
+import { getCookie }      from '@shared';
+import HideableInput      from "@components/HideableInput.vue";
 
-const Username  = ref('');
-const Password  = ref('');
-const apiError  = ref('');
-const nextPage  = () => { 
+const Username      = ref('');
+const Password      = ref('');
+const apiError      = ref('');
+const breakpoints   = useBreakpoints({ xl: 1280 });
+const isSmallScreen = breakpoints.smaller("xl");
+
+const nextPage      = () => { 
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
   if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
@@ -47,7 +59,7 @@ const nextPage  = () => {
   return isSafeURL ? nextURL : '/';
 }
 
-const submit    = async () => {
+const submit        = async () => {
   apiError.value = '';
   try {
     const response  = await fetch('/api/users/login/', {
