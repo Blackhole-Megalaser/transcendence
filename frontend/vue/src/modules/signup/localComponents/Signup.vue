@@ -1,13 +1,13 @@
 <template>
-  <section class="text-text-main h-full w-full flex-center gap-4 sm:px-6">
+  <section class="text-text-main h-full w-full flex-center gap-4 sm:px-6 overflow-hidden">
     <div
-      class="absolute w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
+      class="fixed w-full top-20 p-4 bg-bg-main shadow-md z-40 transition duration-300"
       :class="OpenInfoBar && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
       <Informations :password-check="Password"/>
     </div>
-    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 sm:rounded-4xl shadow-xl">
-      <h2 class="text-title text-4xl">
+    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:h-auto sm:rounded-4xl shadow-xl py-4">
+      <h2 class="text-title text-4xl xl:my-4">
         Sign Up
       </h2>
       <div class="flex-center flex-col">
