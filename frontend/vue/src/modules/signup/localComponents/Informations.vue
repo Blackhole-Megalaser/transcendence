@@ -13,14 +13,14 @@
     To ensure your account remains secure, your password must include :
   </p>
 
-  <ul class="space-y-2.5 text-sm font-semibold text-text-main">
+  <ul class="space-y-2.5 text-sm font-semibold text-text-main text-justify">
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="w-86 sm:w-56">At least <span class="text-title font-bold">8</span> characters, and less than <span class="text-title font-bold">40</span> characters</span>
+      <span class="w-86 sm:w-56">At least <span class="text-title font-bold">8</span> characters, and a maximum of <span class="text-title font-bold">40</span> characters</span>
       <component 
         class="size-4 right-0"
-        :is="isLongEnough ? check : cross"
-        :class="isLongEnough ? '' : 'fill-red-600'"
+        :is="isValidLength ? check : cross"
+        :class="isValidLength ? '' : 'fill-red-600'"
       />
     </li>
     <li class="flex items-center gap-2.5">
@@ -69,7 +69,7 @@ const props = defineProps({
 const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(props.passwordCheck.toLowerCase()));
 const hasUppercase        = computed(() => /[A-Z]/.test(props.passwordCheck));
 const hasNumber           = computed(() => /[0-9]/.test(props.passwordCheck));
-const isLongEnough        = computed(() => props.passwordCheck.trim().length >= 8);
+const isValidLength       = computed(() => props.passwordCheck.length >= 8 && props.passwordCheck.length <= 40 );
 const emptyPassword       = computed(() => props.passwordCheck.trim().length === 0);
 </script>
 
