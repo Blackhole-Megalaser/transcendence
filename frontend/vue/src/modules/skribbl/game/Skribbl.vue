@@ -82,6 +82,19 @@
 
         const rect = canvas.getBoundingClientRect();
 
+		let clientX, clientY;
+
+		if (event.touches && event.touches.length > 0) {
+			clientX = event.touches[0].clientX;
+			clientY = event.touches[0].clientY;
+		} else if (event.changedTouches && event.changedTouches.length > 0) {
+			clientX = event.changedTouches[0].clientX;
+			clientY = event.changedTouches[0].clientY;
+		} else {
+			clientX = event.clientX;
+			clientY = event.clientY;
+		}
+
         const xMouseRel = event.clientX - rect.left;
         const yMouseRel = event.clientY - rect.top;
 
@@ -321,7 +334,11 @@
 				@mousedown="start"
 				@mousemove="draw"
 				@mouseup="stop"
-				@mouseleave="stop">
+				@mouseleave="stop"
+				@touchstart.prevent="start"
+				@touchmove.prevent="draw"
+				@touchend="stop"
+				@touchcancel="stop">
 			</canvas>
 			<!-- __________ CHAT __________ -->
 			<div class="order-3 row-start-2 lg:row-start-1
