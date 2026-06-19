@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full h-auto">
     <input 
-      :type="isPassword ? inputType : 'text'" 
+      :type="isPassword ? inputType : 'text'"
       class="informations w-full"
       :class="isPassword ? 'pr-10' : 'pr-3'"
       :placeholder="myPlaceholder"
@@ -43,6 +43,6 @@ const props = defineProps({
 @import '@/style.css';
 
 .informations {
-  @apply my-1 py-1 pl-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active
+  @apply my-1 py-1 pl-3 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
 }
 </style>
