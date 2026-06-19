@@ -72,6 +72,7 @@ export default {
       jitterValue: 0,
       connectionAttempt: -1,
       intervalId: 0,
+      receiveHistory: true,
     };
   },
   mounted() {
@@ -152,12 +153,13 @@ export default {
     handleSocketMessage(e) {
       const data = JSON.parse(e.data);
 
-      if (data.type === 'history' && Array.isArray(data.messages)) {
+      if (data.type === 'history' && Array.isArray(data.messages) && this.receiveHistory) {
         this.chatLog.push(...data.messages
           .map((message) => this.formatMessage(message))
           .filter(Boolean));
 
         this.$nextTick(this.scrollText);
+        this.receiveHistory = false;
         return;
       }
 
