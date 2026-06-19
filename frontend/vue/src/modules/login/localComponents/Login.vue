@@ -11,7 +11,7 @@
             class="font-bold text-text-main pl-2"
           >Enter your username :</h3>
           <HideableInput
-            :myPlaceholder="isSmallScreen ? '' : 'Enter your username'"
+            :myPlaceholder="isSmallScreen ? 'Enter your username' : 'Username here'"
             v-model="Username"
           />
           <h3 
@@ -20,7 +20,7 @@
           >Enter your password :</h3>
           <HideableInput
             :isPassword="true"
-            :myPlaceholder="isSmallScreen ? '' : 'Enter your password'"
+            :myPlaceholder="isSmallScreen ? 'Enter your password' : 'Password here'"
             v-model="Password"
           />
           <div class="flex-center flex-col h-auto w-full self-center">

@@ -10,9 +10,6 @@ const app = createApp(App);
 const pinia = setupPinia();
 app.use(pinia);
 
-const savedTheme = useThemeStore();
-document.documentElement.setAttribute("data-theme", savedTheme.current);
-
 const userStore = useUserStore();
 const userInfos = await userStore.initUserInfos();
 if (!userInfos)

@@ -51,19 +51,34 @@
         :class="isMostUsedPassword ? 'fill-red-600' : ''"
       />
     </li>
+    <li class="flex items-center gap-2.5 w-full">
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="w-86 sm:w-auto flex flex-1">Must not be similar as the username </span>
+      <component 
+        class="size-4 right-0 shrink-0"
+        :is="!passSimilarityCheck ? cross : check"
+        :class="!passSimilarityCheck ? 'fill-red-600' : ''"
+      />
+    </li>
   </ul>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed }                       from 'vue'
+import { usePasswordSimilarityValidator } from '../logics/passwordSimilarity'
+
 import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
-import cross        from '@assets/wrong_cross.svg'
-import check        from '@assets/check-mark.svg'
+import cross              from '@assets/wrong_cross.svg'
+import check              from '@assets/check-mark.svg'
 
 const props = defineProps({ 
   passwordCheck: {
     type: String,
     default: ''
+  },
+  usernameCheck: {
+     type: String,
+     default: ''
   }
 })
 const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(props.passwordCheck.toLowerCase()));
@@ -71,6 +86,7 @@ const hasUppercase        = computed(() => /[A-Z]/.test(props.passwordCheck));
 const hasNumber           = computed(() => /[0-9]/.test(props.passwordCheck));
 const isValidLength       = computed(() => props.passwordCheck.length >= 8 && props.passwordCheck.length <= 40 );
 const emptyPassword       = computed(() => props.passwordCheck.trim().length === 0);
+const passSimilarityCheck = usePasswordSimilarityValidator(() => props.passwordCheck, () => props.usernameCheck);
 </script>
 
 <style>

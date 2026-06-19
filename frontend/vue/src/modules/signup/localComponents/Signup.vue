@@ -5,7 +5,11 @@
       :class="OpenBox && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
       <UsernameInformations :username-check="Username" v-if="OpenInfoUserBar"/>
-      <Informations :password-check="Password" v-if="OpenInfoBar"/>
+      <Informations 
+        v-if="OpenInfoBar"
+        :password-check="Password"
+        :username-check="Username" 
+      />
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:h-auto sm:rounded-4xl shadow-xl py-4">
       <h2 class="text-title text-4xl xl:my-4">
@@ -88,17 +92,22 @@
         <UsernameInformations :username-check="Username"/>
       </div>
       <div v-show="OpenInfoBar">
-        <Informations :password-check="Password"/>
+        <Informations 
+          :password-check="Password"
+          :username-check="Username"
+        />
       </div>
     </aside>
   </section>
 </template>
 
 <script setup>
-import { ref, computed }    from 'vue'
-import { useBreakpoints }   from '@vueuse/core';
+import { ref, computed }                  from 'vue'
+import { useBreakpoints }                 from '@vueuse/core';
 
-import { getCookie }        from '@shared';
+import { getCookie }                      from '@shared';
+import { usePasswordSimilarityValidator } from '../logics/passwordSimilarity.js';
+
 import forbiddenUsername    from '@shared/forbiddenUsernames.json'
 import mostUsedPasswords    from '@shared/1000_mostUsedPasswords.json'
 
@@ -153,13 +162,15 @@ const validateForm    = computed(() => {
 const isMostUsedPassword  = computed(() => mostUsedPasswords.includes(Password.value.toLowerCase()));
 const hasUppercase        = computed(() => /[A-Z]/.test(Password.value));
 const hasNumber           = computed(() => /[0-9]/.test(Password.value));
-const hasGootLenght        = computed(() => Password.value.length >= 8 && Password.value.length <= 40);
+const hasGoodLenght       = computed(() => Password.value.length >= 8 && Password.value.length <= 40);
+const passSimilarityCheck = usePasswordSimilarityValidator(() => Password.value, () => Username.value);
 
 const validatePass        = computed(() => {
-  if (isMostUsedPassword.value) { return false }
-  if (!hasGootLenght.value)      { return false }
-  if (!hasUppercase.value)      { return false }
-  if (!hasNumber.value)         { return false }
+  if (isMostUsedPassword.value)   { return false }
+  if (!hasGoodLenght.value)       { return false }
+  if (!hasUppercase.value)        { return false }
+  if (!hasNumber.value)           { return false }
+  if (!passSimilarityCheck.value) { return false }
   return true
 })
 
@@ -167,7 +178,7 @@ const passwordStatus  = computed(() => {
   return {
     isValidUppercase:         hasUppercase.value,
     isValidNumber:            hasNumber.value,
-    isValidLength:            hasGootLenght.value,
+    isValidLength:            hasGoodLenght.value,
     isValidMostUsedPassword:  isMostUsedPassword.value,
 
   }
