@@ -35,6 +35,7 @@
 
     
     onMounted(() => {
+		window.addEventListener('keydown', handleKeyDown);
         vueCanvas.value = canvasRef.value.getContext("2d");
         resizeObserver = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
@@ -44,10 +45,31 @@
     });
 
     onUnmounted(() => {
+		window.removeEventListener('keydown', handleKeyDown);
         if (resizeObserver) {
             resizeObserver.disconnect();
         }
     });
+
+	const handleKeyDown = (event) => {
+		const isModifier = event.ctrlKey || event.metaKey;
+		const key = event.key.toLowerCase();
+
+		if (isModifier) {
+			if (key === 'z') {
+				event.preventDefault();
+				if (event.shiftKey) {
+					redo();
+				} else {
+					undo();
+				}
+			}
+			if (key === 'y') {
+				event.preventDefault();
+				redo();
+			}
+		}
+	};
 
 	const undo = () => {
 		tmpHistory.value.push(history.value.pop());
