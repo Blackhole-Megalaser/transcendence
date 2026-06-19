@@ -15,7 +15,7 @@
       </div>
       <hideable-input
         :type="inputType"
-        :my-placeholder="isSmallScreen ? pHolder : ''"
+        :my-placeholder="isSmallScreen ? pHolder : bigScreenPHolder"
         v-model="model"
         :isPassword="ispassword"
       />
@@ -44,6 +44,10 @@ const props = defineProps({
     default: false
   },
   pHolder: {
+    type: String,
+    default: "text"
+  },
+  bigScreenPHolder: {
     type: String,
     default: "text"
   },
