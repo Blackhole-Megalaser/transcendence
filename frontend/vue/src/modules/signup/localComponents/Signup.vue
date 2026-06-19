@@ -11,7 +11,7 @@
         :username-check="Username" 
       />
     </div>
-    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:h-auto sm:rounded-4xl shadow-xl py-4">
+    <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:w-xl xl:h-auto sm:rounded-4xl shadow-xl py-4">
       <h2 class="text-title text-4xl xl:my-4">
         Sign Up
       </h2>
@@ -22,6 +22,7 @@
               v-model="Username"
               :input-validate="validateUser"
               p-holder="Enter your Username"
+              big-screen-p-holder="Username"
               input-type="text"
             >
               <component 
@@ -36,6 +37,7 @@
               v-model="Email"
               :input-validate="validateEmail"
               p-holder="Enter your Email"
+              big-screen-p-holder="Email"
               input-type="text"
             />
           </div>
@@ -44,6 +46,7 @@
               v-model="Password" 
               :input-validate="validatePass"
               p-holder="Enter your Password"
+              big-screen-p-holder="Password"
               input-type="password"
             >
               <component 
@@ -58,6 +61,7 @@
               v-model="PasswordRepeat"
               :input-validate="validatePassRep"
               p-holder="Repeat your Password"
+              big-screen-p-holder="Password repeat"
               input-type="password"
             />
           </div>
