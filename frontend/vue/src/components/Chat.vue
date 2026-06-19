@@ -56,6 +56,10 @@ export default {
     initialRoomName: {
       type: String,
       default: 'room'
+    },
+    initialHistoryFetch: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -73,7 +77,7 @@ export default {
       jitterValue: 0,
       connectionAttempt: -1,
       intervalId: 0,
-      receiveHistory: true,
+      receiveHistory: this.initialHistoryFetch,
     };
   },
   mounted() {
