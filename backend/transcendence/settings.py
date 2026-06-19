@@ -57,6 +57,8 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "daphne",
     "chat",
+    "skribble",
+    "tplace",
     "back.apps.BackConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -177,3 +179,8 @@ CHAT_REDIS_URL = env("CHAT_REDIS_URL", default="redis://redis:6379/2")
 CHAT_HISTORY_LIMIT = env.int("CHAT_HISTORY_LIMIT", default=50)
 CHAT_HISTORY_TTL = env.int("CHAT_HISTORY_TTL", default=60 * 60 * 2)
 CHAT_MESSAGE_MAX_LENGTH = env.int("CHAT_MESSAGE_MAX_LENGTH", default=1000)
+
+SKRIBBLE_REDIS_URL = env("SKRIBBLE_REDIS_URL", default="redis://redis:6379/3")
+SKRIBBLE_HISTORY_LIMIT = env.int("SKRIBBLE_HISTORY_LIMIT", default=0)
+
+TPLACE_REDIS_URL = env("TPLACE_REDIS_URL", default="redis://redis:6379/4")
