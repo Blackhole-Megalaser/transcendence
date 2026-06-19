@@ -36,7 +36,7 @@
     
     onMounted(() => {
 		window.addEventListener('keydown', handleKeyDown);
-        vueCanvas.value = canvasRef.value.getContext("2d");
+        vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
 		penColor.value = '#ffffff';
@@ -58,13 +58,14 @@
 		if (isModifier) {
 			if (key === 'z') {
 				event.preventDefault();
-				if (event.shiftKey) {
+				if (event.shiftKey && tmpHistory.value.length > 0) {
 					redo();
-				} else {
+				} 
+				else if (!event.shiftKey && history.value.length > 1) {
 					undo();
 				}
 			}
-			if (key === 'y') {
+			if (key === 'y' && tmpHistory.value.length > 0) {
 				event.preventDefault();
 				redo();
 			}
@@ -72,13 +73,23 @@
 	};
 
 	const undo = () => {
-		tmpHistory.value.push(history.value.pop());
-		redrawLines();
+		if (history.value.length > 1) {
+			const lastHistory = history.value.pop();
+			if (lastHistory) {
+				tmpHistory.value.push(lastHistory);
+				redrawLines();
+			}
+		}
 	}
 
 	const redo = () => {
-		history.value.push(tmpHistory.value.pop());
-		redrawLines();
+		if (tmpHistory.value.length > 0) {
+			const lastTmpHistory = tmpHistory.value.pop();
+			if (tmpHistory) {
+				history.value.push(lastTmpHistory);
+				redrawLines();
+			}
+		}
 	}
 
     const resizeCanvas = () => {
@@ -169,7 +180,10 @@
     const stop = () => {
         isDrawing.value = false;
         if (currentPath) {
-            history.value.push(currentPath);
+			if (currentPath.points && currentPath.points.length >= 2) {
+				history.value.push(currentPath);
+				tmpHistory.value = [];
+			}
             currentPath = null;
         }
     };
@@ -330,6 +344,8 @@
             color: penColor.value
         });
         
+		tmpHistory.value = [];
+
         redrawLines();
     };
 </script>
