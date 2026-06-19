@@ -95,8 +95,8 @@
 			clientY = event.clientY;
 		}
 
-        const xMouseRel = event.clientX - rect.left;
-        const yMouseRel = event.clientY - rect.top;
+        const xMouseRel = clientX - rect.left;
+        const yMouseRel = clientY - rect.top;
 
         coord.value.x = xMouseRel * (canvas.width / rect.width);
         coord.value.y = yMouseRel * (canvas.height / rect.height);
