@@ -462,14 +462,13 @@
 			<!-- __________ CHAT __________ -->
 			<div class="order-3 row-start-2 lg:row-start-1
 				w-full h-full min-h-0
-				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
-				<div class="bg-white">
-					<Chat
-						initialModuleName="skribble"
-        				v-bind:initialRoomName="roomName"
-						v-bind:initialHistoryFetch="false"
-        			/>
-				</div>
+				border-5 border-solid border-button-1-normal overflow-auto rounded-lg">
+				<!-- @click="$emit('general') -->
+				<Chat
+					initialModuleName="skribble"
+        			v-bind:initialRoomName="roomName"
+					v-bind:initialHistoryFetch="false"
+        		/>
 			</div>
 			<!-- __________ COLORS __________ -->
 			<div :style="[cursorStyle, {backgroundColor: penColor}]" 
