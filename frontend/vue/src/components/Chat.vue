@@ -60,11 +60,16 @@ export default {
     initialHistoryFetch: {
       type: Boolean,
       default: true
+    },
+    initialModuleName: {
+      type: String,
+      default: 'chat'
     }
   },
   data() {
     return {
       roomName: this.initialRoomName,
+      moduleName: this.initialModuleName,
       chatSocket: null,
       chatLog: [],
       messageInput: '',
@@ -129,7 +134,7 @@ export default {
 	  const protocol      = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 	  const host          = window.location.host;
 	
-      const wsUrl       = `${protocol}//${host}/ws/chat/${this.roomName}/`;
+      const wsUrl       = `${protocol}//${host}/ws/${this.moduleName}/${this.roomName}/`;
       this.chatSocket   = new WebSocket(wsUrl);
       this.isConnecting = true;
 
