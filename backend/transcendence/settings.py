@@ -184,3 +184,5 @@ SKRIBBLE_REDIS_URL = env("SKRIBBLE_REDIS_URL", default="redis://redis:6379/3")
 SKRIBBLE_HISTORY_LIMIT = env.int("SKRIBBLE_HISTORY_LIMIT", default=0)
 
 TPLACE_REDIS_URL = env("TPLACE_REDIS_URL", default="redis://redis:6379/4")
+TPLACE_HISTORY_LIMIT = env.int("TPLACE_HISTORY_LIMIT", default=50)
+TPLACE_HISTORY_TTL = env.int("TPLACE_HISTORY_TTL", default=60 * 60 * 2)
