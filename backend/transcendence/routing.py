@@ -8,6 +8,6 @@ from tplace import consumers as tplace
 websocket_urlpatterns = [
     re_path(r"ws/chat/(?P<room_name>[\w-]+)/$", chat.ChatConsumer.as_asgi()),
     re_path(r"ws/skribble/(?P<room_name>[\w-]+)/$", skribble.SkribbleConsumer.as_asgi()),
-    re_path(r"ws/tplace/(?P<room_name>[\w-]+)/$", tplace.ChatConsumer.as_asgi()),
+    re_path(r"ws/tplace/(?P<room_name>[\w-]+)/$", tplace.TplaceConsumer.as_asgi()),
 ]
 # fmt: on

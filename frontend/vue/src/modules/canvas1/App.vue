@@ -29,6 +29,7 @@
 
 	];
 
+	let test			= ref(0);
 	const history		= ref([]); 
     let currentPath 	= null;
 
@@ -433,6 +434,11 @@
         
         redrawLines();
     };
+
+	const increment_test = () => {
+		test.value = test.value + 1;
+		console.log("TEST", test.value);
+	}
 </script>
 
 <template>
@@ -446,6 +452,7 @@
 				border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
 				<div class="bg-white ">
 					<p>SCORES</p>
+					{{ test }}
 					<p>TOP CANVAS</p>
 				</div>
 			</div>
@@ -464,7 +471,9 @@
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
 				<div class="bg-white">
-					<Chat
+					<!-- @click="$emit('general') -->
+					<Chat class="h-fit"
+						@test="increment_test()"
 						initialModuleName="skribble"
         				v-bind:initialRoomName="roomName"
 						v-bind:initialHistoryFetch="false"
