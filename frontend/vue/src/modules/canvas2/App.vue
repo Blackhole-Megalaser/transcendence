@@ -32,12 +32,13 @@
 	const history		= ref([]); 
     let currentPath 	= null;
 
+	let intervalId		= null;
 	const roomName    	= "skribble_test";
 	let Socket        	= null;
 	const isDrawer		= ref(false);
     
     onMounted(() => {
-        vueCanvas.value = canvasRef.value.getContext("2d");
+        vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver 	= new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
 		penColor.value 	= '#ffffff';
@@ -73,7 +74,7 @@
     	}
 
     	Socket.onmessage = async (e) => {
-			if (!e.data || isDrawing.value) {
+			if (!e.data || isDrawer.value) {
 			  return;
 			}
 
@@ -162,6 +163,7 @@
           const img = new Image();
         
           img.onload = () => {
+			ctx.clearRect(0, 0, img.width, img.height);
             ctx.drawImage(img, 0, 0);
             resolve();
           };
@@ -462,8 +464,11 @@
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
 				<div class="bg-white">
-					<p>CHAT</p>
-					<p>Hello my name is Big Bob</p>
+					<Chat
+						initialModuleName="skribble"
+        				v-bind:initialRoomName="roomName"
+						v-bind:initialHistoryFetch="false"
+        			/>
 				</div>
 			</div>
 			<!-- __________ COLORS __________ -->
