@@ -71,7 +71,7 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
             await redis_client.ltrim(
                 self.history_key, -settings.SKRIBBLE_HISTORY_LIMIT, -1
             )
-            await redis_client.expire(self.history_key, settings.CHAT_HISTORY_TTL)
+            await redis_client.expire(self.history_key, settings.SKRIBBLE_HISTORY_TTL)
 
             await self.channel_layer.group_send(
                 self.room_group_name, {"type": "chat.message", "message": message}
