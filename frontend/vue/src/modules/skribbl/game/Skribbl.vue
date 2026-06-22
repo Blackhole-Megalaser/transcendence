@@ -441,7 +441,7 @@
 					bg-sidebar hover:bg-navbar-menu flex justify-center" 
 					@click="clear">
 					<svg 
-						enable-background="new 0 0 512 512" 
+						class=" h-full w-full"
 						viewBox="0 0 512 512" 
 						xmlns="http://www.w3.org/2000/svg">
 						<g id="_x31_4_x2C__poop_x2C__cat_x2C__litter_box_x2C__cat_box_x2C__dust_pan">
