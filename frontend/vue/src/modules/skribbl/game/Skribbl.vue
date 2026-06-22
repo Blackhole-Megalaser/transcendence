@@ -27,13 +27,13 @@
 		{ r: 107, g: 114, b: 128, hex: '#6b7280'}, // Gray
 		{ r: 255, g: 255, b: 255, hex: '#ffffff'}  // White
 	];
-	
+
 	const history = ref([]); 
     let currentPath = null;
 
 	const tmpHistory = ref([]);
 
-    
+
     onMounted(() => {
 		window.addEventListener('keydown', handleKeyDown);
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
@@ -134,16 +134,16 @@
         coord.value.x = xMouseRel * (canvas.width / rect.width);
         coord.value.y = yMouseRel * (canvas.height / rect.height);
     };
-    
+
     const start = (event) => {
         reposition(event);
-        
+
         if (isBucket.value) {
             fill(Math.floor(coord.value.x), Math.floor(coord.value.y));
             return;
         }
         isDrawing.value = true;
-    
+
         currentPath = {
             type: 'paint',
             color: penColor.value,
@@ -157,7 +157,7 @@
     
     const draw = (event) => {
         if (!isDrawing.value) return;
-    
+
         const ctx = vueCanvas.value;
         ctx.beginPath();
         ctx.lineWidth = parseInt(penStroke.value);
@@ -168,7 +168,7 @@
         reposition(event);
         ctx.lineTo(coord.value.x, coord.value.y);
         ctx.stroke();
-    
+
         if (currentPath) {
             currentPath.points.push({ 
                 x: coord.value.x / width.value, 
@@ -176,7 +176,7 @@
             });
         }
     };
-        
+
     const stop = () => {
         isDrawing.value = false;
         if (currentPath) {
@@ -187,7 +187,7 @@
             currentPath = null;
         }
     };
-    
+
     const clear = () => {
         vueCanvas.value.clearRect(0, 0, width.value, height.value);
         history.value = [];
@@ -210,28 +210,28 @@
 
         const currentWidth = width.value;
         const currentHeight = height.value;
-    
+
         ctx.clearRect(0, 0, currentWidth, currentHeight);
-    
+
         history.value.forEach(action => {
             if (!action.type || action.type === 'paint') {
 				if (action.points.length < 2) return;
-			
+
 				const baseStroke = action.stroke ? parseInt(action.stroke) : 4; 
 				ctx.lineWidth = baseStroke; 
-				
+
 				ctx.lineCap = 'round';
 				ctx.lineJoin = 'round';
 				ctx.beginPath();
 				ctx.strokeStyle = action.color;
-				
+
 				ctx.moveTo(action.points[0].x * currentWidth, action.points[0].y * currentHeight);
 				for (let i = 1; i < action.points.length; i++) {
 					ctx.lineTo(action.points[i].x * currentWidth, action.points[i].y * currentHeight);
 				}
 				ctx.stroke();
 			}
-				
+
             if (action.type === 'fill') {
                 const realX = Math.floor(action.x * currentWidth);
                 const realY = Math.floor(action.y * currentHeight);
@@ -239,13 +239,13 @@
             }
         });
     };
-        
+
     const runFillSilentlyOnContext = (ctx, currentWidth, currentHeight, startX, startY, targetColor) => {
 		if (startX < 0 || startX >= currentWidth || startY < 0 || startY >= currentHeight) return;
-	
+
 		const imageData = ctx.getImageData(0, 0, currentWidth, currentHeight);
 		const data = imageData.data;
-	
+
 		const startPos = (startY * currentWidth + startX) * 4;
 		const startR = data[startPos];
 		const startG = data[startPos + 1];
@@ -253,20 +253,20 @@
 		const startA = data[startPos + 3];
 		const paletteBorder = paletteRGB.filter(c => c.r !== startR || c.g !== startG || c.b !== startB);
 		const [fillR, fillG, fillB] = hexToRgb(targetColor);
-	
+
 		if (startA === 255 && startR === fillR && startG === fillG && startB === fillB) return;
-	
+
 		const visited = new Uint8Array(currentWidth * currentHeight);
-	
+
 		const pixelStack = [[startX, startY]]; 
-	
+
 		const match = (x, y) => {
 			const pos = (y * currentWidth + x) * 4;
 			const r = data[pos];
 			const g = data[pos + 1];
 			const b = data[pos + 2];
 			const a = data[pos + 3];
-	
+
 			if (startA < 10) {
 				return a < 230;
 			} else {
@@ -279,28 +279,28 @@
 				return true;
 			}
 		};
-	
+
 		while (pixelStack.length > 0) {
 			const [cx, cy] = pixelStack.pop();
 			let x = cx; 
 			let y = cy;
-	
+
 			while (x >= 0 && match(x, y) && !visited[y * currentWidth + x]) x--;
 			x++;
-	
+
 			let reachUp = false; 
 			let reachDown = false;
-	
+
 			while (x < currentWidth && match(x, y) && !visited[y * currentWidth + x]) {
 				const pos = (y * currentWidth + x) * 4;
-				
+
 				data[pos] = fillR; 
 				data[pos + 1] = fillG; 
 				data[pos + 2] = fillB; 
 				data[pos + 3] = 255;
-	
+
 				visited[y * currentWidth + x] = 1;
-	
+
 				if (y > 0) {
 					if (match(x, y - 1) && !visited[(y - 1) * currentWidth + x]) { 
 						if (!reachUp) { 
@@ -326,24 +326,24 @@
 		}
 		ctx.putImageData(imageData, 0, 0);
 	};
-		
+
     const fill = (startX, startY) => {
         const ctx = vueCanvas.value;
         const currentWidth = width.value;
         const currentHeight = height.value;
-        
+
         if (currentWidth <= 0 || currentHeight <= 0) return;
         if (startX < 0 || startX >= currentWidth || startY < 0 || startY >= currentHeight) return;
-    
+
         runFillSilentlyOnContext(ctx, currentWidth, currentHeight, startX, startY, penColor.value);
-        
+
         history.value.push({
             type: 'fill',
             x: startX / currentWidth,
             y: startY / currentHeight,
             color: penColor.value
         });
-        
+
 		tmpHistory.value = [];
 
         redrawLines();
