@@ -140,7 +140,7 @@ export default {
       this.chatSocket.onopen = (e) => {
         this.isConnecting = false;
         this.isConnected = true;
-        console.log('Chat socket connected to ' + this.roomName);
+        console.log('Chat socket connected to', this.roomName);
       }
 
       this.chatSocket.onerror = (e) => {

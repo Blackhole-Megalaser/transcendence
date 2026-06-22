@@ -31,18 +31,29 @@
 
 	const history		= ref([]); 
     let currentPath 	= null;
-	
+
 ////////////////////////////////////////////////////////////
 ////////////////	WEBSOCKET START HERE	////////////////
 ////////////////////////////////////////////////////////////
 
-	let intervalId		= null;
+	let sendInterval	= null;
+	let joinInterval	= null;
+
 	const roomName    	= "skribble_test";
 	let Socket        	= null;
 	const isDrawer		= ref(true);
 	let tempImage		= null;
+
+	// ws reconnection 
+	let isConnecting 		= false;
+    let isConnected 		= false;
+    const baseDelay			= 300;     // divided by 10 to stay with int
+    let currentDelay 		= 3000;
+    const jitter 			= 0.05;
+    let jitterValue 		= 0;
+    let connectionAttempt 	= -1;
     
-    onMounted(() => {
+	onMounted(() => {
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver 	= new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
@@ -50,32 +61,70 @@
 		fill(1,1);
 		penColor.value 	= '#000000';
     	connectWebSocket();
-    	intervalId = setInterval(sendCanvas, 3000);
+		joinInterval = setInterval(refreshDelay, currentDelay);
+    	sendInterval = setInterval(sendCanvas, 3000);
     });
 
     onUnmounted(() => {
         if (resizeObserver) {
             resizeObserver.disconnect();
         }
-        if (this.Socket) {
-            this.Socket.close();
+        if (Socket) {
+            Socket.close();
         }
-        clearInterval(intervalId);
+        clearInterval(sendInterval);
+		clearInterval(joinInterval);
     });
 
+	// see chat component for documentation
+	const refreshDelay = () => {
+      if (!isConnected && !isConnecting) {
+        connectWebSocket();
+        clearInterval(joinInterval);
+
+        currentDelay = baseDelay * (10 + (connectionAttempt));
+        jitterValue  = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
+
+        currentDelay = currentDelay + jitterValue;
+
+        joinInterval = setInterval(refreshDelay, currentDelay);
+      }
+      else if (isConnected) {
+		sendCanvas();
+        connectionAttempt  = -1;
+      }
+    }
+
 	const connectWebSocket = () => {
-		const protocol	= window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host    	= window.location.host;
+      if (Socket?.readyState == WebSocket.OPEN) {
+        isConnecting       = false;
+        isConnected        = true;
+        connectionAttempt  = -1;
+        return
+      }
+
+    isConnected = false;
+    connectionAttempt++;
+    console.log("Attempting to connect to skribble...");
+
+	  const protocol      = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	  const host          = window.location.host;
 	
-    	const wsUrl     = `${protocol}//${host}/ws/skribble/${roomName}/`;
-    	Socket          = new WebSocket(wsUrl);
+    	const wsUrl   	  = `${protocol}//${host}/ws/skribble/${roomName}/`;
+    	Socket        	  = new WebSocket(wsUrl);
+		isConnecting = true;
 
     	Socket.onopen = (e) => {
-    		console.log('Socket connected to ' + roomName);
+			isConnecting = false;
+        	isConnected  = true;
+    		console.log('Skribble connected to room', roomName);
     	}	
 
     	Socket.onerror = (e) => {
-    		console.log("Failed to reach server");
+			isConnecting = false;
+     	   	isConnected  = false;
+			// chat is already putting the retry messages and wait time should be very close
+    		// console.log("Failed to reach server: Retrying in", currentDelay, "ms");
     	}
 
     	Socket.onmessage = async (e) => {
@@ -87,7 +136,7 @@
 			if (typeof e.data === 'string') {
 				try {
 					const message = JSON.parse(e.data);
-					
+
 					if (message.type === "canvas.update" && message.blob_data) {
 						const blobData = hexStringToBlob(message.blob_data, "image/png");
 						await receiveCanvasBlob(blobData);
@@ -103,7 +152,7 @@
 				}
 				return;
 			}
-	  
+
 			// Blob (direct binary)
 			if (e.data instanceof Blob) {
 			try {
@@ -117,7 +166,9 @@
 		};
 
       Socket.onclose = (e) => {
-        console.log('Socket closed');
+		isConnecting = false;
+        isConnected  = false;
+        console.log('Skribble Socket closed');
       };
     };
 
