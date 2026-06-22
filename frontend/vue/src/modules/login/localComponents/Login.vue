@@ -6,7 +6,7 @@
       </h2>
       <div class="flex-center flex-col">
         <form @submit.prevent="submit" class="flex flex-col">
-          <h3 
+          <h3
             v-if="!isSmallScreen"
             class="font-bold text-text-main pl-2"
           >Enter your username :</h3>
@@ -14,7 +14,7 @@
             :myPlaceholder="isSmallScreen ? 'Enter your username' : 'Username here'"
             v-model="Username"
           />
-          <h3 
+          <h3
             v-if="!isSmallScreen"
             class="font-bold text-text-main pl-2 mt-2"
           >Enter your password :</h3>
@@ -25,8 +25,8 @@
           />
           <div class="flex-center flex-col h-auto w-full self-center">
             <p class="text-red-600 text-sm py-2">{{ apiError.detail }}</p>
-            <input 
-              type="submit" 
+            <input
+              type="submit"
               class="input flex-center h-8"
               value="Submit"
               :disabled="Username === '' || Password === ''"
@@ -51,7 +51,7 @@ const apiError      = ref('');
 const breakpoints   = useBreakpoints({ xl: 1280 });
 const isSmallScreen = breakpoints.smaller("xl");
 
-const nextPage      = () => { 
+const nextPage      = () => {
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
   if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
@@ -63,10 +63,10 @@ const submit        = async () => {
   apiError.value = '';
   try {
     const response  = await fetch('/api/users/login/', {
-      
+
       method: 'POST',
       body: JSON.stringify({
-        username: Username.value, 
+        username: Username.value,
         password: Password.value
       }),
       headers: {

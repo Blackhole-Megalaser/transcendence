@@ -2,7 +2,7 @@ import { createApp }                    from 'vue';
 import { useThemeStore, useUserStore }  from '@storage';
 import { setupPinia }                   from '@shared';
 import BasePage                         from '@components/BasePage.vue';
-import Signup                           from './localComponents/Signup.vue'; 
+import Signup                           from './localComponents/Signup.vue';
 import App                              from './App.vue';
 
 const app = createApp(App);
@@ -17,7 +17,7 @@ if (userInfos) {
   let nextPage          = queryParams.get('next') ?? '/';
   let isSafeLink        = true;
   if (!nextPage.startsWith('/'))  nextPage    = '/' + nextPage;
-  if (nextPage.length > 1)        isSafeLink  = !nextPage.startsWith('//'); 
+  if (nextPage.length > 1)        isSafeLink  = !nextPage.startsWith('//');
   const dest            = new URL(isSafeLink ? nextPage : '/', window.location.origin);
   if (room)                       dest.searchParams.set('room', room);
   window.location.href  = dest.toString();

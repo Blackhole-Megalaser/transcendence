@@ -8,7 +8,7 @@
         v-for="( message, index ) in chatLog"
       >
         <div class="min-w-12">
-          <img 
+          <img
             :src="message.profile_pic ? message.profile_pic : defaultcat"
             alt="Pfp"
             class="size-12 rounded-full overload-hidden"
@@ -16,7 +16,7 @@
             >
         </div>
         <div>
-          <h3 
+          <h3
             class="text-lg font-semibold"
             v-if="message.showAuthorInfos"
           >{{ message.author }}
@@ -184,12 +184,11 @@ export default {
     },
     sendMessage() {
       const message = this.messageInput.trim();
-      
 
       if (!message || !this.chatSocket || this.chatSocket.readyState !== WebSocket.OPEN) {
          return;
       }
-      
+
       this.chatSocket.send(JSON.stringify({
           message
         }));
@@ -223,7 +222,7 @@ export default {
 	  scrollText() {
 	    const div = document.getElementById('chat-log');
 	    div.scrollTop = div.scrollHeight;
-	  }, 
+	  },
     focusOnInput() {
       const input = document.getElementById('chat-message-input');
       input.focus();

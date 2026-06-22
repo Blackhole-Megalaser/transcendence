@@ -1,15 +1,15 @@
 <template>
   <div class="relative w-full h-auto">
-    <input 
+    <input
       :type="isPassword ? inputType : 'text'"
       class="informations w-full"
       :class="isPassword ? 'pr-10' : 'pr-3'"
       :placeholder="myPlaceholder"
       v-model="model"
     >
-    <component 
+    <component
       v-if="isPassword"
-      :is="typeStatusImg" 
+      :is="typeStatusImg"
       @click="showPassword = !showPassword"
       class="size-8 absolute inset-y-1 right-0 flex justify-center items-center cursor-pointer pr-3 fill-text-button-2"
       />

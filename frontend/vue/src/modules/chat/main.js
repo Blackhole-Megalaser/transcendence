@@ -1,7 +1,7 @@
 import { createApp, ref }               from 'vue';
 import { useThemeStore, useUserStore }  from '@storage';
 import { setupPinia }                   from '@shared';
-import Chat                             from '@components/Chat.vue'; 
+import Chat                             from '@components/Chat.vue';
 import BasePage                         from '@components/BasePage.vue';
 import SelectChat                       from '@components/SelectChat.vue';
 import App                              from './App.vue';

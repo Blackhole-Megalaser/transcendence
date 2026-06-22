@@ -17,7 +17,7 @@
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="text-left flex-1">Between <span class="text-title font-bold">3</span> and <span class="text-title font-bold">12</span> characters</span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="isValidLength ? check : cross"
         :class="isValidLength ? '' : 'fill-red-600'"
@@ -27,7 +27,7 @@
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="text-left flex-1">At least one letter <span class="text-xs text-text-main/50 font-normal">(a-z)</span></span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="hasLetter ? check : cross"
         :class="hasLetter ? '' : 'fill-red-600'"
@@ -37,7 +37,7 @@
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="text-left flex-1">Must not contain any spaces</span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="hasNoSpaces ? check : cross"
         :class="hasNoSpaces ? '' : 'fill-red-600'"
@@ -47,7 +47,7 @@
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="text-left flex-1">Must be an available & valid username</span>
-      <component 
+      <component
         v-if="!emptyUsername"
         class="size-4 right-0 shrink-0"
         :is="isAllowedUsername ? check : cross"
@@ -63,7 +63,7 @@ import forbiddenUsername from '@shared/forbiddenUsernames.json'
 import cross        from '@assets/wrong_cross.svg'
 import check        from '@assets/check-mark.svg'
 
-const props = defineProps({ 
+const props = defineProps({
   usernameCheck: {
     type: String,
     default: ''
@@ -79,12 +79,12 @@ const hasNoSpaces   = computed(() => !props.usernameCheck.includes(' '))
 
 const isAllowedUsername = computed(() => {
   const name = lowerUsername.value
-  
+
   if (forbiddenUsername.usernames.includes(name)) return false
   if (forbiddenUsername.prefixes.some(prefix => name.startsWith(prefix))) return false
   if (forbiddenUsername.suffixes.some(suffix => name.endsWith(suffix))) return false
   if (forbiddenUsername.includes.some(word => name.includes(word))) return false
-  
+
   return true
 })
 </script>

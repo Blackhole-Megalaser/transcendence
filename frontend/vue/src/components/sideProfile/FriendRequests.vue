@@ -1,11 +1,11 @@
 <template>
   <ul class="overflow-auto max-h-60">
-    <li 
+    <li
       class="w-full flex items-center flex-col rounded-xl overflow-hidden my-1 group"
       :key="friend.username"
       v-for="friend in FriendRequests"
       >
-      <div 
+      <div
         class="flex items-center flex:none gap-4 w-full z-10 px-4 py-2 hover:bg-button-2-active"
       >
         <div class="relative">
@@ -22,7 +22,7 @@
           </a>
         </div>
         <p class="text-text-main text-lg font-semibold truncate max-w-44 flex-1">{{ friend.username }}</p>
-        <div 
+        <div
           class="flex md:hidden md:group-hover:flex flex-none gap-2 right-0"
         >
           <component :is="check" class="size-4 cursor-pointer"/>
@@ -31,7 +31,7 @@
       </div>
     </li>
   </ul>
-  <div 
+  <div
     class="text-text-main font-semibold w-full py-2 flex-center"
     v-if="FriendRequests.length === 0"
   >
