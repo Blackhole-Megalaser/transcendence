@@ -1,7 +1,7 @@
 <template>
   <div class="w-full flex-center flex-col">
-    <img 
-      :src='profilePic' alt="profile picture" 
+    <img
+      :src='profilePic' alt="profile picture"
       class="size-20 rounded-full"
     >
     <h2 class="mt-6 text-center font-bold text-2xl text-title">
@@ -16,15 +16,15 @@
   </div>
   <div class="flex-center flex-col xs:flex-row">
     <div class="h-10 w-full xs:w-1/2 flex-center">
-      <Button 
-        variant="secondary" 
+      <Button
+        variant="secondary"
         side="left"
         @click="reAuth"
       >Change user</Button>
     </div>
     <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
-      <Button 
-        variant="secondary" 
+      <Button
+        variant="secondary"
         side="right"
         @click="logout(true)"
       >Log out</Button>
@@ -50,7 +50,7 @@ const profilePic    = computed(() => userInfos.value?.profile_image ?? defaultCa
 const reAuth  = async () => {
   const currentURI  = window.location.href.slice(window.location.origin.length).replace('?', '&');
   const URI         = `/login${currentURI !== '/' ? `?next=${currentURI}` : ''}`
-  
+
   const isLogedOut  = await logout(false);
   if (isLogedOut)
     window.location.href = URI;
@@ -68,7 +68,7 @@ const logout  = async (reload) => {
     if (!response.ok)
       throw new Error(`Couldn't disconnect: ${response.status}`);
     userStore.clear();
-    if (reload) 
+    if (reload)
       window.location.reload();
     else
       return true;

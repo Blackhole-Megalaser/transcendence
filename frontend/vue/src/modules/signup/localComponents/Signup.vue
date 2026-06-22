@@ -5,10 +5,10 @@
       :class="OpenBox && ismobile ? 'translate-y-0' : '-translate-y-400'"
     >
       <UsernameInformations :username-check="Username" v-if="OpenInfoUserBar"/>
-      <Informations 
+      <Informations
         v-if="OpenInfoBar"
         :password-check="Password"
-        :username-check="Username" 
+        :username-check="Username"
       />
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:w-xl xl:h-auto sm:rounded-4xl shadow-xl py-4">
@@ -25,7 +25,7 @@
               big-screen-p-holder="Username"
               input-type="text"
             >
-              <component 
+              <component
                 :is="interogation"
                 class="size-4 flex items-center fill-sidebar-text-2 cursor-help"
                 @click="userInfoBar"
@@ -42,14 +42,14 @@
             />
           </div>
           <div class="flex">
-            <Input 
-              v-model="Password" 
+            <Input
+              v-model="Password"
               :input-validate="validatePass"
               p-holder="Enter your Password"
               big-screen-p-holder="Password"
               input-type="password"
             >
-              <component 
+              <component
                 :is="interogation"
                 class="size-4 flex items-center fill-sidebar-text-2 cursor-help"
                 @click="passwordInfoBar"
@@ -67,8 +67,8 @@
           </div>
           <div class="flex-center h-10 w-26 self-end mr-3">
             <div class="size-4"/>
-            <input 
-              type="submit" 
+            <input
+              type="submit"
               value="Send"
               class="px-4 py-1 rounded-full mt-1 input "
               :class="validateForm ? 'cursor-pointer' : ''"
@@ -84,11 +84,11 @@
         <a :href="`login?next=${nextPage()}`" class="underline"> Log in !
         </a></p>
     </div>
-    <aside 
+    <aside
       v-if="!ismobile"
       class="hidden sm:block bg-navbar rounded-4xl shadow-xl transition-all duration-300 transform"
       :class="OpenBox
-        ? 'max-w-88 p-6 opacity-100 translate-x-0 max-h-96 rotate-360' 
+        ? 'max-w-88 p-6 opacity-100 translate-x-0 max-h-96 rotate-360'
         : 'max-w-0 p-0 opacity-0 -translate-x-10 pointer-events-none max-h-0 -rotate-360'
       "
     >
@@ -96,7 +96,7 @@
         <UsernameInformations :username-check="Username"/>
       </div>
       <div v-show="OpenInfoBar">
-        <Informations 
+        <Informations
           :password-check="Password"
           :username-check="Username"
         />
@@ -115,7 +115,7 @@ import { usePasswordSimilarityValidator } from '../logics/passwordSimilarity.js'
 import forbiddenUsername    from '@shared/forbiddenUsernames.json'
 import mostUsedPasswords    from '@shared/1000_mostUsedPasswords.json'
 
-import Input                from './Input.vue';    
+import Input                from './Input.vue';
 import UsernameInformations from './UsernameInformations.vue';
 import Informations         from './Informations.vue'
 
@@ -129,7 +129,7 @@ const apiError        = ref("");
 const OpenInfoBar     = ref(false);
 const OpenInfoUserBar = ref(false);
 const OpenBox         = ref(false);
-const nextPage  = () => { 
+const nextPage  = () => {
   let nextURL = new URLSearchParams(window.location.search).get('next') ?? '/';
   if (!nextURL.startsWith('/')) nextURL = '/' + nextURL;
   return nextURL ? nextURL : '/';
@@ -200,7 +200,7 @@ const validateUser    = computed(() => {
   else if (forbiddenUsername.prefixes.some(prefix => lowerCaseUsername.startsWith(prefix))) { return false }
   else if (forbiddenUsername.suffixes.some(suffix => lowerCaseUsername.endsWith(suffix)))   { return false }
   else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word)))       { return false }
-  else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false 
+  else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false
   else if (lowerCaseUsername.includes(' '))                                                 { return false }
   else if (lowerCaseUsername.length < 3 || lowerCaseUsername.length > 12)                   { return false }
   else                                                                                      { return true  }
@@ -210,15 +210,15 @@ const validateEmail   = computed(() => {
   const cleanEmail      = Email.value ? Email.value.trim() : "";
 
   if ((cleanEmail.match(/@/g) || []).length !== 1) { return false }
-  
+
   const splitedAddress  = cleanEmail.split("@");
   const localPart       = splitedAddress[0];
   const domainPart      = splitedAddress[1];
 
-  /* 
+  /*
     For the regex nerds xD /^(?!.*\.{2})[a-z0-9!#$%&'*+/=?^_`{|}~-]+$/i
     This regex allows every alpha numericals chars and !#$%&'*+/=?^_-`{|}~
-    and forbids string starting and ending with dots, and to have multiple 
+    and forbids string starting and ending with dots, and to have multiple
     successives dots.
 
     -> the RFC 5322 allows almost every printable chars to be put in emails
@@ -244,10 +244,10 @@ const submit    = async () => {
   apiError.value = '';
   try {
     const response  = await fetch('/api/users/signup/', {
-      
+
       method: 'POST',
       body: JSON.stringify({
-        username:               Username.value, 
+        username:               Username.value,
         email:                  Email.value,
         password:               Password.value,
         password_confirmation:  PasswordRepeat.value
@@ -274,9 +274,9 @@ const submit    = async () => {
 @import '@/style.css';
 
 .input {
-  @apply shadow-button-2-normal bg-button-2-normal text-text-button-2 
+  @apply shadow-button-2-normal bg-button-2-normal text-text-button-2
     active:duration-100 px-3.5 py-0.5
-  hover:bg-button-2-hover 
+  hover:bg-button-2-hover
   disabled:bg-button-2-disable;
 }
 </style>

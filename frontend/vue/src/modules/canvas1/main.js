@@ -2,7 +2,7 @@ import { createApp, ref }               from 'vue';
 import { useThemeStore, useUserStore }  from '@storage';
 import { setupPinia }                   from '@shared';
 import BasePage                         from '@components/BasePage.vue';
-import Chat                             from '@components/Chat.vue'; 
+import Chat                             from '@components/Chat.vue';
 import Skribbl                          from './App.vue';
 import App                              from '@modules/skribbl/SkribbleApp.vue';
 

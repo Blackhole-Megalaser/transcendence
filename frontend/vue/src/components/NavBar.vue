@@ -1,7 +1,7 @@
 <template>
   <nav class="flex justify-center relative">
-    <div 
-      class="flex items-center w-full h-20 bg-navbar border-b 
+    <div
+      class="flex items-center w-full h-20 bg-navbar border-b
         border-navbar-border px-3 sm:px-6 shadow-md"
     >
       <div class="flex flex-none justify-start w-1/5 sm:w-1/4 xl:w-1/3">
@@ -19,7 +19,7 @@
       </div>
       <div class="h-20 flex flex-1 justify-center items-center sm:items-start">
         <a href="/" class="cursor-pointer select-none" aria-label="back to home">
-          <img 
+          <img
             :src="themeIndex === 0 ? ft_cat : ft_mean" alt="LOGO"
             :class="`s-${variant}`"
           >
@@ -35,8 +35,8 @@
           </div>
           <div class="flex items-center justify-end">
             <ProfileButton
-              v-if="getLoggedStatus" 
-              class="flex" 
+              v-if="getLoggedStatus"
+              class="flex"
               @click="$emit('showProfile')"
             />
             <div v-else class="flex">
@@ -99,7 +99,7 @@ const { getLoggedStatus } = storeToRefs(userStore);
 const currentURI          = window.location.href.slice(window.location.origin.length).replace('?', '&');
 const URI                 = currentURI !== '/' ? `?next=${currentURI}` : '';
 
-const nextPage            = () => { 
+const nextPage            = () => {
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
   if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;

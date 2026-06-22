@@ -1,22 +1,22 @@
 <template>
   <dialog ref="dialog">
     <div class="h-8 w-full flex-center gap-4">
-      <button 
-        @click="bar = 0" 
+      <button
+        @click="bar = 0"
         class="size-10 cursor-pointer flex-center rounded-full text-text-main"
         :class="selectWindow === 0 ? 'bg-sidebar border border-text-main' : ''"
       >
         <component :is="profileIcon" class="size-8"/>
       </button>
-      <button 
-        @click="bar = 1" 
+      <button
+        @click="bar = 1"
         class="size-10 cursor-pointer flex-center rounded-full "
         :class="selectWindow === 1 ? 'bg-sidebar border border-text-main' : ''"
       >
         <component :is="contacstIcon" class="size-10 stroke-text-main"/>
       </button>
-      <button 
-        @click="bar = 2" 
+      <button
+        @click="bar = 2"
         class="size-10 cursor-pointer flex-center rounded-full text-text-main"
         :class="selectWindow === 2 ? 'bg-sidebar border border-text-main' : ''"
       >
@@ -55,7 +55,7 @@ watch(() => props.open, (val) => {
 @import "@/style.css";
 
 dialog {
-  @apply sm:m-2 w-full h-full z-70 sm:w-md sm:h-auto sm:rounded-4xl 
+  @apply sm:m-2 w-full h-full z-70 sm:w-md sm:h-auto sm:rounded-4xl
     shadow-md fixed left-auto p-12 pt-6;
   background-color: var(--color-profile);
 }
@@ -64,4 +64,3 @@ hr {
   @apply h-px border-sidebar-border my-6;
 }
 </style>
-

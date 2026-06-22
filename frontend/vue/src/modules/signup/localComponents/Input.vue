@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center flex-col xl:py-1 w-full">
-    <h3 
+    <h3
       v-if="!isSmallScreen"
       class="font-bold text-text-main pl-9"
     >{{ pHolder }}:</h3>

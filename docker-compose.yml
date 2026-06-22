@@ -65,7 +65,7 @@ services:
         - action: sync
           path: ./frontend
           target: /app
-          ignore: 
+          ignore:
             - .jj
             - .git
             - .direnv

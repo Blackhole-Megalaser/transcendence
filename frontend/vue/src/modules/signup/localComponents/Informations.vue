@@ -17,7 +17,7 @@
     <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class=" text-left flex-1">At least <span class="text-title font-bold">8</span> characters, and a maximum of <span class="text-title font-bold">40</span> characters</span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="isValidLength ? check : cross"
         :class="isValidLength ? '' : 'fill-red-600'"
@@ -26,7 +26,7 @@
     <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="w-86 sm:w-auto flex flex-1">One uppercase letter <span class="text-xs text-text-main/50 font-normal">(A-Z)</span></span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="hasUppercase ? check : cross"
         :class="hasUppercase ? '' : 'fill-red-600'"
@@ -35,7 +35,7 @@
     <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="w-86 sm:w-auto flex flex-1">One number <span class="text-xs text-text-main/50 font-normal">(0-9)</span></span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="hasNumber ? check : cross"
         :class="hasNumber ? '' : 'fill-red-600'"
@@ -44,7 +44,7 @@
     <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="w-86 sm:w-auto flex flex-1">Must not be in the top 1000 most used passwords </span>
-      <component 
+      <component
         v-if="!emptyPassword"
         class="size-4 right-0 shrink-0"
         :is="isMostUsedPassword ? cross : check"
@@ -54,7 +54,7 @@
     <li class="flex items-center gap-2.5 w-full">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
       <span class="w-86 sm:w-auto flex flex-1">Must not be similar as the username </span>
-      <component 
+      <component
         class="size-4 right-0 shrink-0"
         :is="!passSimilarityCheck ? cross : check"
         :class="!passSimilarityCheck ? 'fill-red-600' : ''"
@@ -71,7 +71,7 @@ import mostUsedPasswords  from '@shared/1000_mostUsedPasswords.json'
 import cross              from '@assets/wrong_cross.svg'
 import check              from '@assets/check-mark.svg'
 
-const props = defineProps({ 
+const props = defineProps({
   passwordCheck: {
     type: String,
     default: ''

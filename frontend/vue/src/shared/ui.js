@@ -1,8 +1,8 @@
-import { 
-  ref, 
-  onMounted, 
-  onUnmounted, 
-  computed 
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  computed
 } from 'vue';
 import { useThemeStore }          from '@storage';
 import { hasOwn, useBreakpoints } from '@vueuse/core';
@@ -26,13 +26,13 @@ export function useUi() {
   });
 
   function toggleSideBar() {
-    if (!ismobile.value || (ismobile.value && !showProfile.value)) { 
-      showSideBar.value = !showSideBar.value; 
+    if (!ismobile.value || (ismobile.value && !showProfile.value)) {
+      showSideBar.value = !showSideBar.value;
     }
   }
   function toggleSideProfile() {
-    if (!ismobile.value) { 
-      showProfile.value = !showProfile.value; 
+    if (!ismobile.value) {
+      showProfile.value = !showProfile.value;
       return ;
     }
     else if (showSideBar.value) { showSideBar.value = false; }
@@ -63,5 +63,3 @@ export function useUi() {
     closeSideBar
   };
 }
-
-

@@ -3,8 +3,8 @@
     <aside class="p-6 h-full w-full flex flex-col">
       <header class="flex-none">
         <div class="flex-center">
-          <img 
-            :src="!themeIndex ? cute_cat : mean_cat" 
+          <img
+            :src="!themeIndex ? cute_cat : mean_cat"
             alt="mini logo"
             class="size-20"
           >
@@ -12,18 +12,18 @@
         <hr>
       </header>
       <section class="flex-auto">
-        <ul 
+        <ul
           class="flex flex-col text-red-500"
         >
           <li class="min-h-10 flex-col items-center">
             <ButtonSideBar
               @changeStatus="showGames = !showGames"
             >Games</ButtonSideBar>
-            <div 
+            <div
               :class="showGames === false ? 'hidden' : 'flex flex-col'"
               class="pl-6"
             >
-              <ul 
+              <ul
                 class="bg-button-sidebar-2-normal rounded-3xl"
               >
                 <li>

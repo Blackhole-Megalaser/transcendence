@@ -7,11 +7,11 @@
     :isLogin="islogin"
     :variant="navBarVariant"
   />
-  <SideProfile 
+  <SideProfile
     :open="showProfile"
   />
   <main class="fscreen" @click="closeProfile">
-    <sideBar 
+    <sideBar
       :class="!showSideBar ? '-translate-x-60 rotate-360' : 'translate-x-0 -rotate-360'"
       class="transition duration-200 z-50"
     />

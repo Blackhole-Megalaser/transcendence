@@ -9,7 +9,7 @@
       class="fixed z-15 transition-transform duration-200"
       :class="openRoomSelection ? 'translate-x-0' : '-translate-x-300'"
     />
-    <section 
+    <section
       :class="openRoomSelection ? 'pl-0 sm:pl-72 xl:pl-80' : 'pl-0'"
       class="z-10 transition-transform duration-200"
     >
@@ -63,7 +63,7 @@ const isSmallScreen     = breakpoints.smaller("sm");
 
 const formatChanName  = (str) => {
   const lowerCaseWithSpaces = str.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
-  return lowerCaseWithSpaces.charAt(0).toUpperCase() + lowerCaseWithSpaces.slice(1); 
+  return lowerCaseWithSpaces.charAt(0).toUpperCase() + lowerCaseWithSpaces.slice(1);
 }
 
 const getChannelFromUrl = () => {

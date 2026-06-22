@@ -85,14 +85,14 @@
 
   /* Profile Dialog */
   --color-profile:          var(--color-pink-pastel-75);
-  
+
   /* text */
   --color-text-main:        var(--color-pink-pastel-900);
   --color-title:            var(--color-lavender-pastel-300);
   --color-placeholder:      var(--color-pink-pastel-200);
   --color-text-button-1 :   var(--color-pink-pastel-50);
   --color-text-button-2 :   var(--color-pink-pastel-900);
-  
+
   /* Buton 1 */
   --color-button-1-normal:  var(--color-pink-pastel-300);
   --color-button-1-hover:   var(--color-pink-pastel-400);
@@ -112,7 +112,7 @@
   --color-theme-cursor:           var(--color-white);
   --color-theme-cursor-border:    var(--color-lavender-pastel-50);
   --color-theme-cursor-shadow:    rgba(60, 50, 96, 0.2);
-  
+
 
   --color-input-text:       var(--color-lavender-pastel-500);
   --color-input-bg:         var(--color-pink-pastel-100);

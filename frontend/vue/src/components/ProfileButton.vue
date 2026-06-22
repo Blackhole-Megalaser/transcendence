@@ -1,8 +1,8 @@
 <template>
   <button class="size-10 rounded-full overflow-hidden outline-0
     hover:outline-4 outline-navbar-profile-outline duration-150">
-    <img 
-      :src="profilePic" 
+    <img
+      :src="profilePic"
       alt="profile_pic"
     >
   </button>

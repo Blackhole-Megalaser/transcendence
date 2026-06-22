@@ -1,5 +1,5 @@
 <template>
-  <button 
+  <button
     :class="[`btn-base-${side}`,`btn-${variant}`]"
     @click="$emit('changeStatus')"
   >

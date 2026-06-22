@@ -109,7 +109,7 @@ La gamification reste a faire mais ca reste sans doute assez rapide a implemente
 
 Aussi un mot sur les issues qui sont actuellement ouvertes et l'invitation a y jeter un oeil pour fermer celles qui ne sont plus d'actualite
 
-Cette reunion etait place sous le signe de la patoune 
+Cette reunion etait place sous le signe de la patoune
 
 		ฅᨐฅ		𓊆ྀི⋆🐾⋆𓊇ྀི  	 (˵◝ ⩊  ◜˵マ
 
