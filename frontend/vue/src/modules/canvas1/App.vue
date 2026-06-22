@@ -36,7 +36,6 @@
 ////////////////	WEBSOCKET START HERE	////////////////
 ////////////////////////////////////////////////////////////
 
-	let sendInterval	= null;
 	let joinInterval	= null;
 
 	const roomName    	= "skribble_test";
@@ -62,7 +61,6 @@
 		penColor.value 	= '#000000';
     	connectWebSocket();
 		joinInterval = setInterval(refreshDelay, currentDelay);
-    	sendInterval = setInterval(sendCanvas, 3000);
     });
 
     onUnmounted(() => {
@@ -72,7 +70,6 @@
         if (Socket) {
             Socket.close();
         }
-        clearInterval(sendInterval);
 		clearInterval(joinInterval);
     });
 

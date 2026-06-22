@@ -36,8 +36,7 @@
 ////////////////	WEBSOCKET START HERE	////////////////
 ////////////////////////////////////////////////////////////
 
-	let sendInterval	= null;
-	let joinInterval	= null;
+	let intervalId		= null;
 
 	const roomName    	= "skribble_test";
 	let Socket        	= null;
@@ -61,8 +60,7 @@
 		fill(1,1);
 		penColor.value 	= '#000000';
     	connectWebSocket();
-		joinInterval = setInterval(refreshDelay, currentDelay);
-    	sendInterval = setInterval(sendCanvas, 3000);
+		intervalId = setInterval(refreshDelay, currentDelay);
     });
 
     onUnmounted(() => {
@@ -72,8 +70,7 @@
         if (Socket) {
             Socket.close();
         }
-        clearInterval(sendInterval);
-		clearInterval(joinInterval);
+		clearInterval(intervalId);
     });
 
 	// see chat component for documentation
