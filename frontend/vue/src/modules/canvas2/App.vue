@@ -31,11 +31,16 @@
 
 	const history		= ref([]); 
     let currentPath 	= null;
+	
+////////////////////////////////////////////////////////////
+////////////////	WEBSOCKET START HERE	////////////////
+////////////////////////////////////////////////////////////
 
 	let intervalId		= null;
 	const roomName    	= "skribble_test";
 	let Socket        	= null;
 	const isDrawer		= ref(false);
+	let tempImage		= null;
     
     onMounted(() => {
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
@@ -164,7 +169,14 @@
         
           img.onload = () => {
 			ctx.clearRect(0, 0, img.width, img.height);
-            ctx.drawImage(img, 0, 0);
+
+			const rect = canvas.parentElement.getBoundingClientRect();
+        	const exactWidth 	= Math.floor(rect.width);
+        	const exactHeight	= Math.floor(rect.height);
+
+			// save as tempImage for resize event to redraw from source
+			tempImage = img;
+            ctx.drawImage(img, 0, 0, exactWidth, exactHeight);
             resolve();
           };
 
@@ -193,8 +205,13 @@
     	return new Blob([bytes], { type });
     }
 
+////////////////////////////////////////////////////////////
+////////////////	WEBSOCKET STOP HERE		////////////////
+////////////////////////////////////////////////////////////
+
     const resizeCanvas = () => {
-        const canvas = canvasRef.value;
+
+		const canvas = canvasRef.value;
         if (!canvas) return;
 
         const rect = canvas.parentElement.getBoundingClientRect();
@@ -207,7 +224,13 @@
         width.value 		= exactWidth;
         height.value 		= exactHeight;
 
-        redrawLines();
+		if (isDrawer.value) {
+        	redrawLines();
+		}
+		else if (!isDrawer.value && tempImage) {
+			const ctx = canvas.getContext("2d");
+			ctx.drawImage(tempImage, 0, 0, exactWidth, exactHeight);
+		}
     };
 
     const reposition = (event) => {
@@ -433,6 +456,7 @@
         
         redrawLines();
     };
+
 </script>
 
 <template>
@@ -447,6 +471,7 @@
 				<div class="bg-white ">
 					<p>SCORES</p>
 					<p>TOP CANVAS</p>
+					<a href="https://localhost:1443/canvas1">To Canvas 1 (Drawer)</a>
 				</div>
 			</div>
 			<!-- __________ CANVAS __________ -->
