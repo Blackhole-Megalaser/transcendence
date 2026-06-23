@@ -6,6 +6,11 @@ import datetime
 import os
 
 
+##########################################################
+# WARNING: do not run `make dev` while editing this file #
+##########################################################
+
+
 class Color(models.Model):
     name = models.TextField()
     hex_code = models.TextField()
@@ -57,6 +62,13 @@ class UserProfile(models.Model):
     next_regeneration = models.DateTimeField(default=datetime.datetime.now)
     unlocked_colors = models.ManyToManyField(Color)
     unlocked_wordlists = models.ManyToManyField(WordList)
+    # List of actual friends, who accepted the request
+    friends = models.ManyToManyField("UserProfile", symmetrical=True)
+    # Sent friend requests, not accepted nor rejected
+    # self is the sender, foreign is the reciever who can accept or reject
+    # on reject, simply remove from this list
+    # on accept, move to friends
+    pending_friend_requests = models.ManyToManyField("UserProfile")
 
     def save(self, *args, **kwargs):
         if self.pk:
