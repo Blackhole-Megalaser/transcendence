@@ -10,7 +10,7 @@ from .models import UserProfile
 # /users/
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_image = serializers.SerializerMethodField()
-    availible_routes = serializers.SerializerMethodField()
+    available_routes = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -20,7 +20,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             "email",
             "is_staff",
             "profile_image",
-            "availible_routes",
+            "available_routes",
         ]
         extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
@@ -37,7 +37,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             return url
         return None
 
-    def get_availible_routes(self, obj):
+    def get_available_routes(self, obj):
         request = self.context.get("request")
         username = obj.username
         if not request:
