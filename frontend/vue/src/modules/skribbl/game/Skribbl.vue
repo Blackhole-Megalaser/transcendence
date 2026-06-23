@@ -611,7 +611,7 @@
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
 				<Chat
-					initialModuleName="chat"
+					initialModuleName="skribble"
         			v-bind:initialRoomName="roomName"
 					v-bind:initialHistoryFetch="false"
         		/>
