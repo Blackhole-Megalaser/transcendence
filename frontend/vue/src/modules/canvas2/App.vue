@@ -502,7 +502,7 @@
             color: penColor.value
         });
         
-        redrawLines();
+        // redrawLines();
     };
 
 </script>
