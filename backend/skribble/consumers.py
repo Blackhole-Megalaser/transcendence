@@ -37,10 +37,11 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         await self.send_history()
-        await self.send(text_data=json.dumps({
-            'type': 'canvas.init',
-            'history': ROOM_HISTORIES[self.room_name]
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {"type": "canvas.init", "history": ROOM_HISTORIES[self.room_name]}
+            )
+        )
 
     # Leave room group
     async def disconnect(self, close_code):
@@ -56,33 +57,33 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
                 return
 
             action = text_data_json.get("action")
-            
+
             if action == "send_drawing":
                 payload = text_data_json.get("payload")
 
                 history = ROOM_HISTORIES.get(self.room_name, [])
 
-                if payload.get('type') == 'clear':
-                    ROOM_HISTORIES[self.room_name] = [{"type": "fill",
-                                                    "x": 0, "y": 0,
-                                                    "color": "#ffffff"}]
-                elif payload.get('type') == 'undo':
+                if payload.get("type") == "clear":
+                    ROOM_HISTORIES[self.room_name] = [
+                        {"type": "fill", "x": 0, "y": 0, "color": "#ffffff"}
+                    ]
+                elif payload.get("type") == "undo":
                     if len(history) > 1:
                         history.pop()
-                elif payload.get('type') == 'paint':
-                    if history and history[-1].get('type') == 'paint' and history[-1].get('id') == payload.get('id'):
-                        history[-1]['points'].extend(payload.get('points', []))
+                elif payload.get("type") == "paint":
+                    if (
+                        history
+                        and history[-1].get("type") == "paint"
+                        and history[-1].get("id") == payload.get("id")
+                    ):
+                        history[-1]["points"].extend(payload.get("points", []))
                     else:
                         history.append(payload)
                 else:
                     history.append(payload)
 
                 await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        "type": "canvas.update",
-                        "payload": payload
-                    }
+                    self.room_group_name, {"type": "canvas.update", "payload": payload}
                 )
                 return
 
