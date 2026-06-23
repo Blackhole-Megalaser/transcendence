@@ -163,8 +163,9 @@ export default {
     handleSocketMessage(e) {
       const data = JSON.parse(e.data);
 
-      if (data.type === 'history' && Array.isArray(data.messages) && this.receiveHistory) {
-        this.chatLog.push(...data.messages
+      if (data.type === 'history' && Array.isArray(data.messages)) {
+        this.chatLog = [];
+		this.chatLog.push(...data.messages
           .map((message) => this.formatMessage(message))
           .filter(Boolean));
 
