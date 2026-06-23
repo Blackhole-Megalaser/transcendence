@@ -10,10 +10,18 @@ from .models import UserProfile
 # /users/
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_image = serializers.SerializerMethodField()
+    availible_routes = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["url", "username", "email", "is_staff", "profile_image"]
+        fields = [
+            "url",
+            "username",
+            "email",
+            "is_staff",
+            "profile_image",
+            "availible_routes",
+        ]
         extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
     def get_profile_image(self, obj):
@@ -28,6 +36,23 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                 return request.build_absolute_uri(url)
             return url
         return None
+
+    def get_availible_routes(self, obj):
+        request = self.context.get("request")
+        username = obj.username
+        if not request:
+            return None
+        return {
+            "tplace": request.build_absolute_uri(f"/api/users/{username}/tplace/"),
+            "nyancoins": request.build_absolute_uri(
+                f"/api/users/{username}/nyancoins/"
+            ),
+            "colors": request.build_absolute_uri(f"/api/users/{username}/colors/"),
+            "pixels": request.build_absolute_uri(f"/api/users/{username}/pixels/"),
+            "max-pixels": request.build_absolute_uri(
+                f"/api/users/{username}/max-pixels/"
+            ),
+        }
 
 
 # /users/{username}/
