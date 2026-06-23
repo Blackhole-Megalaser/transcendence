@@ -22,7 +22,6 @@
             daphne
             djangorestframework
             django-redis
-            drf-nested-routers
           ]);
       in {
         devShells.default = pkgs.mkShell {
