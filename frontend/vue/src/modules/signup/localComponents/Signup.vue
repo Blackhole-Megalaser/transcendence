@@ -249,8 +249,8 @@ const submit    = async () => {
       body: JSON.stringify({
         username:               Username.value,
         email:                  Email.value,
-        password:               Password.value,
-        password_confirmation:  PasswordRepeat.value
+        password1:              Password.value,
+        password2:              PasswordRepeat.value
       }),
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
