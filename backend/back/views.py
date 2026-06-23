@@ -158,24 +158,6 @@ class UserViewSet(viewsets.ModelViewSet):
         data = UserSerializer(user, context={"request": request}).data
         return Response(data)
 
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user)
-        data = serializer.data
-
-        # fmt: off
-        # Add available nested routes
-        data["available_routes"] = {
-            "tplace": request.build_absolute_uri(f"/api/users/{user.username}/tplace/"),
-            "nyancoins": request.build_absolute_uri(f"/api/users/{user.username}/nyancoins/"),
-            "colors": request.build_absolute_uri(f"/api/users/{user.username}/colors/"),
-            "pixels": request.build_absolute_uri(f"/api/users/{user.username}/pixels/"),
-            "max-pixels": request.build_absolute_uri(f"/api/users/{user.username}/max-pixels/"),
-        }
-        # fmt: on
-
-        return Response(data)
-
 
 class NestedUserProfileView(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
