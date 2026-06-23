@@ -182,7 +182,7 @@ class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_parent_user(self):
         username = self.kwargs.get("user_username")
-        if username is None:
+        if username is None or username == "me":
             return self.request.user
         if username != self.request.user.username and not self.request.user.is_staff:
             raise PermissionDenied("You cannot access another user's profile data.")
