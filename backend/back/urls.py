@@ -9,17 +9,14 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet, basename="user")
 
-users_router = routers.NestedDefaultRouter(router, "users", lookup="user")
-users_router.register(r"tplace", views.TplaceViewSet, basename="tplace")
-users_router.register(r"nyancoins", views.NyancoinsViewSet, basename="nyancoins")
-users_router.register(r"colors", views.ColorsViewSet, basename="colors")
-users_router.register(r"pixels", views.PixelsViewSet, basename="pixels")
-users_router.register(r"max-pixels", views.MaxPixelsViewSet, basename="max-pixels")
-
 urlpatterns = [
     path("", views.index, name="index"),
     path("api/", include(router.urls)),
-    path("api/", include(users_router.urls)),
+    path("api/users/<str:user>/tplace/", views.TplaceView.as_view()),
+    path("api/users/<str:user>/nyancoins/", views.NyancoinsView.as_view()),
+    path("api/users/<str:user>/colors/", views.ColorsView.as_view()),
+    path("api/users/<str:user>/pixels/", views.PixelsView.as_view()),
+    path("api/users/<str:user>/max-pixels/", views.MaxPixelsView.as_view()),
     path("api-auth/signup", views.signup),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("accounts/profile/", views.profile, name="profile"),
