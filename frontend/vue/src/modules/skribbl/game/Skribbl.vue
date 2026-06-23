@@ -30,8 +30,22 @@
 
 	const history = ref([]); 
     let currentPath = null;
-
 	const tmpHistory = ref([]);
+
+	
+	// WebSocket
+	const isDrawer = ref(false);
+	const drawId = ref(0);
+	let Socket = null;
+
+	let isConnecting = false;
+	let isConnected = false;
+	const baseDelay = 300;
+	let currentDelay = 3000;
+	const jitter = 0.05;
+	let connectionAttempt = -1;
+	let intervalId = null;
+	const roomName = "skribble_test";
 
 
     onMounted(() => {
@@ -39,9 +53,17 @@
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
-		penColor.value = '#ffffff';
-		fill(1,1);
-		penColor.value = '#000000';
+		vueCanvas.value.fillStyle = '#ffffff';
+		vueCanvas.value.fillRect(0, 0, width.value, height.value);
+		history.value = [{
+			type: 'fill',
+			x: 0,
+			y: 0,
+			color: '#ffffff'
+		}];
+		tmpHistory.value = [];
+		connectWebSocket();
+		intervalId = setInterval(refreshDelay, currentDelay);
     });
 
     onUnmounted(() => {
@@ -49,9 +71,153 @@
         if (resizeObserver) {
             resizeObserver.disconnect();
         }
+		if (Socket){
+			Socket.close();
+		}
+		clearInterval(intervalId);
     });
 
+	const refreshDelay = () => {
+		if (!isConnected && !isConnecting) {
+			connectWebSocket(intervalId);
+			clearInterval(intervalId);
+			currentDelay = baseDelay * (10 + connectionAttempt);
+			const jitterValue = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
+			currentDelay = currentDelay + jitterValue;
+			intervalId = setInterval(refreshDelay, currentDelay);
+		}
+	};
+
+	const connectWebSocket = () => {
+		if (Socket?.readyState == WebSocket.OPEN) {
+			isConnecting = false;
+			isConnected = true;
+			connectionAttempt = -1;
+			return;
+		}
+	
+		isConnected = false;
+		connectionAttempt++;
+	
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		const host = window.location.host;
+		const wsUrl = `${protocol}//${host}/ws/skribble/${roomName}/`;
+		
+		Socket = new WebSocket(wsUrl);
+		isConnecting = true;
+	
+		Socket.onopen = () => {
+			isConnecting = false;
+			isConnected = true;
+		};
+	
+		Socket.onerror = () => {
+			isConnecting = false;
+			isConnected = false;
+		};
+	
+		Socket.onclose = () => {
+			isConnecting = false;
+			isConnected = false;
+		};
+	
+		// --- RECEIVE MESSAGE ---
+		Socket.onmessage = (e) => {
+			if (!e.data || isDrawer.value) return;
+	
+			try {
+				const message = JSON.parse(e.data);
+
+				if (message.type === "canvas.init" && message.history) {
+					if (!isDrawer.value) {
+						history.value = message.history;
+						tmpHistory.value = [];
+						redrawLines();
+					}
+					return;
+				}
+
+				if (isDrawer.value) return;
+	
+				if (message.type === "canvas.update" && message.payload) {
+					const received = message.payload;
+
+					if (received.type === 'clear') {
+						const ctx = vueCanvas.value;
+						if (ctx) {
+							ctx.clearRect(0, 0, width.value, height.value);
+							ctx.fillStyle = '#ffffff';
+							ctx.fillRect(0, 0, width.value, height.value);
+						}
+						history.value = [{
+							type: 'fill',
+							x: 0,
+							y: 0,
+							color: '#ffffff'
+						}];
+						tmpHistory.value = [];
+						return;
+					}
+
+					if (received.type === 'undo') {
+						if (history.value.length > 1) {
+							const removed = history.value.pop();
+							if (removed) tmpHistory.value.push(removed);
+						}
+						redrawLines();
+						return;
+					}
+
+					if (received.type === 'redo') {
+						if (tmpHistory.value.length > 0) {
+							const restored = tmpHistory.value.pop();
+							if (restored) history.value.push(restored);
+						}
+						redrawLines();
+						return;
+					}
+
+					if (received.type === 'paint') {
+						const lastAction = history.value[history.value.length - 1];
+						
+						if (lastAction && lastAction.type === 'paint'
+							&& lastAction.id === received.id
+							&& lastAction.color === received.color
+							&& lastAction.stroke === received.stroke) {
+							
+							const prevPoint = lastAction.points[lastAction.points.length - 1];
+							lastAction.points.push(...received.points);
+							
+							const ctx = vueCanvas.value;
+							if (ctx && prevPoint) {
+								ctx.beginPath();
+								ctx.lineWidth = parseInt(received.stroke);
+								ctx.lineCap = 'round';
+								ctx.lineJoin = 'round';
+								ctx.strokeStyle = received.color;
+								ctx.moveTo(prevPoint.x * width.value, prevPoint.y * height.value);
+								ctx.lineTo(received.points[0].x * width.value, received.points[0].y * height.value);
+								ctx.stroke();
+							}
+						} else {
+							history.value.push(received);
+							redrawLines();
+						}
+					} else {
+						history.value.push(received);
+						redrawLines();
+					}
+					tmpHistory.value = [];
+				}
+			} catch (err) {
+				console.error("Erreur de lecture du flux de dessin:", err);
+			}
+		};
+	};
+
+
 	const handleKeyDown = (event) => {
+		if (!isDrawer.value) return;
 		const isModifier = event.ctrlKey || event.metaKey;
 		const key = event.key.toLowerCase();
 
@@ -78,6 +244,12 @@
 			if (lastHistory) {
 				tmpHistory.value.push(lastHistory);
 				redrawLines();
+				if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
+					Socket.send(JSON.stringify({
+						action: 'send_drawing',
+						payload: { type: 'undo' }
+					}));
+				}
 			}
 		}
 	}
@@ -88,6 +260,12 @@
 			if (tmpHistory) {
 				history.value.push(lastTmpHistory);
 				redrawLines();
+				if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
+					Socket.send(JSON.stringify({
+						action: 'send_drawing',
+						payload: { type: 'redo' }
+					}));
+				}
 			}
 		}
 	}
@@ -144,7 +322,10 @@
         }
         isDrawing.value = true;
 
+		drawId.value = Date.now();
+    
         currentPath = {
+			id: drawId.value,
             type: 'paint',
             color: penColor.value,
             stroke: penStroke.value,
@@ -156,27 +337,42 @@
     };
     
     const draw = (event) => {
-        if (!isDrawing.value) return;
+    if (!isDrawing.value || !isDrawer.value) return;
 
-        const ctx = vueCanvas.value;
-        ctx.beginPath();
-        ctx.lineWidth = parseInt(penStroke.value);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = penColor.value;
-        ctx.moveTo(coord.value.x, coord.value.y);
-        reposition(event);
-        ctx.lineTo(coord.value.x, coord.value.y);
-        ctx.stroke();
+    const ctx = vueCanvas.value;
+    ctx.beginPath();
+    ctx.lineWidth = parseInt(penStroke.value);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = penColor.value;
+    ctx.moveTo(coord.value.x, coord.value.y);
+    reposition(event);
+    ctx.lineTo(coord.value.x, coord.value.y);
+    ctx.stroke();
 
-        if (currentPath) {
-            currentPath.points.push({ 
-                x: coord.value.x / width.value, 
-                y: coord.value.y / height.value 
-            });
+    if (currentPath) {
+        const newPoint = { 
+            x: coord.value.x / width.value, 
+            y: coord.value.y / height.value 
+        };
+        
+        currentPath.points.push(newPoint);
+
+        if (Socket && Socket.readyState === WebSocket.OPEN) {
+            Socket.send(JSON.stringify({
+                action: 'send_drawing',
+                payload: {
+					id: drawId.value,
+                    type: 'paint',
+                    color: penColor.value,
+                    stroke: penStroke.value,
+                    points: [newPoint]
+                }
+            }));
         }
-    };
-
+    }
+};
+        
     const stop = () => {
         isDrawing.value = false;
         if (currentPath) {
@@ -189,8 +385,26 @@
     };
 
     const clear = () => {
-        vueCanvas.value.clearRect(0, 0, width.value, height.value);
-        history.value = [];
+        const ctx = vueCanvas.value;
+		if (!ctx) return;
+
+		ctx.clearRect(0, 0, width.value, height.value);
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, width.value, height.value);
+
+        history.value = [{
+			type: 'fill',
+			x: 0,
+			y: 0,
+			color: '#ffffff'
+		}];
+		tmpHistory.value = [];
+		if (Socket && Socket.readyState === WebSocket.OPEN) {
+			Socket.send(JSON.stringify({
+				action: 'send_drawing',
+				payload: { type: 'clear' }
+			}));
+		}
     };
 
     const cursorStyle = computed(() => ({
@@ -233,11 +447,16 @@
 			}
 
             if (action.type === 'fill') {
-                const realX = Math.floor(action.x * currentWidth);
-                const realY = Math.floor(action.y * currentHeight);
-                runFillSilentlyOnContext(ctx, currentWidth, currentHeight, realX, realY, action.color);
-            }
-        });
+				if (action.x < 0.02 && action.y < 0.02) {
+					ctx.fillStyle = action.color;
+					ctx.fillRect(0, 0, currentWidth, currentHeight);
+				} else {
+					const realX = Math.floor(action.x * currentWidth);
+					const realY = Math.floor(action.y * currentHeight);
+					runFillSilentlyOnContext(ctx, currentWidth, currentHeight, realX, realY, action.color);
+				}
+			}
+		});
     };
 
     const runFillSilentlyOnContext = (ctx, currentWidth, currentHeight, startX, startY, targetColor) => {
@@ -336,17 +555,23 @@
         if (startX < 0 || startX >= currentWidth || startY < 0 || startY >= currentHeight) return;
 
         runFillSilentlyOnContext(ctx, currentWidth, currentHeight, startX, startY, penColor.value);
-
-        history.value.push({
+        
+        const fillPayLoad ={
             type: 'fill',
             x: startX / currentWidth,
             y: startY / currentHeight,
             color: penColor.value
-        });
-
+        };
+        history.value.push(fillPayLoad);
 		tmpHistory.value = [];
-
         redrawLines();
+
+		if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
+			Socket.send(JSON.stringify({
+				action: 'send_drawing',
+				payload: fillPayLoad
+			}));
+		}
     };
 </script>
 
@@ -362,6 +587,9 @@
 				<div class="bg-white ">
 					<p>SCORES</p>
 					<p>1 billion points for Gryffondor</p>
+					<button @click="isDrawer = !isDrawer" class="p-2 bg-button-1-normal text-white rounded">
+						Player Status : {{ isDrawer ? 'Drawer' : 'Guesser' }}
+					</button>
 				</div>
 			</div>
 			<!-- __________ CANVAS __________ -->
@@ -382,13 +610,19 @@
 			<div class="order-3 row-start-2 lg:row-start-1
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
-				<div class="bg-white">
+				<Chat
+					initialModuleName="chat"
+        			v-bind:initialRoomName="roomName"
+					v-bind:initialHistoryFetch="false"
+        		/>
+				<!-- <div class="bg-white">
 					<p>CHAT</p>
 					<p>Hello my name is Pouet Pouet</p>
-				</div>
+				</div> -->
 			</div>
 			<!-- __________ COLORS __________ -->
-			<div :style="[cursorStyle, {backgroundColor: penColor}]" 
+			<div v-if="isDrawer"
+				:style="[cursorStyle, {backgroundColor: penColor}]" 
 				class="order-5 row-start-3 lg:row-start-2  col-start-1 lg:col-start-2
 					grid grid-flow-col grid-rows-1 justify-center
 					h-full w-full max-w-full max-h-full min-h-0 
@@ -431,8 +665,9 @@
 				</button>
 			</div>
 			<!-- __________ TOOLS __________ -->
-			<div :style="{cursorStyle}" 
-				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-4xl
+			<div v-if="isDrawer"
+				:style="{cursorStyle}" 
+				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-full
 				w-full h-full max-w-full max-h-full min-h-0
 				bg-sidebar border-5 border-solid border-button-1-normal">
 				<button :style="cursorStyle" 

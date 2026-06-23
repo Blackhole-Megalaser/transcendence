@@ -8,6 +8,7 @@ from django.conf import settings
 from redis import asyncio as redis
 
 _redis_client = None
+ROOM_HISTORIES = {}
 
 
 def get_redis_client():
@@ -27,10 +28,19 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f"chat_{self.room_name}"
         self.history_key = f"chat:session:{self.room_name}:messages"
 
+        if self.room_name not in ROOM_HISTORIES:
+            ROOM_HISTORIES[self.room_name] = [
+                {"type": "fill", "x": 0, "y": 0, "color": "#ffffff"}
+            ]
+
         # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         # await self.send_history()
+        await self.send(text_data=json.dumps({
+            'type': 'canvas.init',
+            'history': ROOM_HISTORIES[self.room_name]
+        }))
 
     # Leave room group
     async def disconnect(self, close_code):
@@ -38,23 +48,42 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
 
-        # Handle binary canvas blob
-        if bytes_data:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "canvas.update",
-                    "blob_data": bytes_data.hex(),
-                    "size": len(bytes_data),
-                },
-            )
-            return
-
         # Handle text JSON message
         if text_data:
             try:
                 text_data_json = json.loads(text_data)
             except json.JSONDecodeError:
+                return
+
+            action = text_data_json.get("action")
+            
+            if action == "send_drawing":
+                payload = text_data_json.get("payload")
+
+                history = ROOM_HISTORIES.get(self.room_name, [])
+
+                if payload.get('type') == 'clear':
+                    ROOM_HISTORIES[self.room_name] = [{"type": "fill",
+                                                    "x": 0, "y": 0,
+                                                    "color": "#ffffff"}]
+                elif payload.get('type') == 'undo':
+                    if len(history) > 1:
+                        history.pop()
+                elif payload.get('type') == 'paint':
+                    if history and history[-1].get('type') == 'paint' and history[-1].get('id') == payload.get('id'):
+                        history[-1]['points'].extend(payload.get('points', []))
+                    else:
+                        history.append(payload)
+                else:
+                    history.append(payload)
+
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        "type": "canvas.update",
+                        "payload": payload
+                    }
+                )
                 return
 
             text = text_data_json.get("message", "").strip()
@@ -76,20 +105,12 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
                 self.room_group_name, {"type": "chat.message", "message": message}
             )
 
-    # save the canvas image to a file
-    # import uuid
-    # filename = f"canvas_{uuid.uuid4()}.png"
-    # with open(f"media/canvases/{filename}", "wb") as f:
-    #     f.write(bytes_data)
-
     async def canvas_update(self, event):
         await self.send(
             text_data=json.dumps(
                 {
                     "type": "canvas.update",
-                    # "filename": event.get("filename"),
-                    "size": event.get("size"),
-                    "blob_data": event.get("blob_data"),
+                    "payload": event.get("payload"),
                 }
             )
         )
