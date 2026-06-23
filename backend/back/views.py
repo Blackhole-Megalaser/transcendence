@@ -1,26 +1,27 @@
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.contrib import messages
-from rest_framework import permissions, viewsets, status
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.generics import RetrieveAPIView
 import logging
 
-from .forms import UserRegisterForm, UserModifyForm, UserProfileUpdateForm
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, redirect, render
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
+
+from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
 from .models import UserProfile
 from .serializers import (
-    UserSerializer,
-    TplaceSerializer,
-    NyancoinsSerializer,
     ColorsSerializer,
-    PixelsSerializer,
-    MaxPixelsSerializer,
     LoginRequestSerializer,
+    MaxPixelsSerializer,
+    NyancoinsSerializer,
+    PixelsSerializer,
     SignupRequestSerializer,
+    TplaceSerializer,
+    UserSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -176,7 +177,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
+class NestedUserProfileView(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSerializer
 
@@ -188,30 +189,27 @@ class NestedUserProfileReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
             raise PermissionDenied("You cannot access another user's profile data.")
         return get_object_or_404(User, username=username)
 
-    def get_queryset(self):
+    def get_object(self):
         parent_user = self.get_parent_user()
-        return (
-            UserProfile.objects.select_related("user")
-            .prefetch_related("unlocked_colors", "unlocked_wordlists")
-            .filter(user=parent_user)
-        )
+        profile = parent_user.userprofile
+        return profile
 
 
-class TplaceViewSet(NestedUserProfileReadOnlyViewSet):
+class TplaceView(NestedUserProfileView):
     serializer_class = TplaceSerializer
 
 
-class NyancoinsViewSet(NestedUserProfileReadOnlyViewSet):
+class NyancoinsView(NestedUserProfileView):
     serializer_class = NyancoinsSerializer
 
 
-class ColorsViewSet(NestedUserProfileReadOnlyViewSet):
+class ColorsView(NestedUserProfileView):
     serializer_class = ColorsSerializer
 
 
-class PixelsViewSet(NestedUserProfileReadOnlyViewSet):
+class PixelsView(NestedUserProfileView):
     serializer_class = PixelsSerializer
 
 
-class MaxPixelsViewSet(NestedUserProfileReadOnlyViewSet):
+class MaxPixelsView(NestedUserProfileView):
     serializer_class = MaxPixelsSerializer
