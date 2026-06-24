@@ -88,3 +88,8 @@ class Pixel(models.Model):
     color = models.ForeignKey(Color, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields = ["x_pos", "y_pos"], name="pixel_uniq_pos")
+        ]
