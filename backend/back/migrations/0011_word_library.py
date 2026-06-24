@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 basic_list = {
     "donkey", "stork", "snail", "narwhal", "goose", "panda", "horse", 
