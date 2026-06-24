@@ -564,7 +564,7 @@
         };
         history.value.push(fillPayLoad);
 		tmpHistory.value = [];
-        redrawLines();
+        // redrawLines();
 
 		if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
 			Socket.send(JSON.stringify({
@@ -615,10 +615,6 @@
         			v-bind:initialRoomName="roomName"
 					v-bind:initialHistoryFetch="false"
         		/>
-				<!-- <div class="bg-white">
-					<p>CHAT</p>
-					<p>Hello my name is Pouet Pouet</p>
-				</div> -->
 			</div>
 			<!-- __________ COLORS __________ -->
 			<div v-if="isDrawer"
