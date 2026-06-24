@@ -1,3 +1,10 @@
+from rest_framework.status import (
+    HTTP_402_PAYMENT_REQUIRED,
+    HTTP_409_CONFLICT,
+    HTTP_201_CREATED,
+    HTTP_200_OK,
+)
+from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 import logging
 
@@ -12,7 +19,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import UserProfile
+from .models import UserProfile, Pixel, Color
 from .serializers import (
     UnlockedColorsSerializer,
     LoginRequestSerializer,
@@ -22,6 +29,8 @@ from .serializers import (
     SignupRequestSerializer,
     TplaceSerializer,
     UserSerializer,
+    PixelPlaceSerializer,
+    PixelSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -174,6 +183,7 @@ class NestedUserProfileView(RetrieveAPIView):
     def get_object(self):
         parent_user = self.get_parent_user()
         profile = parent_user.userprofile
+        profile.regenerate_pixels()
         return profile
 
 
@@ -189,9 +199,93 @@ class ColorsView(NestedUserProfileView):
     serializer_class = UnlockedColorsSerializer
 
 
-class PixelsView(NestedUserProfileView):
+# /api/users/me/pixels
+class UserPixelsView(NestedUserProfileView):
     serializer_class = PixelsSerializer
 
 
 class MaxPixelsView(NestedUserProfileView):
     serializer_class = MaxPixelsSerializer
+
+
+# /api/tplace/pixels/
+class PixelPlaceView(APIView):
+    """
+    Place a pixel at the specified x and y coordinates.
+
+    Color matches on the name of the color.
+
+    In case of non unlocked color, return HTTP 402 payment required
+
+    In case of not enough pixels for that user, return HTTP 409 conflict
+
+    If the pixel at that position already has the same color as the one in the request,
+    no nyancoins are awarded and no placable pixels are deducted. HTTP 200 OK is returned.
+
+    Otherwise, 1 nyancoin is awarded and HTTP 201 CREATED returned.
+
+    Pixels not present in the database are assumed to have the color with name 'White'.
+    If that color does not exist in the db, then the user's placed color
+    is alwyas assumed to be different.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PixelPlaceSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        logger.debug("pixel place: ", serializer.data)
+
+        user = request.user
+        profile = user.userprofile
+        profile.regenerate_pixels()
+
+        color = Color.objects.filter(name=serializer.data["color"]).first()
+        color_unlocked = profile.unlocked_colors.contains(color)
+        if not color_unlocked:
+            return Response(
+                {"detail": "Color not unlocked"}, status=HTTP_402_PAYMENT_REQUIRED
+            )
+
+        x_pos, y_pos = serializer.data["x_pos"], serializer.data["y_pos"]
+
+        user_placable_pixels = profile.placable_pixels
+        if user_placable_pixels <= 0:
+            return Response(
+                {"detail": "No more pixels to place"}, status=HTTP_409_CONFLICT
+            )
+
+        nyancoins_gained = 0
+        status = HTTP_200_OK
+        try:
+            pixel = Pixel.objects.get(x_pos=x_pos, y_pos=y_pos)
+            pixel_color = pixel.color
+        except Pixel.DoesNotExist:
+            pixel = Pixel(x_pos=x_pos, y_pos=y_pos)
+            try:
+                pixel_color = Color.objects.get(name="White")
+            except Color.DoesNotExist:
+                pixel_color = None
+
+        if pixel_color != color:
+            pixel.color = color
+            pixel.user = user
+            pixel.save()
+            profile.placable_pixels -= 1
+            profile.nyancoins += 1
+            nyancoins_gained = 1
+            status = HTTP_201_CREATED
+            profile.save()
+
+        return Response(
+            {
+                "pixel": PixelSerializer(pixel).data,
+                "placable_pixels": profile.placable_pixels,
+                "max_placable_pixels": profile.max_placable_pixels,
+                "next_pixel_at": profile.next_regeneration,
+                "nyancoins": profile.nyancoins,
+                "nyancoins_gained": nyancoins_gained,
+            },
+            status=status,
+        )
