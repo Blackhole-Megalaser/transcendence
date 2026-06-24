@@ -1,11 +1,3 @@
-from rest_framework.status import (
-    HTTP_402_PAYMENT_REQUIRED,
-    HTTP_409_CONFLICT,
-    HTTP_201_CREATED,
-    HTTP_200_OK,
-)
-from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView
 import logging
 
 from django.contrib import messages
@@ -16,21 +8,29 @@ from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_402_PAYMENT_REQUIRED,
+    HTTP_409_CONFLICT,
+)
+from rest_framework.views import APIView
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import UserProfile, Pixel, Color
+from .models import Color, Pixel, UserProfile
 from .serializers import (
-    UnlockedColorsSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
     NyancoinsSerializer,
+    PixelPlaceSerializer,
+    PixelSerializer,
     PixelsSerializer,
     SignupRequestSerializer,
     TplaceSerializer,
+    UnlockedColorsSerializer,
     UserSerializer,
-    PixelPlaceSerializer,
-    PixelSerializer,
 )
 
 logger = logging.getLogger(__name__)

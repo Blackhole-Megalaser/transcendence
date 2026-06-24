@@ -7,7 +7,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from redis import asyncio as redis
 
-
 _redis_client = None
 
 
