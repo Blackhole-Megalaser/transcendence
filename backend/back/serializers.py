@@ -1,15 +1,15 @@
 from django.conf import settings
-from django.core.validators import (
-    MinValueValidator,
-    MaxValueValidator,
-)
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+)
 from rest_framework import serializers
 
-from .models import UserProfile, Color, Pixel
+from .models import Color, Pixel, UserProfile
 
 
 # /users/

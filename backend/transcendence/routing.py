@@ -1,6 +1,5 @@
-from django.urls import re_path
-
 from chat import consumers as chat
+from django.urls import re_path
 from skribble import consumers as skribble
 from tplace import consumers as tplace
 
