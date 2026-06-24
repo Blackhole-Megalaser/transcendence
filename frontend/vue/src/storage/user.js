@@ -1,6 +1,7 @@
 import { computed, ref }  from "vue";
 import { defineStore }    from "pinia";
 import { fetchUserInfos } from "@shared";
+import { getCookie }      from '@shared';
 
 export const useUserStore = defineStore('user', () => {
   const STORAGE_KEY     ='user_infos_cache';
@@ -26,7 +27,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function initUserInfos() {
-    if (userInfos.value) return userInfos.value;
+    // if (userInfos.value) return userInfos.value;
     const infos = await fetchInfos();
     return infos.status === 'ok' ? infos.data : null;
   }
