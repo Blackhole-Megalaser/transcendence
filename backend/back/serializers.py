@@ -8,8 +8,9 @@ from django.core.validators import (
     MinValueValidator,
 )
 from rest_framework import serializers
+from rest_framework.relations import StringRelatedField
 
-from .models import Color, Pixel, UserProfile
+from .models import Color, Pixel, UserProfile, WordList
 
 
 # /users/
@@ -157,3 +158,11 @@ class PixelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pixel
         fields = ["x_pos", "y_pos", "color", "user", "updated_at"]
+
+
+class WordListSerializer(serializers.HyperlinkedModelSerializer):
+    words = StringRelatedField(many=True)
+
+    class Meta:
+        model = WordList
+        fields = ["words", "name"]

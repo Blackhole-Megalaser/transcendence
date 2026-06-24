@@ -18,9 +18,10 @@ from rest_framework.status import (
     HTTP_409_CONFLICT,
 )
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import Color, Pixel, UserProfile
+from .models import Color, Pixel, UserProfile, WordList
 from .serializers import (
     LoginRequestSerializer,
     MaxPixelsSerializer,
@@ -32,6 +33,7 @@ from .serializers import (
     TplaceSerializer,
     UnlockedColorsSerializer,
     UserSerializer,
+    WordListSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -320,3 +322,13 @@ class CanvasView(APIView):
                 "pixels": pixels,
             }
         )
+
+
+class WordListViewSet(ReadOnlyModelViewSet):
+    """
+    Get a wordlist
+    """
+
+    queryset = WordList.objects.all()
+    serializer_class = WordListSerializer
+    lookup_field = "name"
