@@ -55,9 +55,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ["name", "hex_code"]
+        read_only_fields = fields
+
+
 # /users/{username}/
 class TplaceSerializer(serializers.ModelSerializer):
-    unlocked_colors = serializers.StringRelatedField(many=True, read_only=True)
+    unlocked_colors = ColorSerializer(many=True, read_only=True)
     unlocked_wordlists = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
@@ -78,13 +85,6 @@ class NyancoinsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["nyancoins"]
-        read_only_fields = fields
-
-
-class ColorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Color
-        fields = ["name", "hex_code"]
         read_only_fields = fields
 
 
