@@ -1,15 +1,17 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import selectImageUrl from './select.png'
 
-const WORLD_X_MAX = 2000
-const WORLD_Y_MAX = 2000
+const WORLD_X_MAX = 500
+const WORLD_Y_MAX = 500
 const CELL_SIZE = 16
 const DEFAULT_VIEWPORT_WIDTH = 896
 const DEFAULT_VIEWPORT_HEIGHT = 608
 const WORLD_WIDTH = WORLD_X_MAX * CELL_SIZE
 const WORLD_HEIGHT = WORLD_Y_MAX * CELL_SIZE
-const MIN_ZOOM = 0.2
+const MIN_ZOOM = 0.1
 const MAX_ZOOM = 8
+const EDGE_BORDER_COLOR = '#FF1A1A'
+const EDGE_BORDER_SCREEN_SIZE = 6
 
 export function runTplace() {
 	const colors = [
@@ -120,11 +122,16 @@ export function runTplace() {
 		}
 	}
 
+	function getEdgeBorderWorldSize() {
+		return EDGE_BORDER_SCREEN_SIZE / zoom
+	}
+
 	function clampCamera() {
 		const { width, height } = getVisibleWorldSize()
+		const borderSize = getEdgeBorderWorldSize()
 
-		cameraX = Math.round(clamp(cameraX, 0, Math.max(0, WORLD_WIDTH - width)))
-		cameraY = Math.round(clamp(cameraY, 0, Math.max(0, WORLD_HEIGHT - height)))
+		cameraX = Math.round(clamp(cameraX, -borderSize, Math.max(-borderSize, WORLD_WIDTH - width + borderSize)))
+		cameraY = Math.round(clamp(cameraY, -borderSize, Math.max(-borderSize, WORLD_HEIGHT - height + borderSize)))
 	}
 
 	function getCanvas() {
@@ -165,6 +172,13 @@ export function runTplace() {
 	function getCellFromViewportPos(mouseX, mouseY) {
 		const worldX = cameraX + mouseX / zoom
 		const worldY = cameraY + mouseY / zoom
+
+		if (worldX < 0 || worldX >= WORLD_WIDTH || worldY < 0 || worldY >= WORLD_HEIGHT) {
+			pointerStatus.value = 'Border'
+
+			return null
+		}
+
 		const cellX = clamp(Math.floor(worldX / CELL_SIZE), 0, WORLD_X_MAX - 1)
 		const cellY = clamp(Math.floor(worldY / CELL_SIZE), 0, WORLD_Y_MAX - 1)
 
@@ -226,6 +240,22 @@ export function runTplace() {
 
 		ctx.fillStyle = color
 		ctx.fillRect(bounds.left, bounds.top, bounds.width, bounds.height)
+	}
+
+	function drawEdgeBorder() {
+		const left = Math.floor((0 - cameraX) * zoom)
+		const top = Math.floor((0 - cameraY) * zoom)
+		const right = Math.ceil((WORLD_WIDTH - cameraX) * zoom)
+		const bottom = Math.ceil((WORLD_HEIGHT - cameraY) * zoom)
+		const width = Math.max(0, right - left)
+		const height = Math.max(0, bottom - top)
+		const borderSize = EDGE_BORDER_SCREEN_SIZE
+
+		ctx.fillStyle = EDGE_BORDER_COLOR
+		ctx.fillRect(left - borderSize, top - borderSize, borderSize, height + borderSize * 2)
+		ctx.fillRect(right, top - borderSize, borderSize, height + borderSize * 2)
+		ctx.fillRect(left, top - borderSize, width, borderSize)
+		ctx.fillRect(left, bottom, width, borderSize)
 	}
 
 	function drawPixels() {
@@ -382,6 +412,10 @@ export function runTplace() {
 	function colorize(event) {
 		const pos = getMousePos(event)
 
+		if (pos === null) {
+			return
+		}
+
 		colorizeCell(pos.cellX, pos.cellY)
 	}
 
@@ -471,12 +505,17 @@ export function runTplace() {
 	}
 
 	function beginTouchDraw(touch) {
+		const pos = getTouchPos(touch)
+
+		if (pos === null) {
+			hoverCell = null
+			return
+		}
+
 		touchMode = 'draw'
 		isPanning = false
 		isDrawing = true
 		beginStroke()
-
-		const pos = getTouchPos(touch)
 
 		hoverCell = {
 			x: pos.cellX,
@@ -505,6 +544,11 @@ export function runTplace() {
 
 	function updateTouchDraw(touch) {
 		const pos = getTouchPos(touch)
+
+		if (pos === null) {
+			hoverCell = null
+			return
+		}
 
 		hoverCell = {
 			x: pos.cellX,
@@ -537,13 +581,18 @@ export function runTplace() {
 
 		const pos = getMousePos(event)
 
+		if (pos === null) {
+			hoverCell = null
+			return
+		}
+
 		hoverCell = {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
 
 		if (isDrawing) {
-			colorize(event)
+			colorizeCell(pos.cellX, pos.cellY)
 		}
 	}
 
@@ -571,17 +620,23 @@ export function runTplace() {
 		}
 
 		event.preventDefault()
-		isDrawing = true
-		beginStroke()
 
 		const pos = getMousePos(event)
+
+		if (pos === null) {
+			hoverCell = null
+			return
+		}
+
+		isDrawing = true
+		beginStroke()
 
 		hoverCell = {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
 
-		colorize(event)
+		colorizeCell(pos.cellX, pos.cellY)
 	}
 
 	function handleMouseUp(event) {
@@ -708,6 +763,7 @@ export function runTplace() {
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		drawPixels()
+		drawEdgeBorder()
 		drawGrid()
 		drawHover()
 		pixelsLeft.value = (100 - placed) + '/100'
