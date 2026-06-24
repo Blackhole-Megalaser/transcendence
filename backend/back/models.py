@@ -29,7 +29,10 @@ class WordList(models.Model):
 
 class Word(models.Model):
     word = models.TextField(max_length=255)
-    list = models.ForeignKey(WordList, on_delete=models.RESTRICT)
+    list = models.ForeignKey(WordList, on_delete=models.RESTRICT, related_name="words")
+
+    def __str__(self):
+        return self.word
 
 
 def get_image_path(instance, filename):

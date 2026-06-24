@@ -8,6 +8,7 @@ from . import views
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet, basename="user")
+router.register(r"wordlists", views.WordListViewSet, basename="wordlist")
 
 urlpatterns = [
     path("", views.index, name="index"),
