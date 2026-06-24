@@ -1,10 +1,15 @@
+from django.conf import settings
+from django.core.validators import (
+    MinValueValidator,
+    MaxValueValidator,
+)
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import UserProfile, Color
+from .models import UserProfile, Color, Pixel
 
 
 # /users/
@@ -132,3 +137,23 @@ class SignupRequestSerializer(serializers.Serializer):
             raise ValidationError("Passwords do not match")
         validate_password(attrs["password1"])
         return attrs
+
+
+class PixelPlaceSerializer(serializers.Serializer):
+    x_pos = serializers.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(settings.TPLACE_MAX_X - 1)]
+    )
+    y_pos = serializers.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(settings.TPLACE_MAX_Y - 1)]
+    )
+    color = serializers.SlugRelatedField(
+        slug_field="name", queryset=Color.objects.all()
+    )
+
+
+class PixelSerializer(serializers.ModelSerializer):
+    color = ColorSerializer()
+
+    class Meta:
+        model = Pixel
+        fields = ["x_pos", "y_pos", "color", "user", "updated_at"]

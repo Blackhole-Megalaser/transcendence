@@ -1,15 +1,17 @@
-from django.contrib.auth.models import User
-from django.db import models
-from django.core.validators import MinValueValidator
-
 import datetime
+import logging
 import os
 
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from django.db import models
 from django.utils import timezone
 
 ##########################################################
 # WARNING: do not run `make dev` while editing this file #
 ##########################################################
+
+logger = logging.getLogger(__name__)
 
 
 class Color(models.Model):
@@ -81,6 +83,21 @@ class UserProfile(models.Model):
                 pass
         super().save(*args, **kwargs)
 
+    def regenerate_pixels(self):
+        """
+        Regenerate the pixels for that user.
+        Also saves that profile.
+        """
+        now = timezone.now()
+        pixels_to_regenerate = 0
+        while now > self.next_regeneration:
+            pixels_to_regenerate += 1
+            self.next_regeneration = self.next_regeneration + self.regeneration_delay
+        self.placable_pixels = min(
+            self.placable_pixels + pixels_to_regenerate, self.max_placable_pixels
+        )
+        self.save()
+
 
 class Pixel(models.Model):
     x_pos = models.IntegerField(validators=[MinValueValidator(0)])
@@ -92,5 +109,5 @@ class Pixel(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields = ["x_pos", "y_pos"], name="pixel_uniq_pos")
+            models.UniqueConstraint(fields=["x_pos", "y_pos"], name="pixel_uniq_pos")
         ]
