@@ -291,6 +291,7 @@ class PixelPlaceView(APIView):
             status=status,
         )
 
+
 # /api/tplace/canvas/
 class CanvasView(APIView):
     """
