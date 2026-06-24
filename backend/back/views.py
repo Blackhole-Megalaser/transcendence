@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
 from .models import UserProfile
 from .serializers import (
-    ColorsSerializer,
+    UnlockedColorsSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
     NyancoinsSerializer,
@@ -186,7 +186,7 @@ class NyancoinsView(NestedUserProfileView):
 
 
 class ColorsView(NestedUserProfileView):
-    serializer_class = ColorsSerializer
+    serializer_class = UnlockedColorsSerializer
 
 
 class PixelsView(NestedUserProfileView):

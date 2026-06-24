@@ -4,7 +4,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import UserProfile
+from .models import UserProfile, Color
 
 
 # /users/
@@ -81,8 +81,15 @@ class NyancoinsSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ColorsSerializer(serializers.ModelSerializer):
-    unlocked_colors = serializers.StringRelatedField(many=True, read_only=True)
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ["name", "hex_code"]
+        read_only_fields = fields
+
+
+class UnlockedColorsSerializer(serializers.ModelSerializer):
+    unlocked_colors = ColorSerializer(many=True, read_only=True)
 
     class Meta:
         model = UserProfile
