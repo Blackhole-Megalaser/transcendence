@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -288,4 +289,34 @@ class PixelPlaceView(APIView):
                 "nyancoins_gained": nyancoins_gained,
             },
             status=status,
+        )
+
+
+class CanvasView(APIView):
+    """
+    Get the full canvas
+    """
+
+    def get(self, request):
+        width = settings.TPLACE_MAX_X
+        height = settings.TPLACE_MAX_Y
+        index = {}
+        for hex_code, pk in Color.objects.values_list("hex_code", "pk"):
+            index[pk] = hex_code
+            if hex_code == "#FFFFFF":
+                default_color_index = pk
+
+        pixels = [default_color_index] * width * height
+        for x_pos, y_pos, color_id in Pixel.objects.select_related("color").values_list(
+            "x_pos", "y_pos", "color_id"
+        ):
+            pixels[x_pos + y_pos * height] = color_id
+
+        return Response(
+            {
+                "width": width,
+                "height": height,
+                "palette": index,
+                "pixels": pixels,
+            }
         )

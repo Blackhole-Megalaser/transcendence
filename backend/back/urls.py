@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/users/<str:user>/pixels/", views.UserPixelsView.as_view()),
     path("api/users/<str:user>/max-pixels/", views.MaxPixelsView.as_view()),
     path("api/tplace/pixels/", views.PixelPlaceView.as_view()),
+    path("api/tplace/canvas/", views.CanvasView.as_view()),
     path("api-auth/signup", views.signup),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("accounts/profile/", views.profile, name="profile"),
