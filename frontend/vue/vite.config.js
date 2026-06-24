@@ -32,8 +32,6 @@ export default defineConfig({
         profile_update: resolve(__dirname, 'profileUpdate.html'),
         error_404:      resolve(__dirname, 'error_404.html'),
         error_50x:      resolve(__dirname, 'error_50x.html'),
-        canvas1:        resolve(__dirname, 'canvas1.html'),
-        canvas2:        resolve(__dirname, 'canvas2.html'),
       },
     },
   },
