@@ -2,20 +2,20 @@
     import { ref, onMounted, onUnmounted, computed } from 'vue';
     import bucket from './bucket.png'
 
-    const width = ref(1000);
-    const height = ref(500);
-    const canvasRef = ref(null);
-    const vueCanvas = ref(null);
-    let resizeObserver = null;
+    const width 		= ref(1000);
+    const height 		= ref(500);
+    const canvasRef 	= ref(null);
+    const vueCanvas 	= ref(null);
+    let resizeObserver	= null;
 
-    const isDrawing = ref(false);
-    const isBucket = ref(false);
-    const coord = ref({x: 0, y: 0});
-    const penColor = ref('#000000');
-    const penStroke = ref('8');
-    let penSizeActive = ref(2);
-    const paintColors = ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
-    const paletteRGB = [
+    const isDrawing 	= ref(false);
+    const isBucket 		= ref(false);
+    const coord 		= ref({x: 0, y: 0});
+    const penColor		= ref('#000000');
+    const penStroke		= ref('8');
+    let penSizeActive	= ref(2);
+    const paintColors	= ref(['#3b82f6', '#ef4444', '#22c55e','#eab308', '#000000', '#ec4899', '#8b5cf6', '#854d0e', '#6b7280', '#ffffff']);
+    const paletteRGB	= [
 		{ r: 59,  g: 130, b: 246, hex: '#3b82f6'}, // Blue
 		{ r: 239, g: 68,  b: 68 , hex: '#ef4444'}, // Red
 		{ r: 34,  g: 197, b: 94 , hex: '#22c55e'}, // Green
@@ -28,30 +28,30 @@
 		{ r: 255, g: 255, b: 255, hex: '#ffffff'}  // White
 	];
 
-	const history = ref([]); 
-    let currentPath = null;
-	const tmpHistory = ref([]);
+	const history 		  = ref([]); 
+	const tmpHistory	  = ref([]);
+    let currentPath 	  = null;
 
-	
 	// WebSocket
-	const isDrawer = ref(false);
-	const drawId = ref(0);
-	let Socket = null;
+	const roomName 		  = "skribble_test";
+	const isDrawer 		  = ref(false);
+	const drawId 		  = ref(0);
 
-	let isConnecting = false;
-	let isConnected = false;
-	const baseDelay = 300;
-	let currentDelay = 3000;
-	const jitter = 0.05;
+	let Socket 			  = null;
+	let intervalId 		  = null;
+
+	let isConnecting 	  = false;
+	let isConnected		  = false;
+	const baseDelay		  = 300;
+	let currentDelay	  = 3000;
+	const jitter 		  = 0.05;
 	let connectionAttempt = -1;
-	let intervalId = null;
-	const roomName = "skribble_test";
 
 
     onMounted(() => {
 		window.addEventListener('keydown', handleKeyDown);
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
-        resizeObserver = new ResizeObserver(resizeCanvas);
+        resizeObserver  = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
 		vueCanvas.value.fillStyle = '#ffffff';
 		vueCanvas.value.fillRect(0, 0, width.value, height.value);
@@ -77,54 +77,58 @@
 		clearInterval(intervalId);
     });
 
+	// see chat component for documentation
 	const refreshDelay = () => {
 		if (!isConnected && !isConnecting) {
 			connectWebSocket(intervalId);
 			clearInterval(intervalId);
+
 			currentDelay = baseDelay * (10 + connectionAttempt);
-			const jitterValue = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
+			jitterValue = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
+
 			currentDelay = currentDelay + jitterValue;
+
 			intervalId = setInterval(refreshDelay, currentDelay);
 		}
 	};
 
 	const connectWebSocket = () => {
 		if (Socket?.readyState == WebSocket.OPEN) {
-			isConnecting = false;
-			isConnected = true;
+			isConnecting 	  = false;
+			isConnected 	  = true;
 			connectionAttempt = -1;
 			return;
 		}
-	
+
 		isConnected = false;
 		connectionAttempt++;
+
+		const protocol 	 = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		const host 		 = window.location.host;
+		const wsUrl 	 = `${protocol}//${host}/ws/skribble/${roomName}/`;
 	
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host = window.location.host;
-		const wsUrl = `${protocol}//${host}/ws/skribble/${roomName}/`;
-		
-		Socket = new WebSocket(wsUrl);
-		isConnecting = true;
+		Socket 			 = new WebSocket(wsUrl);
+		isConnecting 	 = true;
 	
 		Socket.onopen = () => {
 			isConnecting = false;
-			isConnected = true;
+			isConnected  = true;
 		};
 	
 		Socket.onerror = () => {
 			isConnecting = false;
-			isConnected = false;
+			isConnected  = false;
 		};
 	
 		Socket.onclose = () => {
 			isConnecting = false;
-			isConnected = false;
+			isConnected  = false;
 		};
 	
 		// --- RECEIVE MESSAGE ---
 		Socket.onmessage = (e) => {
 			if (!e.data || isDrawer.value) return;
-	
+
 			try {
 				const message = JSON.parse(e.data);
 
@@ -137,18 +141,12 @@
 					return;
 				}
 
-				if (isDrawer.value) return;
-	
+
 				if (message.type === "canvas.update" && message.payload) {
 					const received = message.payload;
 
 					if (received.type === 'clear') {
-						const ctx = vueCanvas.value;
-						if (ctx) {
-							ctx.clearRect(0, 0, width.value, height.value);
-							ctx.fillStyle = '#ffffff';
-							ctx.fillRect(0, 0, width.value, height.value);
-						}
+
 						history.value = [{
 							type: 'fill',
 							x: 0,
@@ -156,6 +154,7 @@
 							color: '#ffffff'
 						}];
 						tmpHistory.value = [];
+						redrawLines();
 						return;
 					}
 
@@ -179,15 +178,15 @@
 
 					if (received.type === 'paint') {
 						const lastAction = history.value[history.value.length - 1];
-						
+
 						if (lastAction && lastAction.type === 'paint'
 							&& lastAction.id === received.id
 							&& lastAction.color === received.color
 							&& lastAction.stroke === received.stroke) {
-							
+
 							const prevPoint = lastAction.points[lastAction.points.length - 1];
 							lastAction.points.push(...received.points);
-							
+
 							const ctx = vueCanvas.value;
 							if (ctx && prevPoint) {
 								ctx.beginPath();
@@ -323,7 +322,7 @@
         isDrawing.value = true;
 
 		drawId.value = Date.now();
-    
+
         currentPath = {
 			id: drawId.value,
             type: 'paint',
@@ -355,7 +354,7 @@
             x: coord.value.x / width.value, 
             y: coord.value.y / height.value 
         };
-        
+
         currentPath.points.push(newPoint);
 
         if (Socket && Socket.readyState === WebSocket.OPEN) {
@@ -372,7 +371,7 @@
         }
     }
 };
-        
+
     const stop = () => {
         isDrawing.value = false;
         if (currentPath) {
@@ -399,7 +398,7 @@
 			color: '#ffffff'
 		}];
 		tmpHistory.value = [];
-		if (Socket && Socket.readyState === WebSocket.OPEN) {
+		if (Socket && Socket.readyState === WebSocket.OPEN && isDrawer.value) {
 			Socket.send(JSON.stringify({
 				action: 'send_drawing',
 				payload: { type: 'clear' }
@@ -434,7 +433,7 @@
 				const baseStroke = action.stroke ? parseInt(action.stroke) : 4; 
 				ctx.lineWidth = baseStroke; 
 
-				ctx.lineCap = 'round';
+				ctx.lineCap  = 'round';
 				ctx.lineJoin = 'round';
 				ctx.beginPath();
 				ctx.strokeStyle = action.color;
@@ -555,7 +554,7 @@
         if (startX < 0 || startX >= currentWidth || startY < 0 || startY >= currentHeight) return;
 
         runFillSilentlyOnContext(ctx, currentWidth, currentHeight, startX, startY, penColor.value);
-        
+
         const fillPayLoad ={
             type: 'fill',
             x: startX / currentWidth,
@@ -564,7 +563,6 @@
         };
         history.value.push(fillPayLoad);
 		tmpHistory.value = [];
-        // redrawLines();
 
 		if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
 			Socket.send(JSON.stringify({
@@ -663,7 +661,8 @@
 			<!-- __________ TOOLS __________ -->
 			<div v-if="isDrawer"
 				:style="{cursorStyle}" 
-				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-4xl
+				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3
+				grid grid-cols-4 grid-rows-2 overflow-hidden rounded-4xl
 				w-full h-full max-w-full max-h-full min-h-0
 				bg-sidebar border-5 border-solid border-button-1-normal">
 				<button :style="cursorStyle" 
