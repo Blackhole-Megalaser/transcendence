@@ -334,7 +334,7 @@
             }]
         };
     };
-    
+
     const draw = (event) => {
     if (!isDrawing.value || !isDrawer.value) return;
 
