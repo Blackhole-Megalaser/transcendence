@@ -663,7 +663,7 @@
 			<!-- __________ TOOLS __________ -->
 			<div v-if="isDrawer"
 				:style="{cursorStyle}" 
-				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-full
+				class="order-5 row-start-3 col-start-2 lg:row-start-2 lg:col-start-3 grid grid-cols-4 grid-rows-2 overflow-hidden rounded-4xl
 				w-full h-full max-w-full max-h-full min-h-0
 				bg-sidebar border-5 border-solid border-button-1-normal">
 				<button :style="cursorStyle" 
