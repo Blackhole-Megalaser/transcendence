@@ -332,3 +332,12 @@ class WordListViewSet(ReadOnlyModelViewSet):
     queryset = WordList.objects.all()
     serializer_class = WordListSerializer
     lookup_field = "name"
+
+    @action(methods=["GET"], detail=True)
+    def random(self, request, name):
+        """
+        Get a random word from a wordlist
+        """
+        wordlist = self.get_object()
+        word = wordlist.words.order_by("?").first()
+        return Response({"word": word.word})
