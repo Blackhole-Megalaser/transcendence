@@ -1,7 +1,6 @@
 import { computed, ref }  from "vue";
 import { defineStore }    from "pinia";
 import { fetchUserInfos } from "@shared";
-import { getCookie }      from '@shared';
 
 export const useUserStore = defineStore('user', () => {
   const STORAGE_KEY     ='user_infos_cache';
