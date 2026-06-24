@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 import datetime
 import os
 
+from django.utils import timezone
 
 ##########################################################
 # WARNING: do not run `make dev` while editing this file #
@@ -59,7 +60,7 @@ class UserProfile(models.Model):
         validators=[MinValueValidator(0)], default=10
     )
     regeneration_delay = models.DurationField(default=datetime.timedelta(minutes=1))
-    next_regeneration = models.DateTimeField(default=datetime.datetime.now)
+    next_regeneration = models.DateTimeField(default=timezone.now)
     unlocked_colors = models.ManyToManyField(Color)
     unlocked_wordlists = models.ManyToManyField(WordList)
     # List of actual friends, who accepted the request
