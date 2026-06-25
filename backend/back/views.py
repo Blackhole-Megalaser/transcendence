@@ -299,29 +299,39 @@ class PixelPlaceView(APIView):
 # /api/tplace/canvas/
 class CanvasView(APIView):
     """
-    Get the full canvas
+    Get the canvas dimensions, palette and non-default pixels.
     """
 
     def get(self, request):
         width = settings.TPLACE_MAX_X
         height = settings.TPLACE_MAX_Y
-        index = {}
-        for hex_code, pk in Color.objects.values_list("hex_code", "pk"):
-            index[pk] = hex_code
-            if hex_code == "#FFFFFF":
-                default_color_index = pk
+        palette = {}
+        default_color_id = None
 
-        pixels = [default_color_index] * width * height
-        for x_pos, y_pos, color_id in Pixel.objects.select_related("color").values_list(
-            "x_pos", "y_pos", "color_id"
-        ):
-            pixels[x_pos + y_pos * height] = color_id
+        for hex_code, pk in Color.objects.values_list("hex_code", "pk"):
+            palette[pk] = hex_code
+            if hex_code == "#FFFFFF":
+                default_color_id = pk
+
+        pixels = [
+            {"x_pos": x_pos, "y_pos": y_pos, "color_id": color_id}
+            for x_pos, y_pos, color_id in Pixel.objects.filter(
+                x_pos__gte=0,
+                x_pos__lt=width,
+                y_pos__gte=0,
+                y_pos__lt=height,
+            )
+            .values_list("x_pos", "y_pos", "color_id")
+            .iterator()
+        ]
 
         return Response(
             {
                 "width": width,
                 "height": height,
-                "palette": index,
+                "encoding": "sparse",
+                "default_color_id": default_color_id,
+                "palette": palette,
                 "pixels": pixels,
             }
         )
