@@ -13,10 +13,57 @@ from rest_framework.relations import StringRelatedField
 from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
 
 
+class PlayerSerializer(serializers.ModelSerializer):
+    room = serializers.SlugRelatedField(read_only=True, slug_field="code")
+    username = serializers.CharField(source="player.user.username", read_only=True)
+
+    class Meta:
+        model = SkribblePlayer
+        fields = [
+            "room",
+            "username",
+            "order",
+            "score",
+            "found",
+        ]
+        read_only_fields = fields
+
+
+class SkribbleRoomSerializer(serializers.ModelSerializer):
+    players = PlayerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SkribbleRoom
+        fields = [
+            "code",
+            "name",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "round_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
+        read_only_fields = [
+            "code",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "round_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
+
+
 # /users/
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_image = serializers.SerializerMethodField()
     available_routes = serializers.SerializerMethodField()
+    skribble = SkribbleRoomSerializer(
+        read_only=True, source="userprofile.skribbleplayer.room"
+    )
 
     class Meta:
         model = User
@@ -27,6 +74,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             "is_staff",
             "profile_image",
             "available_routes",
+            "skribble",
         ]
         extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
@@ -166,47 +214,3 @@ class WordListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = WordList
         fields = ["words", "name"]
-
-
-class PlayerSerializer(serializers.ModelSerializer):
-    room = serializers.SlugRelatedField(read_only=True, slug_field="code")
-    username = serializers.CharField(source="player.user.username", read_only=True)
-
-    class Meta:
-        model = SkribblePlayer
-        fields = [
-            "room",
-            "username",
-            "order",
-            "score",
-            "found",
-        ]
-        read_only_fields = fields
-
-
-class SkribbleRoomSerializer(serializers.ModelSerializer):
-    players = PlayerSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = SkribbleRoom
-        fields = [
-            "code",
-            "name",
-            "players",
-            "current_player_index",
-            "round_counter",
-            "round_started",
-            "timer",
-            "timer_end",
-            "created_at",
-        ]
-        read_only_fields = [
-            "code",
-            "players",
-            "current_player_index",
-            "round_counter",
-            "round_started",
-            "timer",
-            "timer_end",
-            "created_at",
-        ]
