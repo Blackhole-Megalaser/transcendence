@@ -50,7 +50,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://ft.lien.cat","https://tla-ft.lien.cat"]
+CSRF_TRUSTED_ORIGINS = ["https://ft.lien.cat", "https://tla-ft.lien.cat"]
 
 # Application definition
 
