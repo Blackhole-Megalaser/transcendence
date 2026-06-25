@@ -106,6 +106,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             "max-pixels": request.build_absolute_uri(
                 f"/api/users/{username}/max-pixels/"
             ),
+            "avatar": request.build_absolute_uri(f"/api/users/{username}/avatar/"),
         }
 
 
@@ -168,6 +169,12 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ["max_placable_pixels"]
         read_only_fields = fields
+
+
+class AvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["profile_image"]
 
 
 class LoginRequestSerializer(serializers.Serializer):

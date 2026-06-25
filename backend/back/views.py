@@ -24,6 +24,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
 from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
 from .serializers import (
+    AvatarSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
     NyancoinsSerializer,
@@ -233,6 +234,42 @@ class UserPixelsView(NestedUserProfileView, RetrieveAPIView):
 
 class MaxPixelsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = MaxPixelsSerializer
+
+
+class AvatarView(NestedUserProfileBase, APIView):
+    serializer_class = AvatarSerializer
+
+    def get_permissions(self):
+        """
+        Users can update only their own avatar. Admin can update everyone's avatar.
+        """
+        if (
+            self.request.user.is_anonymous
+            or self.request.user.username != self.get_object().user.username
+        ):
+            permission_classes = [permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def response(self, request):
+        image = self.get_object().profile_image
+        if image:
+            return Response({"url": request.build_absolute_uri(image.url)})
+        else:
+            return Response({"url": None})
+
+    def post(self, request, user):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        profile = self.get_object()
+
+        profile.profile_image = serializer.validated_data["profile_image"]
+        profile.save()
+        return self.response(request)
+
+    def get(self, request, user):
+        return self.response(request)
 
 
 # /api/tplace/pixels/

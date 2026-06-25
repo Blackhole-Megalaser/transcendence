@@ -19,6 +19,7 @@ urlpatterns = [
     path("api/users/<str:user>/colors/", views.ColorsView.as_view()),
     path("api/users/<str:user>/pixels/", views.UserPixelsView.as_view()),
     path("api/users/<str:user>/max-pixels/", views.MaxPixelsView.as_view()),
+    path("api/users/<str:user>/avatar/", views.AvatarView.as_view()),
     path("api/tplace/pixels/", views.PixelPlaceView.as_view()),
     path("api/tplace/canvas/", views.CanvasView.as_view()),
     path("api-auth/signup", views.signup),
