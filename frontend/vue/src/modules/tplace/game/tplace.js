@@ -2,14 +2,14 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { getCookie } from '@shared'
 import selectImageUrl from './select.png'
 
-const WORLD_X_MAX = 500
-const WORLD_Y_MAX = 500
+const WORLD_X_MAX = 2000
+const WORLD_Y_MAX = 2000
 const CELL_SIZE = 16
 const DEFAULT_VIEWPORT_WIDTH = 896
 const DEFAULT_VIEWPORT_HEIGHT = 608
 const WORLD_WIDTH = WORLD_X_MAX * CELL_SIZE
 const WORLD_HEIGHT = WORLD_Y_MAX * CELL_SIZE
-const MIN_ZOOM = 0.1
+const MIN_ZOOM = 0.4
 const MAX_ZOOM = 8
 const EDGE_BORDER_COLOR = '#FF1A1A'
 const EDGE_BORDER_SCREEN_SIZE = 6
@@ -269,6 +269,21 @@ export function runTplace() {
 			const canvasPixels = Array.isArray(canvas.pixels) ? canvas.pixels : []
 
 			pixels.forEach((row) => row.fill(null))
+
+			if (canvas.encoding === 'sparse') {
+				canvasPixels.forEach((pixel) => {
+					const x = Number(pixel.x_pos ?? pixel.x)
+					const y = Number(pixel.y_pos ?? pixel.y)
+					const colorId = pixel.color_id ?? pixel.color
+					const color = normalizeHexColor(palette[colorId]) ?? DEFAULT_PIXEL_COLOR
+
+					if (Number.isInteger(x) && Number.isInteger(y)) {
+						setPixelColor(x, y, color)
+					}
+				})
+				isCanvasLoaded = true
+				return
+			}
 
 			for (let y = 0; y < height; y += 1) {
 				for (let x = 0; x < width; x += 1) {
