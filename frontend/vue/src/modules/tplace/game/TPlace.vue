@@ -50,6 +50,17 @@
 							<div class="flex shrink-0 items-center gap-1.5">
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
+									:class="isEraserMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
+									type="button"
+									title="Gommer les pixels temporaires"
+									aria-label="Erase draft pixels"
+									:aria-pressed="isEraserMode"
+									@click="toggleEraserMode"
+								>
+									<FontAwesomeIcon :icon="byPrefixAndName.fas['eraser']" />
+								</button>
+								<button
+									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
 									title="Annuler"
 									aria-label="Undo"
@@ -77,6 +88,15 @@
 								>
 									<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-down']" />
 								</button>
+								<button
+									class="grid size-9 place-items-center rounded-xl border border-red-400/60 bg-bg-main text-sm text-red-500 shadow-sm transition hover:bg-red-500 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+									type="button"
+									title="Annuler le dessin"
+									aria-label="Cancel paint draft"
+									@click="cancelPaintMode"
+								>
+									<FontAwesomeIcon :icon="byPrefixAndName.fas['xmark']" />
+								</button>
 							</div>
 						</div>
 
@@ -90,7 +110,7 @@
 										v-for="color in colors"
 										:key="color.value"
 										class="relative size-8 rounded-xl border-2 border-bg-card shadow-[0_0_0_1px_rgba(0,0,0,0.22)] transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
-										:class="selectedColor === color.value
+										:class="!isEraserMode && selectedColor === color.value
 											? 'z-10 scale-105 ring-2 ring-button-1-hover ring-offset-2 ring-offset-bg-card'
 											: ''"
 										type="button"
@@ -117,17 +137,33 @@
 					</div>
 				</div>
 
-				<button
-					class="pointer-events-auto inline-flex min-h-12 min-w-44 items-center justify-center gap-2 rounded-full border border-white/35 bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.45)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95 sm:min-w-56 sm:text-lg"
-					:class="isPaintMode ? 'ring-4 ring-blue-300/40' : ''"
-					type="button"
-					aria-controls="tplace-tools"
-					:aria-expanded="isPaintMode && isToolMenuOpen"
-					@click="handlePaintButtonClick"
-				>
-					<FontAwesomeIcon :icon="byPrefixAndName.fas['paintbrush']" class="text-sm sm:text-base" />
-					<span>Paint {{ pixelsLeft }}</span>
-				</button>
+				<div class="pointer-events-auto flex items-center gap-2">
+					<button
+						class="inline-flex min-h-12 min-w-44 items-center justify-center gap-2 rounded-full border border-white/35 bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.45)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95 sm:min-w-56 sm:text-lg"
+						:class="isPaintMode && canPaint ? 'border-red-200 ring-4 ring-red-300/70' : ''"
+						type="button"
+						aria-controls="tplace-tools"
+						:aria-expanded="isPaintMode && isToolMenuOpen"
+						@click="handlePaintButtonClick"
+					>
+						<FontAwesomeIcon :icon="byPrefixAndName.fas['paintbrush']" class="text-sm sm:text-base" />
+						<span>Paint {{ pixelsLeft }}</span>
+						<span class="rounded-full bg-white/15 px-2 py-0.5 text-sm font-bold tabular-nums text-white/90">{{ regenerationSecondsLeft }}s</span>
+					</button>
+
+					<button
+						v-if="isPaintMode && !isToolMenuOpen"
+						class="grid size-12 place-items-center rounded-full border border-white/35 bg-blue-600 text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95"
+						type="button"
+						title="Ouvrir les outils"
+						aria-label="Expand paint tools"
+						aria-controls="tplace-tools"
+						:aria-expanded="isToolMenuOpen"
+						@click="toggleToolMenu"
+					>
+						<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-up']" />
+					</button>
+				</div>
 			</div>
 		</section>
 	</main>
@@ -138,8 +174,11 @@ import { runTplace } from './tplace.js'
 import './TPlace.css'
 
 const {
+	cancelPaintMode,
+	canPaint,
 	canvasRef,
 	colors,
+	confirmDraftPixels,
 	gridLabel,
 	handleMouseDown,
 	handleMouseLeave,
@@ -150,25 +189,28 @@ const {
 	handleTouchMove,
 	handleTouchStart,
 	handleWheel,
+	isEraserMode,
 	isPaintMode,
 	isToolMenuOpen,
 	pixelsLeft,
 	pointerStatus,
 	redo,
+	regenerationSecondsLeft,
 	selectColor,
 	selectedColor,
 	showGrid,
+	toggleEraserMode,
 	togglePaintMode,
 	toggleToolMenu,
 	undo,
 } = runTplace()
 
-function handlePaintButtonClick() {
-	if (isPaintMode.value && !isToolMenuOpen.value) {
-		toggleToolMenu()
+async function handlePaintButtonClick() {
+	if (!isPaintMode.value) {
+		togglePaintMode()
 		return
 	}
 
-	togglePaintMode()
+	await confirmDraftPixels()
 }
 </script>
