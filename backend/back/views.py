@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import RetrieveAPIView
@@ -103,24 +103,39 @@ def account_modify(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
     lookup_field = "username"
     lookup_value_regex = "[a-zA-Z0-9-_@.+]+"
 
-    @action(
-        detail=False,
-        url_path="me",
-        methods=["get"],
-        permission_classes=[permissions.IsAuthenticated],
-    )
-    def me(self, request):
-        serializer = self.get_serializer(request.user, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_permissions(self):
+        """
+        Admins can do anything, users can only access their own info
+        """
+        permission_classes = [permissions.IsAdminUser]
+        if self.action == "retrieve":
+            requester_username = self.request.user.username
+            wanted_username = self.get_object().username
+            request_for_own_info = requester_username == wanted_username
+            if request_for_own_info:
+                permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ["logout"]:
+            permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ["login", "signup"]:
+            permission_classes = [permissions.AllowAny]
+        got_permissions = [permission() for permission in permission_classes]
+        return got_permissions
+
+    def get_object(self):
+        username = self.kwargs.get("username")
+        if username == "me":
+            return self.request.user
+        if username is None:
+            return self.get_queryset()
+        else:
+            return self.get_queryset().get(username=username)
 
     @action(
         detail=False,
         methods=["post"],
-        permission_classes=[],
         serializer_class=LoginRequestSerializer,
     )
     def login(self, request):
@@ -140,7 +155,6 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated],
     )
     def logout(self, request):
         logout(request)
@@ -149,7 +163,6 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["post"],
-        permission_classes=[permissions.AllowAny],
         serializer_class=SignupRequestSerializer,
     )
     def signup(self, request):
@@ -173,43 +186,52 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-class NestedUserProfileView(RetrieveAPIView):
+class NestedUserProfileBase:
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSerializer
 
     def get_parent_user(self):
-        username = self.kwargs.get("user_username")
+        username = self.kwargs.get("user")
         if username is None or username == "me":
             return self.request.user
         if username != self.request.user.username and not self.request.user.is_staff:
             raise PermissionDenied("You cannot access another user's profile data.")
         return get_object_or_404(User, username=username)
 
-    def get_object(self):
+    def get_profile(self):
         parent_user = self.get_parent_user()
         profile = parent_user.userprofile
         profile.regenerate_pixels()
         return profile
 
+    def get_object(self):
+        return self.get_profile()
 
-class TplaceView(NestedUserProfileView):
+
+class NestedUserProfileView(NestedUserProfileBase, RetrieveAPIView):
+    """
+    Read-only NestedUserProfileView
+    """
+
+
+class TplaceView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = TplaceSerializer
 
 
-class NyancoinsView(NestedUserProfileView):
+class NyancoinsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = NyancoinsSerializer
 
 
-class ColorsView(NestedUserProfileView):
+class ColorsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = UnlockedColorsSerializer
 
 
 # /api/users/me/pixels
-class UserPixelsView(NestedUserProfileView):
+class UserPixelsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = PixelsSerializer
 
 
-class MaxPixelsView(NestedUserProfileView):
+class MaxPixelsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = MaxPixelsSerializer
 
 
