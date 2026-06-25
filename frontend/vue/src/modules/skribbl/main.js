@@ -1,6 +1,6 @@
 import { createApp, ref }               from 'vue';
 import { useThemeStore, useUserStore }  from '@storage';
-import { setupPinia, setupFontAwesome }                   from '@shared';
+import { setupPinia, setupFontAwesome } from '@shared';
 import BasePage                         from '@components/BasePage.vue';
 import Skribbl                          from './game/Skribbl.vue';
 import Chat                             from '@components/Chat.vue'; 
