@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -18,10 +19,10 @@ from rest_framework.status import (
     HTTP_409_CONFLICT,
 )
 from rest_framework.views import APIView
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import Color, Pixel, UserProfile, WordList
+from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
 from .serializers import (
     LoginRequestSerializer,
     MaxPixelsSerializer,
@@ -30,6 +31,7 @@ from .serializers import (
     PixelSerializer,
     PixelsSerializer,
     SignupRequestSerializer,
+    SkribbleRoomSerializer,
     TplaceSerializer,
     UnlockedColorsSerializer,
     UserSerializer,
@@ -342,3 +344,41 @@ class WordListViewSet(ReadOnlyModelViewSet):
         wordlist = self.get_object()
         word = wordlist.words.order_by("?").first()
         return Response({"word": word.word})
+
+
+class SkribbleRoomViewSet(ModelViewSet):
+    """
+    Skribble room view
+    """
+
+    queryset = SkribbleRoom.objects.filter(players__isnull=False)
+    serializer_class = SkribbleRoomSerializer
+    lookup_field = "code"
+    lookup_url_kwarg = "code"
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["destroy", "update", "partial_update"]:
+            permission_classes = [permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            self.perform_create(serializer)
+            room = serializer.instance
+            # remove player if already exists in other room
+            SkribblePlayer.objects.filter(player=request.user.userprofile).delete()
+            player = SkribblePlayer(
+                room=room, player=request.user.userprofile, order=0, score=0
+            )
+            room.save()
+            player.save()
+        # cleanup empty rooms
+        SkribbleRoom.objects.filter(players__isnull=True).delete()
+        return Response(self.get_serializer(room).data, status=HTTP_201_CREATED)

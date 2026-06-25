@@ -10,7 +10,7 @@ from django.core.validators import (
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
 
-from .models import Color, Pixel, UserProfile, WordList
+from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
 
 
 # /users/
@@ -166,3 +166,47 @@ class WordListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = WordList
         fields = ["words", "name"]
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    room = serializers.SlugRelatedField(read_only=True, slug_field="code")
+    username = serializers.CharField(source="player.user.username", read_only=True)
+
+    class Meta:
+        model = SkribblePlayer
+        fields = [
+            "room",
+            "username",
+            "order",
+            "score",
+            "found",
+        ]
+        read_only_fields = fields
+
+
+class SkribbleRoomSerializer(serializers.ModelSerializer):
+    players = PlayerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SkribbleRoom
+        fields = [
+            "code",
+            "name",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "round_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
+        read_only_fields = [
+            "code",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "round_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
