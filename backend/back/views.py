@@ -240,7 +240,6 @@ class PixelPlaceView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        logger.debug("pixel place: ", serializer.data)
 
         user = request.user
         profile = user.userprofile
