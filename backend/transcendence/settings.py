@@ -174,6 +174,20 @@ CACHES = {
     }
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 # Chat history is stored separately from Channels and Django cache keys.
 CHAT_REDIS_URL = env("CHAT_REDIS_URL", default="redis://redis:6379/2")
 CHAT_HISTORY_LIMIT = env.int("CHAT_HISTORY_LIMIT", default=50)
