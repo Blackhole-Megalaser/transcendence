@@ -5,6 +5,7 @@ import os
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.deletion import CASCADE, RESTRICT
 from django.utils import timezone
 
 ##########################################################
@@ -113,4 +114,63 @@ class Pixel(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["x_pos", "y_pos"], name="pixel_uniq_pos")
+        ]
+
+
+class SkribbleRoom(models.Model):
+    # random 5 letter room code
+    code = models.TextField(max_length=5)
+    # pretty name to show in room selector
+    name = models.TextField(max_length=255, unique=True)
+    current_word = models.ForeignKey(
+        Word, on_delete=RESTRICT, related_name="rooms_with_current_word"
+    )
+    wordlist = models.ForeignKey(WordList, on_delete=RESTRICT)
+    current_player_index = models.IntegerField(default=0)
+    round_counter = models.IntegerField(default=0)
+    round_started = models.BooleanField(default=False)
+
+    word_history = models.ManyToManyField(
+        Word,
+        through="SkribbleRoomWord",
+        related_name="rooms_with_word_in_history",
+    )
+
+    timer = models.DurationField(default=timezone.timedelta(minutes=1))
+    timer_end = models.DurationField(default=timezone.now)
+
+    created_at = models.DurationField(default=timezone.now)
+
+
+class SkribbleRoomWord(models.Model):
+    room = models.ForeignKey(SkribbleRoom, on_delete=CASCADE)
+    word = models.ForeignKey(Word, on_delete=CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room", "word"], name="unique_room_word_history"
+            ),
+        ]
+
+
+class SkribblePlayer(models.Model):
+    """
+    A player in a round of Skribble
+    """
+
+    room = models.ForeignKey(SkribbleRoom, on_delete=CASCADE)
+    player = models.OneToOneField(UserProfile, on_delete=models.RESTRICT)
+    # order in which the player will play
+    order = models.IntegerField(validators=[MinValueValidator(0)])
+    score = models.IntegerField(validators=[MinValueValidator(0)])
+
+    # true if the player has found the word
+    found = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room", "order"], name="skribble_player_unique_order_per_room"
+            )
         ]
