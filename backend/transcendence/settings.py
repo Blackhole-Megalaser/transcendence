@@ -35,6 +35,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG").lower().startswith("t")
 
 CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ["https://tla-ft.lien.cat/", "https://ft.lien.cat/"]
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
