@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
     HTTP_409_CONFLICT,
@@ -496,7 +497,7 @@ class SkribbleRoomViewSet(ModelViewSet):
         1. Shuffles the player order
         2. Set game_started to true
 
-        Next: The first player in the order should call start_turn to get a choice of words
+        Next: The first player in the order should call select_word to get a choice of words
 
         Preconditions:
 
@@ -543,3 +544,52 @@ class SkribbleRoomViewSet(ModelViewSet):
             room.round_counter = 1
             room.save()
         return Response(self.get_serializer(room).data)
+
+    @action(methods=["get"], detail=True)
+    def select_word(self, request, code):
+        """
+        Get 3 possible words, that the player may draw during their turn.
+
+        Next: The player should call start_turn with their selected word.
+
+        Preconditions:
+
+        1. The player is in the room -> 401 Unauthorized
+        2. The game has started -> 400 Bad Request
+        3. The player is the current player -> 401 Unauthorized
+        4. The turn has not started yet -> 400 Bad Request
+
+        Returns three words chosen at random from the room's wordlist, that have not appeared in the room as of yet.
+        """
+        room = self.get_object()
+        try:
+            player = request.user.userprofile.skribbleplayer
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
+            player = None
+        room_players = room.players.all()
+        if not player or player not in room_players:
+            return Response(
+                {"detail": "You must join the room before you can start a turn"},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        if not room.game_started:
+            return Response(
+                {"detail": "The game has not started yet"}, status=HTTP_400_BAD_REQUEST
+            )
+        if player.order != room.current_player_index:
+            return Response(
+                {"detail": "It is not your turn"}, status=HTTP_401_UNAUTHORIZED
+            )
+        if room.turn_started:
+            return Response(
+                {"detail": "The turn already started"}, status=HTTP_400_BAD_REQUEST
+            )
+        wordlist = room.wordlist
+        # Yes, this does the limit on the DB side
+        # https://docs.djangoproject.com/en/6.0/topics/db/queries/#limiting-querysets
+        words = (
+            wordlist.words.exclude(id__in=room.word_history.all())
+            .order_by("?")
+            .values_list("word", flat=True)[:3]
+        )
+        return Response({"words": words})

@@ -149,6 +149,8 @@ class SkribbleRoom(models.Model):
     current_player_index = models.IntegerField(default=0)
     round_counter = models.IntegerField(default=0)
     game_started = models.BooleanField(default=False)
+    # True once a word has been chosen and the timer is running
+    turn_started = models.BooleanField(default=False)
 
     word_history = models.ManyToManyField(
         Word,
