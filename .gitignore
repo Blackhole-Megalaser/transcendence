@@ -5,3 +5,4 @@
 .vscode
 .ruff_cache
 **/node_modules
+.ipynb_checkpoints
