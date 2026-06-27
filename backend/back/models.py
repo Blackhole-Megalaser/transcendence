@@ -105,8 +105,11 @@ class UserProfile(models.Model):
         )
         self.save()
 
-    def join_skribble(self, room: "SkribbleRoom"):
+    def leave_skribble(self):
         SkribblePlayer.objects.filter(player=self).delete()
+
+    def join_skribble(self, room: "SkribbleRoom"):
+        self.leave_skribble()
         player = SkribblePlayer(room=room, player=self)
         player.save()
         # cleanup empty rooms
