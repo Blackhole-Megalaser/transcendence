@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -26,7 +27,15 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
+from .models import (
+    Color,
+    Pixel,
+    SkribblePlayer,
+    SkribbleRoom,
+    UserProfile,
+    Word,
+    WordList,
+)
 from .serializers import (
     AvatarSerializer,
     LoginRequestSerializer,
@@ -37,6 +46,7 @@ from .serializers import (
     PixelsSerializer,
     SignupRequestSerializer,
     SkribbleRoomSerializer,
+    StartTurnSerializer,
     TplaceSerializer,
     UnlockedColorsSerializer,
     UserSerializer,
@@ -593,3 +603,69 @@ class SkribbleRoomViewSet(ModelViewSet):
             .values_list("word", flat=True)[:3]
         )
         return Response({"words": words})
+
+    @action(methods=["post"], detail=True, serializer_class=StartTurnSerializer)
+    def start_turn(self, request, code):
+        """
+        The player has chosen a word to draw, and starts drawing now.
+
+        1. The chosen word is added to the word_history of that room.
+        2. The timer is reset and starts counting down
+        3. The turn starts
+
+        Preconditions:
+        1. The player is in the room -> 401 Unauthorized
+        2. The game has started -> 400 Bad Request
+        3. The player is the current player -> 401 Unauthorized
+        4. The turn not has started yet -> 400 Bad Request
+        5. The word is not in word_history, but in the current wordlist -> 400 Bad Request
+
+        Returns the current room status.
+        """
+        room = self.get_object()
+        try:
+            player = request.user.userprofile.skribbleplayer
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
+            player = None
+        room_players = room.players.all()
+        if not player or player not in room_players:
+            return Response(
+                {"detail": "You must join the room before you play"},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        if not room.game_started:
+            return Response(
+                {"detail": "The game has not started yet"}, status=HTTP_400_BAD_REQUEST
+            )
+        if player.order != room.current_player_index:
+            return Response(
+                {"detail": "It is not your turn"}, status=HTTP_401_UNAUTHORIZED
+            )
+        if room.turn_started:
+            return Response(
+                {"detail": "The turn already started"}, status=HTTP_400_BAD_REQUEST
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        word = serializer.validated_data["word"]
+
+        wordlist = room.wordlist
+        try:
+            word = (
+                wordlist.words.exclude(id__in=room.word_history.all())
+                .filter(word=word)
+                .get()
+            )
+        except Word.DoesNotExist:
+            return Response(
+                {"detail": "The word you have chosen is invalid"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            room.word_history.add(word)
+            room.timer_end = timezone.now() + room.timer
+            room.turn_started = True
+            room.save()
+
+        return Response(SkribbleRoomSerializer(room).data)
