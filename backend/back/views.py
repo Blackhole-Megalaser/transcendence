@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -22,7 +23,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
+from .models import Color, Pixel, SkribbleRoom, UserProfile, WordList
 from .serializers import (
     AvatarSerializer,
     LoginRequestSerializer,
@@ -419,7 +420,9 @@ class SkribbleRoomViewSet(ModelViewSet):
     Skribble room view
     """
 
-    queryset = SkribbleRoom.objects.filter(players__isnull=False)
+    queryset = SkribbleRoom.objects.annotate(num_players=Count("players")).filter(
+        num_players__gt=0
+    )
     serializer_class = SkribbleRoomSerializer
     lookup_field = "code"
     lookup_url_kwarg = "code"
@@ -440,13 +443,11 @@ class SkribbleRoomViewSet(ModelViewSet):
         with transaction.atomic():
             self.perform_create(serializer)
             room = serializer.instance
-            # remove player if already exists in other room
-            SkribblePlayer.objects.filter(player=request.user.userprofile).delete()
-            player = SkribblePlayer(
-                room=room, player=request.user.userprofile, order=0, score=0
-            )
-            room.save()
-            player.save()
-        # cleanup empty rooms
-        SkribbleRoom.objects.filter(players__isnull=True).delete()
+            request.user.userprofile.join_skribble(room)
         return Response(self.get_serializer(room).data, status=HTTP_201_CREATED)
+
+    @action(methods=["post"], detail=True)
+    def join(self, request, code):
+        room = self.get_object()
+        request.user.userprofile.join_skribble(room)
+        return Response(self.get_serializer(room).data)
