@@ -177,7 +177,6 @@ class UserViewSet(viewsets.ModelViewSet):
         validated_data = serializer.validated_data
         logging.info("data valid %s", validated_data)
         password = validated_data["password1"]
-        print(validated_data)
 
         user = User.objects.create_user(
             username=validated_data["username"],
@@ -440,9 +439,12 @@ class SkribbleRoomViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
+        SkribbleRoom.cleanup_empty_rooms()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
+            request.user.userprofile.leave_skribble()
+            SkribbleRoom.cleanup_empty_rooms()
             self.perform_create(serializer)
             room = serializer.instance
             request.user.userprofile.join_skribble(room)
@@ -481,7 +483,9 @@ class SkribbleRoomViewSet(ModelViewSet):
 
         Always succeeds, no data is returned.
         """
-        request.user.userprofile.leave_skribble()
+        with transaction.atomic():
+            request.user.userprofile.leave_skribble()
+            SkribbleRoom.cleanup_empty_rooms()
         return Response()
 
     @action(methods=["post"], detail=True)
