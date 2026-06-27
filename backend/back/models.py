@@ -142,7 +142,7 @@ class SkribbleRoom(models.Model):
     wordlist = models.ForeignKey(WordList, on_delete=RESTRICT)
     current_player_index = models.IntegerField(default=0)
     round_counter = models.IntegerField(default=0)
-    round_started = models.BooleanField(default=False)
+    game_started = models.BooleanField(default=False)
 
     word_history = models.ManyToManyField(
         Word,
