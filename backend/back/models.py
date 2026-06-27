@@ -106,14 +106,17 @@ class UserProfile(models.Model):
         self.save()
 
     def leave_skribble(self):
+        """
+        does NOT perform empty room cleanup
+        """
         SkribblePlayer.objects.filter(player=self).delete()
 
     def join_skribble(self, room: "SkribbleRoom"):
-        self.leave_skribble()
-        player = SkribblePlayer(room=room, player=self)
-        player.save()
-        # cleanup empty rooms
-        SkribbleRoom.objects.filter(players__isnull=True).delete()
+        with transaction.atomic():
+            self.leave_skribble()
+            player = SkribblePlayer(room=room, player=self)
+            player.save()
+            SkribbleRoom.cleanup_empty_rooms()
 
 
 class Pixel(models.Model):
@@ -171,6 +174,10 @@ class SkribbleRoom(models.Model):
         if not hasattr(self, "wordlist"):
             self.wordlist = WordList.objects.get(name="basic")
         super().save(**kwargs)
+
+    @staticmethod
+    def cleanup_empty_rooms():
+        SkribbleRoom.objects.filter(players__isnull=True).delete()
 
 
 class SkribbleRoomWord(models.Model):
