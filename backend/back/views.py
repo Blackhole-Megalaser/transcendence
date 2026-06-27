@@ -1,4 +1,5 @@
 import logging
+import random
 
 from django.conf import settings
 from django.contrib import messages
@@ -16,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
     HTTP_409_CONFLICT,
 )
@@ -23,7 +25,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .forms import UserModifyForm, UserProfileUpdateForm, UserRegisterForm
-from .models import Color, Pixel, SkribbleRoom, UserProfile, WordList
+from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
 from .serializers import (
     AvatarSerializer,
     LoginRequestSerializer,
@@ -448,6 +450,72 @@ class SkribbleRoomViewSet(ModelViewSet):
 
     @action(methods=["post"], detail=True)
     def join(self, request, code):
+        """
+        Join an existing room.
+
+        1. Player will leave any room they joined (will trigger empty room cleanup)
+        2. Player will join the specified room
+
+        Preconditions:
+
+        1. A game can only be joined if it has not started -> 409 Conflict
+
+        Returns the current room status
+        """
         room = self.get_object()
+        if room.game_started:
+            return Response(
+                {"detail": "The game already started"}, status=HTTP_409_CONFLICT
+            )
         request.user.userprofile.join_skribble(room)
+        return Response(self.get_serializer(room).data)
+
+    @action(methods=["post"], detail=True)
+    def start_game(self, request, code):
+        """
+        Start the game in a room.
+
+        1. Shuffles the player order
+        2. Set game_started to true
+
+        Next: The first player in the order should call start_turn to get a choice of words
+
+        Preconditions:
+
+        1. Only a player in the room can start the game -> 401 Unauthorized
+        2. A game can only be started if it wasn't already -> 409 Conflict
+
+        Returns the current room status.
+        """
+        room = self.get_object()
+        player = request.user.userprofile.skribbleplayer
+        room_players = room.players.all()
+        if player not in room_players:
+            return Response(
+                {"detail": "You must join the room before you can start the game"},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        if room.game_started:
+            return Response(
+                {"detail": "The game already started"}, status=HTTP_409_CONFLICT
+            )
+        with transaction.atomic():
+            num_players = len(room_players)
+
+            # first set it to a dummy value that is too high to cause conflicts
+            for i, p in enumerate(room_players):
+                p.order = num_players + i
+            SkribblePlayer.objects.bulk_update(room_players, ["order"])
+
+            # then actually shuffle the order
+            order = list(range(num_players))
+            random.shuffle(order)
+            for i, p in enumerate(room_players):
+                p.order = order[i]
+            SkribblePlayer.objects.bulk_update(room_players, ["order"])
+
+            # do the bookkeeping
+            room.game_started = True
+            room.round_counter = 1
+            room.save()
         return Response(self.get_serializer(room).data)
