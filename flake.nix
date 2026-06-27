@@ -22,6 +22,8 @@
             daphne
             djangorestframework
             django-redis
+            django-extensions
+            jupyterlab
           ]);
       in {
         devShells.default = pkgs.mkShell {
