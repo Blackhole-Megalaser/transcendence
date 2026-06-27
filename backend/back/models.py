@@ -105,6 +105,13 @@ class UserProfile(models.Model):
         )
         self.save()
 
+    def join_skribble(self, room: "SkribbleRoom"):
+        SkribblePlayer.objects.filter(player=self).delete()
+        player = SkribblePlayer(room=room, player=self)
+        player.save()
+        # cleanup empty rooms
+        SkribbleRoom.objects.filter(players__isnull=True).delete()
+
 
 class Pixel(models.Model):
     x_pos = models.IntegerField(validators=[MinValueValidator(0)])
@@ -206,5 +213,5 @@ class SkribblePlayer(models.Model):
                     .aggregate(m=Max("order"))
                     .get("m")
                 )
-                self.order = max_order + 1 or 0  # start at 0 when empty
+                self.order = (max_order or 0) + 1  # start at 0 when empty
         return super().save(*args, **kwargs)
