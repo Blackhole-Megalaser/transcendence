@@ -470,6 +470,20 @@ class SkribbleRoomViewSet(ModelViewSet):
         request.user.userprofile.join_skribble(room)
         return Response(self.get_serializer(room).data)
 
+    @action(methods=["post"], detail=False)
+    def leave(self, request):
+        """
+        Leave the room.
+
+        1. Player will leave any room they are in (will trigger empty room cleanup)
+
+        As a reminder, a player can only be in one room at once.
+
+        Always succeeds, no data is returned.
+        """
+        request.user.userprofile.leave_skribble()
+        return Response()
+
     @action(methods=["post"], detail=True)
     def start_game(self, request, code):
         """
