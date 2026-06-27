@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -503,8 +503,14 @@ class SkribbleRoomViewSet(ModelViewSet):
             num_players = len(room_players)
 
             # first set it to a dummy value that is too high to cause conflicts
+            max_order = (
+                SkribblePlayer.objects.select_for_update()
+                .filter(room=room)
+                .aggregate(m=Max("order"))
+                .get("m")
+            )
             for i, p in enumerate(room_players):
-                p.order = num_players + i
+                p.order = max_order + 1 + i
             SkribblePlayer.objects.bulk_update(room_players, ["order"])
 
             # then actually shuffle the order
