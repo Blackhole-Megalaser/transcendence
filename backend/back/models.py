@@ -99,9 +99,10 @@ class UserProfile(models.Model):
         pixels_to_regenerate = 0
         while now > self.next_regeneration:
             pixels_to_regenerate += 1
-            self.next_regeneration = self.next_regeneration + self.regeneration_delay
+            self.next_regeneration = self.next_regeneration + self.regeneration_delay  # pyright: ignore[reportOperatorIssue]
         self.placable_pixels = min(
-            self.placable_pixels + pixels_to_regenerate, self.max_placable_pixels
+            self.placable_pixels + pixels_to_regenerate,
+            self.max_placable_pixels,  # pyright: ignore[reportOperatorIssue]
         )
         self.save()
 

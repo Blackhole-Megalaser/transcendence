@@ -24,6 +24,7 @@
             django-redis
             django-extensions
             jupyterlab
+            python-lsp-server
           ]);
       in {
         devShells.default = pkgs.mkShell {
@@ -34,7 +35,8 @@
             pkgs.ruff
             pkgs.act
             pkgs.docker-buildx
-            pkgs.ty # python lsp
+            pkgs.pyrefly # python lsp
+            pkgs.basedpyright # python lsp
           ];
         };
       }
