@@ -267,7 +267,7 @@ class AvatarView(NestedUserProfileBase, APIView):
         serializer.is_valid(raise_exception=True)
         profile = self.get_object()
 
-        profile.profile_image = serializer.validated_data["profile_image"]
+        profile.profile_image = serializer.validated_data["profile_image"]  # pyright: ignore[reportOptionalSubscript]
         profile.save()
         return self.response(request)
 
