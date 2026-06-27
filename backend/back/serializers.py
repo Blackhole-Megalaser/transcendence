@@ -10,7 +10,15 @@ from django.core.validators import (
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
 
-from .models import Color, Pixel, SkribblePlayer, SkribbleRoom, UserProfile, WordList
+from .models import (
+    Color,
+    Pixel,
+    SkribblePlayer,
+    SkribbleRoom,
+    UserProfile,
+    Word,
+    WordList,
+)
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -41,6 +49,7 @@ class SkribbleRoomSerializer(serializers.ModelSerializer):
             "current_player_index",
             "round_counter",
             "game_started",
+            "turn_started",
             "timer",
             "timer_end",
             "created_at",
@@ -51,6 +60,7 @@ class SkribbleRoomSerializer(serializers.ModelSerializer):
             "current_player_index",
             "round_counter",
             "game_started",
+            "turn_started",
             "timer",
             "timer_end",
             "created_at",
@@ -221,3 +231,9 @@ class WordListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = WordList
         fields = ["words", "name"]
+
+
+class StartTurnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Word
+        fields = ["word"]
