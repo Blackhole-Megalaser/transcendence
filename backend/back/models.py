@@ -213,5 +213,8 @@ class SkribblePlayer(models.Model):
                     .aggregate(m=Max("order"))
                     .get("m")
                 )
-                self.order = (max_order or 0) + 1  # start at 0 when empty
+                if max_order is None:
+                    self.order = 0
+                else:
+                    self.order = max_order + 1
         return super().save(*args, **kwargs)
