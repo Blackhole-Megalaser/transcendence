@@ -103,8 +103,7 @@ const nextPage            = () => {
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
   if (!nextURL.startsWith('/')) nextURL   = '/' + nextURL;
-  if (nextURL.length > 1)       isSafeURL = !nextURL.startsWith('//');
-  isSafeURL = nextURL !== "/chat";
+  if (nextURL.length > 1)       isSafeURL = !nextURL.startsWith('//') && nextURL !== "/chat";
   return isSafeURL ? nextURL : '/';
 }
 
