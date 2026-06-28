@@ -57,7 +57,7 @@
         <div v-else>
           <div v-if="isLogin">
             <button class="size-10 flex-center">
-              <a href="/">
+              <a :href="nextPage()">
                 <component :is=cross alt="close window" class="size-8 fill-exit-cross" />
               </a>
             </button>
@@ -102,8 +102,10 @@ const URI                 = currentURI !== '/' ? `?next=${currentURI}` : '';
 const nextPage            = () => {
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';
   let isSafeURL = true;
-  if (!nextURL.startsWith('/')) nextURL     = '/' + nextURL;
-  if (nextURL.length > 1)       isSafeURL  = !nextURL.startsWith('//');
+  if (!nextURL.startsWith('/')) nextURL   = '/' + nextURL;
+  if (nextURL.length > 1)       isSafeURL = !nextURL.startsWith('//');
+  isSafeURL = nextURL !== "/chat";
+  console.log(nextURL);
   return isSafeURL ? nextURL : '/';
 }
 
