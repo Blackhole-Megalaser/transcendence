@@ -57,7 +57,7 @@
         <div v-else>
           <div v-if="isLogin">
             <button class="size-10 flex-center">
-              <a :href="nextPage()">
+              <a href="/">
                 <component :is=cross alt="close window" class="size-8 fill-exit-cross" />
               </a>
             </button>
