@@ -105,7 +105,6 @@ const nextPage            = () => {
   if (!nextURL.startsWith('/')) nextURL   = '/' + nextURL;
   if (nextURL.length > 1)       isSafeURL = !nextURL.startsWith('//');
   isSafeURL = nextURL !== "/chat";
-  console.log(nextURL);
   return isSafeURL ? nextURL : '/';
 }
 
