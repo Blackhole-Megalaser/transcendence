@@ -38,6 +38,9 @@ from .models import (
 )
 from .serializers import (
     AvatarSerializer,
+    FriendsSerializer,
+    FriendlistSerializer,
+    FriendsRequestSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
     NyancoinsSerializer,
@@ -248,6 +251,17 @@ class UserPixelsView(NestedUserProfileView, RetrieveAPIView):
 class MaxPixelsView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = MaxPixelsSerializer
 
+# /api/users/me/friends
+class FriendsView(NestedUserProfileView, RetrieveAPIView):
+    serializer_class = FriendsSerializer
+
+# /api/users/me/friendlist
+class FriendlistView(NestedUserProfileView, RetrieveAPIView):
+    serializer_class = FriendlistSerializer
+
+# /api/users/me/friend_request
+class FriendsRequestView(NestedUserProfileView, RetrieveAPIView):
+    serializer_class = FriendsRequestSerializer
 
 class AvatarView(NestedUserProfileBase, APIView):
     serializer_class = AvatarSerializer
