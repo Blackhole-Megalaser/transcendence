@@ -8,6 +8,7 @@
     let users    = ref([]);
 
     let inputRoomName = ref('');
+    let inputRoomCode = ref('');
 
     onMounted(() => {
         getUserRoomInfo();
@@ -16,6 +17,7 @@
     onUnmounted(() => {
         
     });
+
     // watch(message, (newMessage) => {
 
     // });
@@ -38,18 +40,6 @@
         }
     };
 
-    // const getRoomInfo = async () => {
-    //     try {
-    //         const response = await fetch('/api/skribble/rooms/');
-    //         const dataRooms = await response.json();
-    //         username.value = dataRooms[0].players[0].username;
-    //         roomCode.value = dataRooms[0].code;
-    //         roomName.value = dataRooms[0].name;
-    //     } catch (error) {
-    //         console.error("Recuperation error :", error);
-    //     }
-    // };
-
     const postCreateRoom = async () => {
 		try {
 			const response = await fetch('/api/skribble/rooms/', {
@@ -67,7 +57,48 @@
                 getUserRoomInfo();
             }
 		} catch (error) {
-			console.error("Recuperation error :", error);
+			console.error("Creation error :", error);
+		}
+	};
+
+    const postJoinRoom = async () => {
+		try {
+			const response = await fetch(`/api/skribble/rooms/${inputRoomCode.value}/join/`, {
+				method: 'POST',
+				body: JSON.stringify({
+                    name: ''
+				}),
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken'),
+					'Content-type' : 'application/json'
+				}
+			});
+            if (response.ok) {
+                inputRoomCode.value = '';
+                getUserRoomInfo();
+            }
+		} catch (error) {
+			console.error("Join error :", error);
+		}
+	};
+
+    const postLeaveRoom = async () => {
+		try {
+			const response = await fetch('/api/skribble/rooms/leave/', {
+				method: 'POST',
+				body: JSON.stringify({
+                    name: ''
+				}),
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken'),
+					'Content-type' : 'application/json'
+				}
+			});
+            if (response.ok) {
+                getUserRoomInfo();
+            }
+		} catch (error) {
+			console.error("Leave error :", error);
 		}
 	};
     
@@ -97,14 +128,18 @@
                 <div>
                     <div>Join Room:</div>
                     <div class="flex">
-                        <input/>
-                        <button class="bg-navbar-menu rounded-sm">JOIN ROOM</button>
+                        <input v-model="inputRoomCode" placeholder="Write your room code"/>
+                        <button
+                            @click="postJoinRoom"
+                            class="bg-navbar-menu rounded-sm">JOIN ROOM</button>
                     </div>
                 </div>
                 <div class="flex flex-row">
                     <div>Leave Room:</div>
                     <div>
-                        <button class="bg-red-600 rounded-sm">LEAVE ROOM</button>
+                        <button
+                            @click="postLeaveRoom"
+                            class="bg-red-600 rounded-sm">LEAVE ROOM</button>
                     </div>
                 </div>
                 <div class="flex flex-row">
