@@ -74,7 +74,7 @@ class UserProfile(models.Model):
     # List of actual friends, who accepted the request
     friends = models.ManyToManyField("UserProfile", symmetrical=True)
     # Sent friend requests, not accepted nor rejected
-    # self is the sender, foreign is the reciever who can accept or reject
+    # self is the sender, foreign is the receiver who can accept or reject
     # on reject, simply remove from this list
     # on accept, move to friends
     pending_friend_requests = models.ManyToManyField("UserProfile")
@@ -122,4 +122,4 @@ class Pixel(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.x_pos}, {self.y_pos}"
+        return f"[{self.x_pos}, {self.y_pos}] {self.color}"
