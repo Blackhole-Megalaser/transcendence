@@ -39,3 +39,7 @@ To see the user list:
 `SELECT * FROM auth_user;` (django users)
 
 `SELECT * FROM back_userprofile;` (userprofile as defined in models.py)
+
+To give nyancoins to user 1:
+
+`UPDATE back_userprofile SET nyancoins = 200 WHERE id=1 ;`

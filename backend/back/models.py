@@ -125,7 +125,7 @@ class UserProfile(models.Model):
             SkribbleRoom.cleanup_empty_rooms()
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user.username} ({self.user.id})"
 
 
 class Pixel(models.Model):
