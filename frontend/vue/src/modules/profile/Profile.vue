@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div>
     <img src="" alt="">
   </div>
@@ -6,7 +6,6 @@
 		<div class="grid grid-cols-2 lg:grid-cols-2 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr_0.30fr]
 			gap-2 w-full h-full max-w-full max-h-full p-4
 			bg-bg-main">
-			<!-- __________ COLORS __________ -->
 			<div
 				:style="[cursorStyle, {backgroundColor: penColor}]" 
 				class="order-1 row-start-1 lg:row-start-1  col-start-1 lg:col-start-1
@@ -69,92 +68,89 @@
         </div>
 		</div>
 	</div>
+</template> -->
+
+<template>
+  <section class="w-full flex-center flex-col gap-8 lg:gap-12 p-8 md:max-xl:pb-0 lg:pt-24!">
+    <div class="flex items-end">
+      <div 
+        class="size-24 rounded-full bg-cover bg-center cursor-pointer"
+        :style="{ backgroundImage: `url(${profilePic})` }"
+        @click="$refs.fileInput.click()"
+      />
+      <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange">
+      <div v-if="newImage">
+        <p class="text-text-main/60">{{ newImageFile.name }}</p>
+        <Button @click="changeProfilePicture()">Submit</Button>
+      </div>
+    </div>
+  </section>
 </template>
+
 <script setup>
-import { ref }      from 'vue';
-import defaultcat   from '@assets/default_cat.png';
+import { computed, onMounted, ref } from 'vue';
+import { storeToRefs }              from 'pinia';
+import { useUserStore }             from '@storage';
+import { getCookie }                from '@shared';
+import Button                       from '@components/Button.vue';
+import defaultCat                   from '@assets/default_cat.png';
 
-const ProfilePicture = ref()
+const userStore = useUserStore();
+const {
+  getProfilePic,
+  getLoggedStatus
+} = storeToRefs(userStore);
+const profilePic  = computed(() => getProfilePic.value ?? defaultCat);
+const newImageFile= ref(null);
+const newImage    = ref(null);
+const gameInfos   = ref(null);
+const response    = ref(null);
 
-let api_user    = ref(false);
-let api_nyan    = ref(false);
-let api_color   = ref(false);
-let api_pixel   = ref(false);
-let api_avatar  = ref(false);
+function onFileChange(e) {
+ newImageFile.value = e.target.files[0];
+ if (!newImageFile.value) return ;
+ newImage.value = URL.createObjectURL(newImageFile.value);
+ console.log(newImageFile.value);
+}
 
-let resp        = ref("nothing yet");
-
-const getUser = async () => {
-  api_user.value = !api_user.value
-
-  try {
-    const response  = await fetch('/api/users/me/')
-    if (!response.ok)
-      throw new Error(`Couldn't get: ${response.status}`);
-    resp.value = await response.json();
-  }
-  catch (error) {
-    console.error(error.message);
-  }
-};
-
-const getNyan = async () => {
-  api_nyan.value = !api_nyan.value
-
-  try {
-    const response  = await fetch('/api/users/me/nyancoins')
-    if (!response.ok)
-      throw new Error(`Couldn't get: ${response.status}`);
-    resp.value = await response.json();
-  }
-  catch (error) {
-    console.error(error.message);
-  }
-};
-
-const getColor = async () => {
-  api_color.value = !api_color.value
-
-  try {
-    const response  = await fetch('/api/users/me/colors')
-    if (!response.ok)
-      throw new Error(`Couldn't get: ${response.status}`);
-    resp.value = await response.json();
-  }
-  catch (error) {
-    console.error(error.message);
-  }
-};
-
-const getPixel = async () => {
-  api_pixel.value = !api_pixel.value
-
-  try {
-    const response  = await fetch('/api/users/me/pixels')
-    if (!response.ok)
-      throw new Error(`Couldn't get: ${response.status}`);
-    resp.value = await response.json();
-  }
-  catch (error) {
-    console.error(error.message);
-  }
-};
-
-const getAvatar = async () => {
-  api_avatar.value = !api_avatar.value
-
-  try {
-    const response  = await fetch('/api/users/me/')
-    if (!response.ok) {
-      throw new Error(`Couldn't get: ${response.status}`);
+const getGameInfos  = async () => {
+  if (getLoggedStatus.value) {
+    try {
+      const ret  = await fetch('/api/users/me/tplace/')
+      if (!ret.ok)
+        throw new Error(`Couldn't get: ${ret.status}`);
+      response.value = await ret.json();
     }
-    resp.value = await response.json();
-  }
-  catch (error) {
-    console.error(error.message);
+    catch (error) {
+      console.error(error.message);
+    }
   }
 };
 
+const changeProfilePicture = async () => {
+  const formData  = new FormData();
+  formData.append('profile_image', newImageFile.value)
+  try {
+    const ret = await fetch('api/users/me/avatar/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
+    if (!ret.ok)
+      throw new Error(`Error: ${response.status}`);
+    userStore.changeProfilePic(newImage.value);
+    newImage.value = null;
+  }
+  catch (e) {
+    console.error(e.message);
+  }
+}
+
+onMounted(async () => {
+  gameInfos.value = await getGameInfos();
+})
 </script>
 
 <style scoped>

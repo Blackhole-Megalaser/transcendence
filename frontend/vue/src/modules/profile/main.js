@@ -10,7 +10,9 @@ const pinia = setupPinia();
 app.use(pinia);
 
 const userStore = useUserStore();
-userStore.initUserInfos();
+const userInfos = await userStore.initUserInfos();
+// if (!userInfos)
+//   window.location.href = '/login?next=/profile';
 
 app.component('BasePage', BasePage);
 app.component('Profile', Profile);
