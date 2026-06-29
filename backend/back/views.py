@@ -281,7 +281,7 @@ class FriendlistView(NestedUserProfileView, RetrieveAPIView):
 # /api/users/me/friend_request
 class FriendsRequestView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = FriendsRequestSerializer
-    
+
 
 class AvatarView(NestedUserProfileBase, APIView):
     serializer_class = AvatarSerializer
