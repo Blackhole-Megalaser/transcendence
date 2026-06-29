@@ -38,6 +38,7 @@ from .models import (
 )
 from .serializers import (
     AvatarSerializer,
+    EmailUpdateSerializer,
     FriendlistSerializer,
     FriendsRequestSerializer,
     FriendsSerializer,
@@ -129,13 +130,13 @@ class UserViewSet(viewsets.ModelViewSet):
         Admins can do anything, users can only access their own info
         """
         permission_classes = [permissions.IsAdminUser]
-        if self.action == "retrieve":
+        if self.action in ["retrieve", "change_email"]:
             requester_username = self.request.user.username
             wanted_username = self.get_object().username
             request_for_own_info = requester_username == wanted_username
             if request_for_own_info:
                 permission_classes = [permissions.IsAuthenticated]
-        elif self.action in ["logout"]:
+        if self.action in ["logout"]:
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ["login", "signup"]:
             permission_classes = [permissions.AllowAny]
@@ -202,6 +203,21 @@ class UserViewSet(viewsets.ModelViewSet):
         data = UserSerializer(user, context={"request": request}).data
         return Response(data)
 
+    @action(
+        detail=True,
+        methods=["post"],
+        serializer_class=EmailUpdateSerializer,
+    )
+    def change_email(self, request, username):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.get_object()
+        user.email = serializer.validated_data["email"]  # pyright: ignore[reportOptionalSubscript]
+        user.save()
+
+        return Response({"detail": "Email adress changed successfully."}, status=200)
+
 
 class NestedUserProfileBase:
     permission_classes = [permissions.IsAuthenticated]
@@ -265,7 +281,7 @@ class FriendlistView(NestedUserProfileView, RetrieveAPIView):
 # /api/users/me/friend_request
 class FriendsRequestView(NestedUserProfileView, RetrieveAPIView):
     serializer_class = FriendsRequestSerializer
-
+    
 
 class AvatarView(NestedUserProfileBase, APIView):
     serializer_class = AvatarSerializer

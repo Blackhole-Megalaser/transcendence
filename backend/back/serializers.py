@@ -127,6 +127,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class EmailUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["email"]
+
+
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Color
@@ -209,8 +215,6 @@ class FriendlistSerializer(serializers.ModelSerializer):
 
 
 class FriendsRequestSerializer(serializers.ModelSerializer):
-    pending_friend_requests = UserSerializer(many=True)
-
     class Meta:
         model = UserProfile
         fields = ["pending_friend_requests"]
