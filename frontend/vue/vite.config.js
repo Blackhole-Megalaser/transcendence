@@ -22,6 +22,7 @@ export default defineConfig({
       input: {
         main:           resolve(__dirname, 'index.html'),
         skribbl:        resolve(__dirname, 'skribbl.html'),
+        lobbyskbl:      resolve(__dirname, 'lobbyskbl.html'),
         tplace:         resolve(__dirname, 'tplace.html'),
         privacy:        resolve(__dirname, 'privacy.html'),
         terms:          resolve(__dirname, 'terms.html'),
@@ -41,6 +42,7 @@ export default defineConfig({
       '@components':  path.resolve(__dirname, './src/components'),
       '@modules':     path.resolve(__dirname, './src/modules'),
       '@skribbl':     path.resolve(__dirname, './src/modules/skribbl'),
+      '@lobbyskbl':     path.resolve(__dirname, './src/modules/lobbyskbl'),
       '@tplace':      path.resolve(__dirname, './src/modules/tplace'),
       '@shared':      path.resolve(__dirname, './src/shared/'),
       '@storage':     path.resolve(__dirname, './src/storage'),
