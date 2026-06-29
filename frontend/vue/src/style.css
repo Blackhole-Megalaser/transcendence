@@ -189,5 +189,5 @@ body {
   @apply flex justify-center items-center
 }
 .fscreen {
-  @apply h-[calc(100dvh-5rem)] w-dvw
+  @apply h-[calc(100dvh-5rem)] w-full
 }
