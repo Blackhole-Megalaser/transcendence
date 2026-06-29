@@ -23,17 +23,56 @@
 			/>
 
 			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex flex-col items-center gap-2 sm:inset-x-4 sm:bottom-4">
+				<div class="pointer-events-auto flex items-center gap-2">
+					<button
+						class="inline-flex min-h-12 max-w-[calc(100vw-1rem)] items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-bold leading-tight text-white shadow-[0_12px_30px_rgba(37,99,235,0.45)] transition focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95 sm:min-w-56 sm:px-6 sm:text-lg"
+						:class="[
+							isLoginRequired
+								? 'border-red-300 bg-red-600 shadow-[0_12px_30px_rgba(220,38,38,0.42)] hover:bg-red-500 focus-visible:outline-red-300'
+								: 'border-white/35 bg-blue-600 hover:bg-blue-500 focus-visible:outline-blue-300',
+							isPaintMode && canPaint && !isLoginRequired ? 'border-red-200 ring-4 ring-red-300/70' : '',
+						]"
+						type="button"
+						aria-controls="tplace-tools"
+						:aria-expanded="!isLoginRequired && isPaintMode && isToolMenuOpen"
+						@click="handlePaintButtonClick"
+					>
+						<FontAwesomeIcon
+							:icon="byPrefixAndName.fas[isLoginRequired ? 'right-to-bracket' : (isPaintMode ? 'check' : 'paintbrush')]"
+							class="text-sm sm:text-base"
+						/>
+						<span class="text-center">{{ paintButtonText }}</span>
+						<span
+							v-if="!isLoginRequired && !isPaintMode"
+							class="rounded-full bg-white/15 px-2 py-0.5 text-sm font-bold tabular-nums text-white/90"
+						>{{ regenerationSecondsLeft }}s</span>
+					</button>
+
+					<button
+						v-if="!isLoginRequired && isPaintMode && !isToolMenuOpen"
+						class="grid size-12 place-items-center rounded-full border border-white/35 bg-blue-600 text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95"
+						type="button"
+						title="Expand paint tools"
+						aria-label="Expand paint tools"
+						aria-controls="tplace-tools"
+						:aria-expanded="isToolMenuOpen"
+						@click="toggleToolMenu"
+					>
+						<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-down']" />
+					</button>
+				</div>
+
 				<div
 					id="tplace-tools"
 					class="pointer-events-auto flex w-full max-w-3xl flex-col items-center gap-2 transition duration-200 ease-out"
-					:class="isPaintMode ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'"
+					:class="isPaintMode ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-4 opacity-0'"
 					:aria-hidden="!isPaintMode"
 				>
 					<div
-						class="w-full origin-bottom overflow-hidden rounded-2xl border border-borders-outline/80 bg-bg-card/95 shadow-[0_16px_40px_rgba(20,20,20,0.22)] backdrop-blur-md transition duration-200 ease-out"
+						class="w-full origin-top overflow-hidden rounded-2xl border border-borders-outline/80 bg-bg-card/95 shadow-[0_16px_40px_rgba(20,20,20,0.22)] backdrop-blur-md transition duration-200 ease-out"
 						:class="isToolMenuOpen ? 'max-h-96 scale-100 p-2 opacity-100 sm:p-3' : 'pointer-events-none max-h-0 scale-95 border-transparent p-0 opacity-0'"
 					>
-						<div class="mb-2 flex items-center justify-between gap-2">
+						<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
 							<div class="flex min-w-0 items-center gap-2">
 								<span
 									class="grid size-8 shrink-0 place-items-center rounded-xl bg-button-1-normal text-text-button-1 shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
@@ -47,12 +86,20 @@
 								</div>
 							</div>
 
-							<div class="flex shrink-0 items-center gap-1.5">
+							<div class="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+								<div
+									class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-borders-outline bg-bg-main px-2 text-sm font-bold tabular-nums text-text-main shadow-sm"
+									aria-label="Nyancoins"
+									title="{{ nyancoins }} Nyancoins"
+								>
+									<img :src="nyancoinIcon" alt="" class="size-5 shrink-0" draggable="false">
+									<span>{{ nyancoins }}</span>
+								</div>
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									:class="isEraserMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
 									type="button"
-									title="Gommer les pixels temporaires"
+									title="Erase draft pixels"
 									aria-label="Erase draft pixels"
 									:aria-pressed="isEraserMode"
 									@click="toggleEraserMode"
@@ -62,7 +109,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Annuler"
+									title="Undo"
 									aria-label="Undo"
 									@click="undo"
 								>
@@ -71,7 +118,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Refaire"
+									title="Redo"
 									aria-label="Redo"
 									@click="redo"
 								>
@@ -80,18 +127,18 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Reduire"
+									title="Collapse paint tools"
 									aria-label="Collapse paint tools"
 									:aria-expanded="isToolMenuOpen"
 									aria-controls="tplace-tools"
 									@click="toggleToolMenu"
 								>
-									<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-down']" />
+									<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-up']" />
 								</button>
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-red-400/60 bg-bg-main text-sm text-red-500 shadow-sm transition hover:bg-red-500 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
 									type="button"
-									title="Annuler le dessin"
+									title="Cancel paint draft"
 									aria-label="Cancel paint draft"
 									@click="cancelPaintMode"
 								>
@@ -103,8 +150,16 @@
 						<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
 							<div class="min-w-0 flex-1">
 								<div
-									class="tplace-scrollbar grid max-w-full grid-flow-col grid-rows-2 gap-1.5 overflow-x-auto rounded-2xl bg-bg-main/80 p-2 shadow-inner sm:grid-rows-1"
+									ref="colorPaletteRef"
+									class="tplace-scrollbar grid max-w-full cursor-grab grid-flow-col grid-rows-2 gap-1.5 overflow-x-auto rounded-2xl bg-bg-main/80 p-2 shadow-inner select-none sm:grid-rows-1"
+									:class="isPaletteDragging ? 'cursor-grabbing' : ''"
 									aria-label="Color palette"
+									@wheel.prevent
+									@pointerdown="handlePalettePointerDown"
+									@pointermove="handlePalettePointerMove"
+									@pointerup="handlePalettePointerEnd"
+									@pointercancel="handlePalettePointerEnd"
+									@lostpointercapture="handlePalettePointerEnd"
 								>
 									<button
 										v-for="color in colors"
@@ -118,7 +173,7 @@
 										:title="color.name"
 										:aria-label="color.name"
 										:aria-pressed="selectedColor === color.value"
-										@click="selectColor(color.value)"
+										@click="handleColorClick(color.value, $event)"
 									/>
 								</div>
 							</div>
@@ -136,40 +191,17 @@
 						</div>
 					</div>
 				</div>
-
-				<div class="pointer-events-auto flex items-center gap-2">
-					<button
-						class="inline-flex min-h-12 min-w-44 items-center justify-center gap-2 rounded-full border border-white/35 bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-[0_12px_30px_rgba(37,99,235,0.45)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95 sm:min-w-56 sm:text-lg"
-						:class="isPaintMode && canPaint ? 'border-red-200 ring-4 ring-red-300/70' : ''"
-						type="button"
-						aria-controls="tplace-tools"
-						:aria-expanded="isPaintMode && isToolMenuOpen"
-						@click="handlePaintButtonClick"
-					>
-						<FontAwesomeIcon :icon="byPrefixAndName.fas['paintbrush']" class="text-sm sm:text-base" />
-						<span>Paint {{ pixelsLeft }}</span>
-						<span class="rounded-full bg-white/15 px-2 py-0.5 text-sm font-bold tabular-nums text-white/90">{{ regenerationSecondsLeft }}s</span>
-					</button>
-
-					<button
-						v-if="isPaintMode && !isToolMenuOpen"
-						class="grid size-12 place-items-center rounded-full border border-white/35 bg-blue-600 text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95"
-						type="button"
-						title="Ouvrir les outils"
-						aria-label="Expand paint tools"
-						aria-controls="tplace-tools"
-						:aria-expanded="isToolMenuOpen"
-						@click="toggleToolMenu"
-					>
-						<FontAwesomeIcon :icon="byPrefixAndName.fas['chevron-up']" />
-					</button>
-				</div>
 			</div>
 		</section>
 	</main>
 </template>
 
 <script setup>
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useThemeStore } from '@storage'
+import nyancoinIcon from '@assets/nyancoin.png'
+import tplaceNavbarLogoLight from '@assets/ft_cat_pixel_title.png'
+import tplaceNavbarLogoDark from '@assets/ft_cat_pixel_title_dark.png'
 import { runTplace } from './tplace.js'
 import './TPlace.css'
 
@@ -179,6 +211,7 @@ const {
 	canvasRef,
 	colors,
 	confirmDraftPixels,
+	draftPixelCount,
 	gridLabel,
 	handleMouseDown,
 	handleMouseLeave,
@@ -190,8 +223,11 @@ const {
 	handleTouchStart,
 	handleWheel,
 	isEraserMode,
+	isLoginRequired,
 	isPaintMode,
 	isToolMenuOpen,
+	loginUrl,
+	nyancoins,
 	pixelsLeft,
 	pointerStatus,
 	redo,
@@ -205,7 +241,182 @@ const {
 	undo,
 } = runTplace()
 
+const theme = useThemeStore()
+const tplaceNavbarLogo = computed(() => theme.getThemeIndex() === 0 ? tplaceNavbarLogoLight : tplaceNavbarLogoDark)
+let navbarLogoImage = null
+let originalNavbarLogo = null
+let navbarLogoFrameId = 0
+let stopNavbarLogoWatcher = null
+
+const colorPaletteRef = ref(null)
+const isPaletteDragging = ref(false)
+const paletteDragState = {
+	pointerId: null,
+	startX: 0,
+	startScrollLeft: 0,
+	didDrag: false,
+	suppressClick: false,
+}
+
+function getNavbarLogoImage() {
+	return document.querySelector('nav a[aria-label="back to home"] img')
+}
+
+function restoreNavbarLogo() {
+	if (!(navbarLogoImage instanceof HTMLImageElement) || originalNavbarLogo === null) {
+		return
+	}
+
+	navbarLogoImage.src = originalNavbarLogo.src
+	navbarLogoImage.alt = originalNavbarLogo.alt
+
+	if (originalNavbarLogo.srcset === null) {
+		navbarLogoImage.removeAttribute('srcset')
+	} else {
+		navbarLogoImage.setAttribute('srcset', originalNavbarLogo.srcset)
+	}
+
+	navbarLogoImage = null
+	originalNavbarLogo = null
+}
+
+function applyTplaceNavbarLogo() {
+	const image = getNavbarLogoImage()
+
+	if (!(image instanceof HTMLImageElement)) {
+		return
+	}
+
+	if (navbarLogoImage !== image) {
+		restoreNavbarLogo()
+		navbarLogoImage = image
+		originalNavbarLogo = {
+			src: image.src,
+			srcset: image.getAttribute('srcset'),
+			alt: image.alt,
+		}
+	}
+
+	image.src = tplaceNavbarLogo.value
+	image.alt = 'TPlace'
+	image.removeAttribute('srcset')
+}
+
+function scheduleTplaceNavbarLogo() {
+	if (navbarLogoFrameId !== 0) {
+		window.cancelAnimationFrame(navbarLogoFrameId)
+	}
+
+	navbarLogoFrameId = window.requestAnimationFrame(() => {
+		navbarLogoFrameId = 0
+		applyTplaceNavbarLogo()
+	})
+}
+
+const paintButtonText = computed(() => {
+	if (isLoginRequired.value) {
+		return 'Log In to place your pixels !'
+	}
+
+	if (isPaintMode.value) {
+		return `Place ${draftPixelCount.value} pixels`
+	}
+
+	return `Paint ${pixelsLeft.value}`
+})
+
+function getPaletteElement(event) {
+	return event.currentTarget instanceof HTMLElement ? event.currentTarget : colorPaletteRef.value
+}
+
+function handlePalettePointerDown(event) {
+	const palette = getPaletteElement(event)
+
+	if (!(palette instanceof HTMLElement) || event.button !== 0 || event.pointerType !== 'mouse') {
+		return
+	}
+
+	paletteDragState.pointerId = event.pointerId
+	paletteDragState.startX = event.clientX
+	paletteDragState.startScrollLeft = palette.scrollLeft
+	paletteDragState.didDrag = false
+	isPaletteDragging.value = false
+}
+
+function handlePalettePointerMove(event) {
+	const palette = getPaletteElement(event)
+
+	if (!(palette instanceof HTMLElement) || paletteDragState.pointerId !== event.pointerId) {
+		return
+	}
+
+	const deltaX = event.clientX - paletteDragState.startX
+
+	if (!paletteDragState.didDrag && Math.abs(deltaX) > 8) {
+		paletteDragState.didDrag = true
+		paletteDragState.suppressClick = true
+		isPaletteDragging.value = true
+		palette.setPointerCapture?.(event.pointerId)
+	}
+
+	if (!paletteDragState.didDrag) {
+		return
+	}
+
+	event.preventDefault()
+	palette.scrollLeft = paletteDragState.startScrollLeft - deltaX
+}
+
+function handlePalettePointerEnd(event) {
+	const palette = getPaletteElement(event)
+
+	if (palette instanceof HTMLElement && paletteDragState.pointerId === event.pointerId) {
+		try {
+			palette.releasePointerCapture?.(event.pointerId)
+		} catch {
+		}
+	}
+
+	paletteDragState.pointerId = null
+	isPaletteDragging.value = false
+	window.setTimeout(() => {
+		paletteDragState.didDrag = false
+		paletteDragState.suppressClick = false
+	}, 0)
+}
+
+function handleColorClick(color, event) {
+	if (paletteDragState.suppressClick) {
+		event.preventDefault()
+		paletteDragState.suppressClick = false
+		return
+	}
+
+	selectColor(color)
+}
+
+onMounted(() => {
+	scheduleTplaceNavbarLogo()
+	stopNavbarLogoWatcher = watch(tplaceNavbarLogo, scheduleTplaceNavbarLogo, { flush: 'post' })
+})
+
+onBeforeUnmount(() => {
+	if (navbarLogoFrameId !== 0) {
+		window.cancelAnimationFrame(navbarLogoFrameId)
+		navbarLogoFrameId = 0
+	}
+
+	stopNavbarLogoWatcher?.()
+	stopNavbarLogoWatcher = null
+	restoreNavbarLogo()
+})
+
 async function handlePaintButtonClick() {
+	if (isLoginRequired.value) {
+		window.location.href = loginUrl.value
+		return
+	}
+
 	if (!isPaintMode.value) {
 		togglePaintMode()
 		return

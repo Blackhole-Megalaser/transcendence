@@ -1,5 +1,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { getCookie } from '@shared'
+import { useUserStore } from '@storage'
 import selectImageUrl from './select.png'
 
 const WORLD_X_MAX = 2000
@@ -17,6 +18,7 @@ const TPLACE_ROOM_NAME = 'tplace-main'
 const DEFAULT_PIXEL_COLOR = '#FFFFFF'
 
 export function runTplace() {
+	const userStore = useUserStore()
 	const colors = [
 		{ name: 'Black', value: '#000000' },
 		{ name: 'Red', value: '#FF1A1A' },
@@ -51,12 +53,22 @@ export function runTplace() {
 	const isToolMenuOpen = ref(false)
 	const isPaintMode = ref(false)
 	const isEraserMode = ref(false)
+	const isAuthenticated = ref(true)
+	const isAuthenticationResolved = ref(false)
 	const selectedColor = ref(colors[0].value)
 	const pointerStatus = ref('Mouse not here :(')
 	const gridLabel = computed(() => 'Show grid')
 	const pixelsLeft = ref('0/0')
 	const canPaint = computed(() => Number(pixelsLeft.value.split('/')[0]) > 0)
 	const regenerationSecondsLeft = ref(0)
+	const nyancoins = ref(0)
+	const draftPixelCount = ref(0)
+	const isLoginRequired = computed(() => isAuthenticationResolved.value && !isAuthenticated.value)
+	const loginUrl = computed(() => {
+		const currentPath = `${window.location.pathname}${window.location.search}`
+
+		return currentPath === '/' ? '/login' : `/login?next=${encodeURIComponent(currentPath)}`
+	})
 
 	let placablePixels = 0
 	let maxPlacablePixels = 0
@@ -125,6 +137,33 @@ export function runTplace() {
 
 	function updatePixelCounter() {
 		pixelsLeft.value = `${placablePixels}/${maxPlacablePixels}`
+	}
+
+	function updateDraftPixelCount() {
+		draftPixelCount.value = draftPixels.size
+	}
+
+	function setNyancoins(value) {
+		const nextNyancoins = Number(value)
+
+		if (Number.isFinite(nextNyancoins)) {
+			nyancoins.value = Math.max(0, nextNyancoins)
+		}
+	}
+
+	function markAuthenticated() {
+		isAuthenticated.value = true
+		isAuthenticationResolved.value = true
+	}
+
+	function markUnauthenticated() {
+		isAuthenticated.value = false
+		isAuthenticationResolved.value = true
+		userStore.clear()
+		setPixelQuota(0, 0)
+		setNyancoins(0)
+		setNextRegeneration(null)
+		cancelPaintMode()
 	}
 
 	function setPixelQuota(left, max = maxPlacablePixels) {
@@ -312,9 +351,16 @@ export function runTplace() {
 			const response = await fetch('/api/users/me/tplace/')
 			const payload = await readJsonResponse(response)
 
+			if (response.status === 401 || response.status === 403) {
+				markUnauthenticated()
+				return
+			}
+
 			if (!response.ok) {
 				return
 			}
+
+			markAuthenticated()
 
 			if (Array.isArray(payload?.unlocked_colors)) {
 				payload.unlocked_colors.forEach((color) => {
@@ -327,6 +373,7 @@ export function runTplace() {
 			}
 
 			setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
+			setNyancoins(payload?.nyancoins)
 			setNextRegeneration(payload?.next_regeneration)
 		} catch (error) {
 			console.error(error)
@@ -459,6 +506,7 @@ export function runTplace() {
 		}
 
 		setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
+		setNyancoins(payload?.nyancoins)
 		setNextRegeneration(payload?.next_pixel_at)
 
 		return payload
@@ -480,6 +528,7 @@ export function runTplace() {
 
 		if (oldColor === normalizedColor) {
 			draftPixels.delete(key)
+			updateDraftPixelCount()
 			return true
 		}
 
@@ -489,6 +538,7 @@ export function runTplace() {
 			oldColor,
 			newColor: normalizedColor,
 		})
+		updateDraftPixelCount()
 
 		return true
 	}
@@ -567,6 +617,7 @@ export function runTplace() {
 			for (const change of changes) {
 				await sendPixelChange(change)
 				draftPixels.delete(getDraftKey(change.x, change.y))
+				updateDraftPixelCount()
 			}
 
 			undoStack.length = 0
@@ -583,6 +634,7 @@ export function runTplace() {
 
 	function cancelDraftPixels() {
 		draftPixels.clear()
+		updateDraftPixelCount()
 		undoStack.length = 0
 		redoStack.length = 0
 		currentStroke = null
@@ -1327,6 +1379,7 @@ export function runTplace() {
 		canvasRef,
 		colors,
 		confirmDraftPixels,
+		draftPixelCount,
 		gridLabel,
 		handleMouseDown,
 		handleMouseLeave,
@@ -1338,8 +1391,11 @@ export function runTplace() {
 		handleTouchStart,
 		handleWheel,
 		isEraserMode,
+		isLoginRequired,
 		isPaintMode,
 		isToolMenuOpen,
+		loginUrl,
+		nyancoins,
 		pixelsLeft,
 		pointerStatus,
 		redo,
