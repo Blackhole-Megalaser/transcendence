@@ -10,13 +10,70 @@ from django.core.validators import (
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
 
-from .models import Color, Pixel, UserProfile, WordList
+from .models import (
+    Color,
+    Pixel,
+    SkribblePlayer,
+    SkribbleRoom,
+    UserProfile,
+    Word,
+    WordList,
+)
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    room = serializers.SlugRelatedField(read_only=True, slug_field="code")
+    username = serializers.CharField(source="player.user.username", read_only=True)
+
+    class Meta:
+        model = SkribblePlayer
+        fields = [
+            "room",
+            "username",
+            "order",
+            "score",
+            "found",
+        ]
+        read_only_fields = fields
+
+
+class SkribbleRoomSerializer(serializers.ModelSerializer):
+    players = PlayerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SkribbleRoom
+        fields = [
+            "code",
+            "name",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "game_started",
+            "turn_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
+        read_only_fields = [
+            "code",
+            "players",
+            "current_player_index",
+            "round_counter",
+            "game_started",
+            "turn_started",
+            "timer",
+            "timer_end",
+            "created_at",
+        ]
 
 
 # /users/
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_image = serializers.SerializerMethodField()
     available_routes = serializers.SerializerMethodField()
+    skribble = SkribbleRoomSerializer(
+        read_only=True, source="userprofile.skribbleplayer.room"
+    )
 
     class Meta:
         model = User
@@ -27,6 +84,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             "is_staff",
             "profile_image",
             "available_routes",
+            "skribble",
         ]
         extra_kwargs = {"url": {"view_name": "user-detail", "lookup_field": "username"}}
 
@@ -58,6 +116,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             "max-pixels": request.build_absolute_uri(
                 f"/api/users/{username}/max-pixels/"
             ),
+            "avatar": request.build_absolute_uri(f"/api/users/{username}/avatar/"),
         }
 
 
@@ -122,6 +181,12 @@ class MaxPixelsSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class AvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["profile_image"]
+
+
 class LoginRequestSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
@@ -166,3 +231,9 @@ class WordListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = WordList
         fields = ["words", "name"]
+
+
+class StartTurnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Word
+        fields = ["word"]

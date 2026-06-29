@@ -1,10 +1,14 @@
 import datetime
 import logging
 import os
+import random
+from string import ascii_uppercase
 
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Max
+from django.db.models.deletion import CASCADE, RESTRICT
 from django.utils import timezone
 
 ##########################################################
@@ -98,14 +102,28 @@ class UserProfile(models.Model):
         pixels_to_regenerate = 0
         while now > self.next_regeneration:
             pixels_to_regenerate += 1
-            self.next_regeneration = self.next_regeneration + self.regeneration_delay
+            self.next_regeneration = self.next_regeneration + self.regeneration_delay  # pyright: ignore[reportOperatorIssue]
         self.placable_pixels = min(
-            self.placable_pixels + pixels_to_regenerate, self.max_placable_pixels
+            self.placable_pixels + pixels_to_regenerate,
+            self.max_placable_pixels,  # pyright: ignore[reportOperatorIssue]
         )
         self.save()
 
     def __str__(self):
         return self.user.username
+
+    def leave_skribble(self):
+        """
+        does NOT perform empty room cleanup
+        """
+        SkribblePlayer.objects.filter(player=self).delete()
+
+    def join_skribble(self, room: "SkribbleRoom"):
+        with transaction.atomic():
+            self.leave_skribble()
+            player = SkribblePlayer(room=room, player=self)
+            player.save()
+            SkribbleRoom.cleanup_empty_rooms()
 
 
 class Pixel(models.Model):
@@ -123,3 +141,102 @@ class Pixel(models.Model):
 
     def __str__(self):
         return f"[{self.x_pos}, {self.y_pos}] {self.color}"
+
+
+class SkribbleRoom(models.Model):
+    # random 5 letter room code
+    code = models.TextField(max_length=5, unique=True)
+    # pretty name to show in room selector
+    name = models.TextField(max_length=255, unique=True)
+    current_word = models.ForeignKey(
+        Word,
+        on_delete=RESTRICT,
+        related_name="rooms_with_current_word",
+        blank=True,
+        null=True,
+    )
+    wordlist = models.ForeignKey(WordList, on_delete=RESTRICT)
+    current_player_index = models.IntegerField(default=0)
+    round_counter = models.IntegerField(default=0)
+    game_started = models.BooleanField(default=False)
+    # True once a word has been chosen and the timer is running
+    turn_started = models.BooleanField(default=False)
+
+    word_history = models.ManyToManyField(
+        Word,
+        through="SkribbleRoomWord",
+        related_name="rooms_with_word_in_history",
+    )
+
+    timer = models.DurationField(default=timezone.timedelta(minutes=1))
+    timer_end = models.DateTimeField(default=timezone.now)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def generate_code(self):
+        while True:
+            code = random.choices(ascii_uppercase, k=5)
+            code = "".join(code)
+            if not SkribbleRoom.objects.filter(code=code).exists():
+                return code
+
+    def save(self, **kwargs):
+        if self.code == "":
+            self.code = self.generate_code()
+        if not hasattr(self, "wordlist"):
+            self.wordlist = WordList.objects.get(name="basic")
+        super().save(**kwargs)
+
+    @staticmethod
+    def cleanup_empty_rooms():
+        SkribbleRoom.objects.filter(players__isnull=True).delete()
+
+
+class SkribbleRoomWord(models.Model):
+    room = models.ForeignKey(SkribbleRoom, on_delete=CASCADE)
+    word = models.ForeignKey(Word, on_delete=CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room", "word"], name="unique_room_word_history"
+            ),
+        ]
+
+
+class SkribblePlayer(models.Model):
+    """
+    A player in a round of Skribble
+    """
+
+    room = models.ForeignKey(SkribbleRoom, on_delete=CASCADE, related_name="players")
+    player = models.OneToOneField(UserProfile, on_delete=models.RESTRICT)
+    # order in which the player will play
+    order = models.IntegerField(validators=[MinValueValidator(0)])
+    score = models.IntegerField(validators=[MinValueValidator(0)], default=0)
+
+    # true if the player has found the word
+    found = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room", "order"], name="skribble_player_unique_order_per_room"
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.order is None:
+            with transaction.atomic():
+                # If you need strict concurrency safety, consider locking:
+                max_order = (
+                    SkribblePlayer.objects.select_for_update()
+                    .filter(room=self.room)
+                    .aggregate(m=Max("order"))
+                    .get("m")
+                )
+                if max_order is None:
+                    self.order = 0
+                else:
+                    self.order = max_order + 1
+        return super().save(*args, **kwargs)

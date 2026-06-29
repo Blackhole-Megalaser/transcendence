@@ -1,17 +1,20 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { getCookie } from '@shared'
 import selectImageUrl from './select.png'
 
-const WORLD_X_MAX = 500
-const WORLD_Y_MAX = 500
+const WORLD_X_MAX = 2000
+const WORLD_Y_MAX = 2000
 const CELL_SIZE = 16
 const DEFAULT_VIEWPORT_WIDTH = 896
 const DEFAULT_VIEWPORT_HEIGHT = 608
 const WORLD_WIDTH = WORLD_X_MAX * CELL_SIZE
 const WORLD_HEIGHT = WORLD_Y_MAX * CELL_SIZE
-const MIN_ZOOM = 0.1
+const MIN_ZOOM = 0.4
 const MAX_ZOOM = 8
 const EDGE_BORDER_COLOR = '#FF1A1A'
 const EDGE_BORDER_SCREEN_SIZE = 6
+const TPLACE_ROOM_NAME = 'tplace-main'
+const DEFAULT_PIXEL_COLOR = '#FFFFFF'
 
 export function runTplace() {
 	const colors = [
@@ -41,14 +44,26 @@ export function runTplace() {
 		{ name: 'Dark Pink', value: '#99004D' },
 	]
 
+	const colorNameByHex = new Map(colors.map((color) => [normalizeHexColor(color.value), color.name]))
+
 	const canvasRef = ref(null)
 	const showGrid = ref(false)
 	const isToolMenuOpen = ref(false)
 	const isPaintMode = ref(false)
+	const isEraserMode = ref(false)
 	const selectedColor = ref(colors[0].value)
 	const pointerStatus = ref('Mouse not here :(')
 	const gridLabel = computed(() => 'Show grid')
-	const pixelsLeft = ref('100/100')
+	const pixelsLeft = ref('0/0')
+	const canPaint = computed(() => Number(pixelsLeft.value.split('/')[0]) > 0)
+	const regenerationSecondsLeft = ref(0)
+
+	let placablePixels = 0
+	let maxPlacablePixels = 0
+	let nextRegenerationAt = null
+	let isCanvasLoaded = false
+	let isLoadingProfile = false
+	let isCommittingDraft = false
 
 	const pixels = Array.from({ length: WORLD_Y_MAX }, () => Array.from({ length: WORLD_X_MAX }, () => null))
 	const undoStack = []
@@ -60,7 +75,6 @@ export function runTplace() {
 	let currentStroke = null
 	let isDrawing = false
 	let animationFrameId = 0
-	let placed = 0
 	let cameraX = 0
 	let cameraY = 0
 	let isPanning = false
@@ -70,9 +84,21 @@ export function runTplace() {
 	let lastTouchDistance = 0
 	let resizeObserver = null
 	let zoom = 1
+	let tplaceSocket = null
+	let reconnectTimeoutId = 0
+	let reconnectAttempt = 0
+	let profileRefreshIntervalId = 0
+	let regenerationTimerIntervalId = 0
+
+	const draftPixels = new Map()
 
 	function selectColor(color) {
+		isEraserMode.value = false
 		selectedColor.value = color
+	}
+
+	function toggleEraserMode() {
+		isEraserMode.value = !isEraserMode.value
 	}
 
 	function togglePaintMode() {
@@ -81,12 +107,496 @@ export function runTplace() {
 
 		if (!isPaintMode.value) {
 			isDrawing = false
+			isEraserMode.value = false
 			commitStroke()
 		}
 	}
 
 	function toggleToolMenu() {
 		isToolMenuOpen.value = !isToolMenuOpen.value
+	}
+
+	function collapseToolMenuIfQuotaEmpty() {
+		if (placablePixels <= 0 && isToolMenuOpen.value) {
+			isToolMenuOpen.value = false
+			isPaintMode.value = false
+		}
+	}
+
+	function updatePixelCounter() {
+		pixelsLeft.value = `${placablePixels}/${maxPlacablePixels}`
+	}
+
+	function setPixelQuota(left, max = maxPlacablePixels) {
+		const nextLeft = Number(left)
+		const nextMax = Number(max)
+
+		if (Number.isFinite(nextLeft)) {
+			placablePixels = Math.max(0, nextLeft)
+		}
+
+		if (Number.isFinite(nextMax)) {
+			maxPlacablePixels = Math.max(0, nextMax)
+		}
+
+		updatePixelCounter()
+		collapseToolMenuIfQuotaEmpty()
+		updateRegenerationTimer()
+	}
+
+	function setNextRegeneration(value) {
+		const timestamp = Date.parse(value)
+
+		nextRegenerationAt = Number.isFinite(timestamp) ? timestamp : null
+		updateRegenerationTimer()
+	}
+
+	function updateRegenerationTimer() {
+		if (nextRegenerationAt === null || placablePixels >= maxPlacablePixels) {
+			regenerationSecondsLeft.value = 0
+			return
+		}
+
+		const secondsLeft = Math.max(0, Math.ceil((nextRegenerationAt - Date.now()) / 1000))
+
+		regenerationSecondsLeft.value = secondsLeft
+
+		if (secondsLeft === 0 && placablePixels < maxPlacablePixels && !isLoadingProfile) {
+			loadTplaceProfile()
+		}
+	}
+
+	function normalizeHexColor(color) {
+		if (typeof color !== 'string') {
+			return null
+		}
+
+		const normalized = color.trim().toUpperCase()
+
+		if (!/^#[0-9A-F]{6}$/.test(normalized)) {
+			return null
+		}
+
+		return normalized
+	}
+
+	function getColorName(hexColor) {
+		const normalized = normalizeHexColor(hexColor)
+
+		if (normalized === null) {
+			return null
+		}
+
+		return colorNameByHex.get(normalized) ?? null
+	}
+
+	function getPixelColor(x, y) {
+		return pixels[y]?.[x] ?? DEFAULT_PIXEL_COLOR
+	}
+
+	function setPixelColor(x, y, color) {
+		const normalized = normalizeHexColor(color)
+
+		if (normalized === null || x < 0 || x >= WORLD_X_MAX || y < 0 || y >= WORLD_Y_MAX) {
+			return false
+		}
+
+		pixels[y][x] = normalized === DEFAULT_PIXEL_COLOR ? null : normalized
+
+		return true
+	}
+
+	function applyBackendPixel(pixel) {
+		if (!pixel || typeof pixel !== 'object') {
+			return false
+		}
+
+		const x = Number(pixel.x_pos ?? pixel.x)
+		const y = Number(pixel.y_pos ?? pixel.y)
+		const color = typeof pixel.color === 'object' ? pixel.color?.hex_code : pixel.color
+
+		if (!Number.isInteger(x) || !Number.isInteger(y)) {
+			return false
+		}
+
+		return setPixelColor(x, y, color)
+	}
+
+	function serializePixelForBroadcast(pixel) {
+		if (!pixel || typeof pixel !== 'object') {
+			return null
+		}
+
+		const x = Number(pixel.x_pos ?? pixel.x)
+		const y = Number(pixel.y_pos ?? pixel.y)
+		const hexCode = normalizeHexColor(typeof pixel.color === 'object' ? pixel.color?.hex_code : pixel.color)
+
+		if (!Number.isInteger(x) || !Number.isInteger(y) || hexCode === null) {
+			return null
+		}
+
+		return {
+			x_pos: x,
+			y_pos: y,
+			color: {
+				name: typeof pixel.color === 'object' ? pixel.color?.name : getColorName(hexCode),
+				hex_code: hexCode,
+			},
+			updated_at: pixel.updated_at,
+		}
+	}
+
+	async function readJsonResponse(response) {
+		try {
+			return await response.json()
+		} catch {
+			return null
+		}
+	}
+
+	async function loadCanvas() {
+		try {
+			const response = await fetch('/api/tplace/canvas/')
+
+			if (!response.ok) {
+				throw new Error(`Canvas load failed (${response.status})`)
+			}
+
+			const canvas = await response.json()
+			const width = Math.min(Number(canvas.width) || WORLD_X_MAX, WORLD_X_MAX)
+			const height = Math.min(Number(canvas.height) || WORLD_Y_MAX, WORLD_Y_MAX)
+			const palette = canvas.palette ?? {}
+			const canvasPixels = Array.isArray(canvas.pixels) ? canvas.pixels : []
+
+			pixels.forEach((row) => row.fill(null))
+
+			if (canvas.encoding === 'sparse') {
+				canvasPixels.forEach((pixel) => {
+					const x = Number(pixel.x_pos ?? pixel.x)
+					const y = Number(pixel.y_pos ?? pixel.y)
+					const colorId = pixel.color_id ?? pixel.color
+					const color = normalizeHexColor(palette[colorId]) ?? DEFAULT_PIXEL_COLOR
+
+					if (Number.isInteger(x) && Number.isInteger(y)) {
+						setPixelColor(x, y, color)
+					}
+				})
+				isCanvasLoaded = true
+				return
+			}
+
+			for (let y = 0; y < height; y += 1) {
+				for (let x = 0; x < width; x += 1) {
+					const colorId = canvasPixels[x + y * width]
+					const color = normalizeHexColor(palette[colorId]) ?? DEFAULT_PIXEL_COLOR
+
+					setPixelColor(x, y, color)
+				}
+			}
+
+			isCanvasLoaded = true
+		} catch (error) {
+			console.error(error)
+			pointerStatus.value = 'Canvas load failed'
+		}
+	}
+
+	async function loadTplaceProfile() {
+		if (isLoadingProfile) {
+			return
+		}
+
+		isLoadingProfile = true
+
+		try {
+			const response = await fetch('/api/users/me/tplace/')
+			const payload = await readJsonResponse(response)
+
+			if (!response.ok) {
+				return
+			}
+
+			if (Array.isArray(payload?.unlocked_colors)) {
+				payload.unlocked_colors.forEach((color) => {
+					const hexCode = normalizeHexColor(color.hex_code)
+
+					if (hexCode !== null && color.name) {
+						colorNameByHex.set(hexCode, color.name)
+					}
+				})
+			}
+
+			setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
+			setNextRegeneration(payload?.next_regeneration)
+		} catch (error) {
+			console.error(error)
+		} finally {
+			isLoadingProfile = false
+		}
+	}
+
+	function buildTplaceSocketUrl() {
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+
+		return `${protocol}//${window.location.host}/ws/tplace/${TPLACE_ROOM_NAME}/`
+	}
+
+	function connectTplaceSocket() {
+		if (tplaceSocket?.readyState === WebSocket.OPEN || tplaceSocket?.readyState === WebSocket.CONNECTING) {
+			return
+		}
+
+		tplaceSocket = new WebSocket(buildTplaceSocketUrl())
+
+		tplaceSocket.onopen = () => {
+			reconnectAttempt = 0
+
+			if (isCanvasLoaded) {
+				loadCanvas()
+			}
+		}
+
+		tplaceSocket.onmessage = handleTplaceSocketMessage
+		tplaceSocket.onerror = () => {
+			pointerStatus.value = 'Live sync error'
+		}
+		tplaceSocket.onclose = () => {
+			scheduleTplaceReconnect()
+		}
+	}
+
+	function scheduleTplaceReconnect() {
+		clearTimeout(reconnectTimeoutId)
+
+		const delay = Math.min(30000, 1000 * (2 ** reconnectAttempt))
+		reconnectAttempt = Math.min(reconnectAttempt + 1, 5)
+		reconnectTimeoutId = window.setTimeout(connectTplaceSocket, delay)
+	}
+
+	function closeTplaceSocket() {
+		clearTimeout(reconnectTimeoutId)
+
+		if (tplaceSocket) {
+			tplaceSocket.onclose = null
+			tplaceSocket.close()
+			tplaceSocket = null
+		}
+	}
+
+	function handleTplaceSocketMessage(event) {
+		let data
+
+		try {
+			data = JSON.parse(event.data)
+		} catch {
+			return
+		}
+
+		if (data.type !== 'message' || !data.message?.text) {
+			return
+		}
+
+		let payload
+
+		try {
+			payload = JSON.parse(data.message.text)
+		} catch {
+			return
+		}
+
+		if (payload.kind === 'tplace.pixel') {
+			applyBackendPixel(payload.pixel)
+		}
+	}
+
+	function broadcastPixelChange(pixel) {
+		if (tplaceSocket?.readyState !== WebSocket.OPEN) {
+			return
+		}
+
+		const broadcastPixel = serializePixelForBroadcast(pixel)
+
+		if (broadcastPixel === null) {
+			return
+		}
+
+		tplaceSocket.send(JSON.stringify({
+			message: JSON.stringify({
+				kind: 'tplace.pixel',
+				pixel: broadcastPixel,
+			}),
+		}))
+	}
+
+	async function sendPixelChange(change) {
+		const colorName = getColorName(change.newColor)
+
+		if (colorName === null) {
+			throw new Error('Unknown color')
+		}
+
+		const response = await fetch('/api/tplace/pixels/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken'),
+			},
+			body: JSON.stringify({
+				x_pos: change.x,
+				y_pos: change.y,
+				color: colorName,
+			}),
+		})
+		const payload = await readJsonResponse(response)
+
+		if (!response.ok) {
+			throw new Error(payload?.detail ?? `Pixel placement failed (${response.status})`)
+		}
+
+		if (payload?.pixel) {
+			applyBackendPixel(payload.pixel)
+			broadcastPixelChange(payload.pixel)
+		}
+
+		setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
+		setNextRegeneration(payload?.next_pixel_at)
+
+		return payload
+	}
+
+	function getDraftKey(x, y) {
+		return `${x}:${y}`
+	}
+
+	function setDraftPixel(x, y, color) {
+		const normalizedColor = normalizeHexColor(color)
+
+		if (normalizedColor === null) {
+			return false
+		}
+
+		const oldColor = getPixelColor(x, y)
+		const key = getDraftKey(x, y)
+
+		if (oldColor === normalizedColor) {
+			draftPixels.delete(key)
+			return true
+		}
+
+		draftPixels.set(key, {
+			x,
+			y,
+			oldColor,
+			newColor: normalizedColor,
+		})
+
+		return true
+	}
+
+	function eraseDraftPixel(x, y) {
+		const key = getDraftKey(x, y)
+		const draftPixel = draftPixels.get(key)
+
+		if (!draftPixel) {
+			return
+		}
+
+		rememberPixelChange(x, y, draftPixel.newColor, draftPixel.oldColor)
+		setDraftPixel(x, y, draftPixel.oldColor)
+	}
+
+	function recordPixelChange(x, y, newColor) {
+		const oldColor = draftPixels.get(getDraftKey(x, y))?.newColor ?? getPixelColor(x, y)
+		const normalizedColor = normalizeHexColor(newColor)
+
+		if (normalizedColor === null || oldColor === normalizedColor) {
+			return
+		}
+
+		if (!draftPixels.has(getDraftKey(x, y)) && draftPixels.size >= placablePixels) {
+			pointerStatus.value = 'No paint left'
+			return
+		}
+
+		rememberPixelChange(x, y, oldColor, normalizedColor)
+		setDraftPixel(x, y, normalizedColor)
+	}
+
+	function rememberPixelChange(x, y, oldColor, newColor) {
+		if (currentStroke === null) {
+			currentStroke = []
+		}
+
+		const existingChange = currentStroke.find((change) => change.x === x && change.y === y)
+
+		if (existingChange) {
+			existingChange.newColor = newColor
+		} else {
+			currentStroke.push({
+				x,
+				y,
+				oldColor,
+				newColor,
+			})
+		}
+	}
+
+	async function confirmDraftPixels() {
+		commitStroke()
+
+		if (isCommittingDraft) {
+			return
+		}
+
+		const changes = Array.from(draftPixels.values())
+
+		if (changes.length === 0) {
+			return
+		}
+
+		await loadTplaceProfile()
+
+		if (changes.length > placablePixels) {
+			pointerStatus.value = `Need ${changes.length} charges`
+			return
+		}
+
+		isCommittingDraft = true
+
+		try {
+			for (const change of changes) {
+				await sendPixelChange(change)
+				draftPixels.delete(getDraftKey(change.x, change.y))
+			}
+
+			undoStack.length = 0
+			redoStack.length = 0
+			pointerStatus.value = 'Pixels saved'
+		} catch (error) {
+			console.error(error)
+			pointerStatus.value = error.message || 'Pixel placement failed'
+			loadTplaceProfile()
+		} finally {
+			isCommittingDraft = false
+		}
+	}
+
+	function cancelDraftPixels() {
+		draftPixels.clear()
+		undoStack.length = 0
+		redoStack.length = 0
+		currentStroke = null
+	}
+
+	function cancelPaintMode() {
+		isEraserMode.value = false
+		isDrawing = false
+		isPanning = false
+		touchMode = null
+		hoverCell = null
+		cancelDraftPixels()
+		isPaintMode.value = false
+		isToolMenuOpen.value = false
 	}
 
 	function clamp(value, min, max) {
@@ -267,9 +777,26 @@ export function runTplace() {
 
 		for (let y = firstY; y <= lastY; y += 1) {
 			for (let x = firstX; x <= lastX; x += 1) {
-				drawPixel(x, y, pixels[y][x] ?? '#FFFFFF')
+				drawPixel(x, y, pixels[y][x] ?? DEFAULT_PIXEL_COLOR)
 			}
 		}
+	}
+
+	function drawHoverMarker(x, y) {
+		if (hoverImage === null || !hoverImage.complete) {
+			return
+		}
+
+		const bounds = getScreenCellBounds(x, y)
+
+		ctx.drawImage(hoverImage, bounds.left, bounds.top, bounds.width, bounds.height)
+	}
+
+	function drawDraftPixels() {
+		draftPixels.forEach((change) => {
+			drawPixel(change.x, change.y, change.newColor)
+			drawHoverMarker(change.x, change.y)
+		})
 	}
 
 	function drawGrid() {
@@ -307,45 +834,15 @@ export function runTplace() {
 	}
 
 	function drawHover() {
-		if (hoverCell === null || hoverImage === null || !hoverImage.complete) {
+		if (hoverCell === null) {
 			return
 		}
 
-		const bounds = getScreenCellBounds(hoverCell.x, hoverCell.y)
-
-		ctx.drawImage(hoverImage, bounds.left, bounds.top, bounds.width, bounds.height)
+		drawHoverMarker(hoverCell.x, hoverCell.y)
 	}
 
 	function beginStroke() {
 		currentStroke = []
-	}
-
-	function recordPixelChange(x, y, newColor) {
-		const oldColor = pixels[y][x]
-
-		if (oldColor === newColor) {
-			return
-		}
-
-		if (currentStroke === null) {
-			currentStroke = []
-		}
-
-		const existingChange = currentStroke.find((change) => change.x === x && change.y === y)
-
-		if (existingChange) {
-			existingChange.newColor = newColor
-		} else {
-			currentStroke.push({
-				x,
-				y,
-				oldColor,
-				newColor,
-			})
-		}
-
-		placed += 1
-		pixels[y][x] = newColor
 	}
 
 	function commitStroke() {
@@ -367,15 +864,16 @@ export function runTplace() {
 		}
 
 		currentStroke.forEach((change) => {
-			pixels[change.y][change.x] = change.oldColor
+			setDraftPixel(change.x, change.y, change.oldColor)
 		})
-		placed = Math.max(0, placed - currentStroke.length)
 		currentStroke = null
 	}
 
 	function applyStroke(stroke, direction) {
 		stroke.forEach((change) => {
-			pixels[change.y][change.x] = direction === 'undo' ? change.oldColor : change.newColor
+			const nextColor = direction === 'undo' ? change.oldColor : change.newColor
+
+			setDraftPixel(change.x, change.y, nextColor)
 		})
 	}
 
@@ -405,8 +903,12 @@ export function runTplace() {
 		undoStack.push(stroke)
 	}
 
-	function colorizeCell(cellX, cellY) {
-		recordPixelChange(cellX, cellY, selectedColor.value)
+	function applyActiveToolToCell(cellX, cellY) {
+		if (isEraserMode.value) {
+			eraseDraftPixel(cellX, cellY)
+		} else {
+			recordPixelChange(cellX, cellY, selectedColor.value)
+		}
 	}
 
 	function colorize(event) {
@@ -416,7 +918,7 @@ export function runTplace() {
 			return
 		}
 
-		colorizeCell(pos.cellX, pos.cellY)
+		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
 	function beginPan(event) {
@@ -521,7 +1023,7 @@ export function runTplace() {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
-		colorizeCell(pos.cellX, pos.cellY)
+		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
 	function beginTouchPanZoom(touches) {
@@ -554,7 +1056,7 @@ export function runTplace() {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
-		colorizeCell(pos.cellX, pos.cellY)
+		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
 	function updateTouchPanZoom(touches) {
@@ -592,7 +1094,7 @@ export function runTplace() {
 		}
 
 		if (isDrawing) {
-			colorizeCell(pos.cellX, pos.cellY)
+			applyActiveToolToCell(pos.cellX, pos.cellY)
 		}
 	}
 
@@ -636,7 +1138,7 @@ export function runTplace() {
 			y: pos.cellY,
 		}
 
-		colorizeCell(pos.cellX, pos.cellY)
+		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
 	function handleMouseUp(event) {
@@ -763,10 +1265,10 @@ export function runTplace() {
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height)
 		drawPixels()
+		drawDraftPixels()
 		drawEdgeBorder()
 		drawGrid()
 		drawHover()
-		pixelsLeft.value = (100 - placed) + '/100'
 
 		animationFrameId = requestAnimationFrame(loop)
 	}
@@ -792,6 +1294,12 @@ export function runTplace() {
 
 		canvas.addEventListener('auxclick', preventMiddleClick)
 		document.addEventListener('keydown', handleKeydown)
+		updatePixelCounter()
+		loadCanvas()
+		loadTplaceProfile()
+		connectTplaceSocket()
+		profileRefreshIntervalId = window.setInterval(loadTplaceProfile, 30000)
+		regenerationTimerIntervalId = window.setInterval(updateRegenerationTimer, 1000)
 		loop()
 	})
 
@@ -806,13 +1314,19 @@ export function runTplace() {
 		resizeObserver = null
 
 		document.removeEventListener('keydown', handleKeydown)
+		clearInterval(profileRefreshIntervalId)
+		clearInterval(regenerationTimerIntervalId)
+		closeTplaceSocket()
 		cancelAnimationFrame(animationFrameId)
 		commitStroke()
 	})
 
 	return {
+		cancelPaintMode,
+		canPaint,
 		canvasRef,
 		colors,
+		confirmDraftPixels,
 		gridLabel,
 		handleMouseDown,
 		handleMouseLeave,
@@ -823,14 +1337,17 @@ export function runTplace() {
 		handleTouchMove,
 		handleTouchStart,
 		handleWheel,
+		isEraserMode,
 		isPaintMode,
 		isToolMenuOpen,
 		pixelsLeft,
 		pointerStatus,
 		redo,
+		regenerationSecondsLeft,
 		selectColor,
 		selectedColor,
 		showGrid,
+		toggleEraserMode,
 		togglePaintMode,
 		toggleToolMenu,
 		undo,

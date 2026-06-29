@@ -1,0 +1,18 @@
+[tool.pyright]
+    # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+    exclude = [
+        "backend/back/migrations"
+    ]
+    
+    pythonPlatform = "Linux"
+
+    # Reports:
+    #   https://github.com/microsoft/pyright/blob/main/docs/configuration.md#type-check-diagnostics-settings
+    # "none", "warning", "information", or "error"
+    reportAssignmentType = "none"
+    reportIncompatibleVariableOverride = "none"
+    reportIncompatibleMethodOverride = "none"
+    reportAttributeAccessIssue = "none" # too many false positives with Django models
+
+    typeCheckingMode          = "standard"    # "off", "basic", "standard", "strict"
+    

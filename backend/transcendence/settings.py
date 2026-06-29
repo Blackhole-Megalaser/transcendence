@@ -51,7 +51,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ALLOWED_HOSTS = ["*"]
-
+CSRF_TRUSTED_ORIGINS = ["https://ft.lien.cat", "https://tla-ft.lien.cat"]
 
 # Application definition
 
@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -175,6 +176,20 @@ CACHES = {
     }
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 # Chat history is stored separately from Channels and Django cache keys.
 CHAT_REDIS_URL = env("CHAT_REDIS_URL", default="redis://redis:6379/2")
 CHAT_HISTORY_LIMIT = env.int("CHAT_HISTORY_LIMIT", default=50)
@@ -189,5 +204,5 @@ TPLACE_REDIS_URL = env("TPLACE_REDIS_URL", default="redis://redis:6379/4")
 TPLACE_HISTORY_LIMIT = env.int("TPLACE_HISTORY_LIMIT", default=50)
 TPLACE_HISTORY_TTL = env.int("TPLACE_HISTORY_TTL", default=120)
 
-TPLACE_MAX_X = 500
-TPLACE_MAX_Y = 500
+TPLACE_MAX_X = 2000
+TPLACE_MAX_Y = 2000

@@ -9,6 +9,7 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r"users", views.UserViewSet, basename="user")
 router.register(r"wordlists", views.WordListViewSet, basename="wordlist")
+router.register(r"skribble/rooms", views.SkribbleRoomViewSet, basename="room")
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -18,6 +19,7 @@ urlpatterns = [
     path("api/users/<str:user>/colors/", views.ColorsView.as_view()),
     path("api/users/<str:user>/pixels/", views.UserPixelsView.as_view()),
     path("api/users/<str:user>/max-pixels/", views.MaxPixelsView.as_view()),
+    path("api/users/<str:user>/avatar/", views.AvatarView.as_view()),
     path("api/tplace/pixels/", views.PixelPlaceView.as_view()),
     path("api/tplace/canvas/", views.CanvasView.as_view()),
     path("api-auth/signup", views.signup),
