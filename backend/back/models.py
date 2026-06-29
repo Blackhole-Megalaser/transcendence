@@ -143,7 +143,6 @@ class Pixel(models.Model):
         return f"[{self.x_pos}, {self.y_pos}] {self.color}"
 
 
-
 class SkribbleRoom(models.Model):
     # random 5 letter room code
     code = models.TextField(max_length=5, unique=True)
