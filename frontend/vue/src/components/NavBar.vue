@@ -84,11 +84,11 @@ import ProfileButton 		from './ProfileButton.vue';
 import ThemeButton 			from './ThemeButton.vue';
 import ThemeToggle 			from './ThemeToggle.vue';
 
-import cross 				  from '@assets/cross-svgrepo-com.svg'
-import cute_paw 			from '@assets/cute_paw.svg?component';
-import mean_paw 			from '@assets/mean_paw.svg?component';
-import ft_cat 				from '@assets/ft_cat.png';
-import ft_mean 				from '@assets/ft_cat-dark.png'
+import cross 				    from '@assets/cross-svgrepo-com.svg'
+import cute_paw 			  from '@assets/cute_paw.svg?component';
+import mean_paw 			  from '@assets/mean_paw.svg?component';
+import ft_cat 				  from '@assets/ft_cat.png';
+import ft_mean 				  from '@assets/ft_cat-dark.png'
 
 const theme               = useThemeStore();
 const themeIndex          = computed (() => theme.getThemeIndex());
