@@ -118,8 +118,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             ),
             "avatar": request.build_absolute_uri(f"/api/users/{username}/avatar/"),
             "friends": request.build_absolute_uri(f"/api/users/{username}/friends/"),
-            "friendlist": request.build_absolute_uri(f"/api/users/{username}/friendlist/"),
-            "friends_request": request.build_absolute_uri(f"/api/users/{username}/friends_request/"),
+            "friendlist": request.build_absolute_uri(
+                f"/api/users/{username}/friendlist/"
+            ),
+            "friends_request": request.build_absolute_uri(
+                f"/api/users/{username}/friends_request/"
+            ),
         }
 
 
@@ -189,11 +193,13 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ["profile_image"]
 
+
 class FriendsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["friends", "pending_friend_requests"]
         read_only_fields = fields
+
 
 class FriendlistSerializer(serializers.ModelSerializer):
     class Meta:
@@ -201,11 +207,15 @@ class FriendlistSerializer(serializers.ModelSerializer):
         fields = ["friends"]
         read_only_fields = fields
 
+
 class FriendsRequestSerializer(serializers.ModelSerializer):
+    pending_friend_requests = UserSerializer(many=True)
+
     class Meta:
         model = UserProfile
         fields = ["pending_friend_requests"]
         read_only_fields = fields
+
 
 class LoginRequestSerializer(serializers.Serializer):
     username = serializers.CharField()
