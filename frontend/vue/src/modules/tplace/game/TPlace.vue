@@ -90,7 +90,7 @@
 								<div
 									class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-borders-outline bg-bg-main px-2 text-sm font-bold tabular-nums text-text-main shadow-sm"
 									aria-label="Nyancoins"
-									title="{{ nyancoins }} Nyancoins"
+									:title="`${nyancoins} Nyancoins`"
 								>
 									<img :src="nyancoinIcon" alt="" class="size-5 shrink-0" draggable="false">
 									<span>{{ nyancoins }}</span>
