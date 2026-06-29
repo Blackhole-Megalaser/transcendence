@@ -348,6 +348,8 @@ class PixelPlaceView(APIView):
             pixel.color = color
             pixel.user = user
             pixel.save()
+            if profile.placable_pixels == profile.max_placable_pixels:
+                profile.next_regeneration = timezone.now() + profile.regeneration_delay  # pyright: ignore[reportOperatorIssue]
             profile.placable_pixels -= 1
             profile.nyancoins += 1
             nyancoins_gained = 1
