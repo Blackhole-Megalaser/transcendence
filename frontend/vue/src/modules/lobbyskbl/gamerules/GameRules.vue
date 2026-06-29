@@ -101,6 +101,23 @@
 			console.error("Leave error :", error);
 		}
 	};
+
+    const postStartGame = async () => {
+		try {
+			const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_game/`, {
+				method: 'POST',
+				body: JSON.stringify({
+                    name: ''
+				}),
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken'),
+					'Content-type' : 'application/json'
+				}
+			});
+		} catch (error) {
+			console.error("Leave error :", error);
+		}
+	};
     
 </script>
 
@@ -146,7 +163,9 @@
                     <div>Game Start:</div>
                     <div>
                         <a href="/skribbl">
-                            <button class="bg-green-600 rounded-sm">Start Game</button>
+                            <button
+                                @click="postStartGame"
+                                class="bg-green-600 rounded-sm">Start Game</button>
                         </a>
                     </div>
                 </div>
