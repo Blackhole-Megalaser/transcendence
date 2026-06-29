@@ -20,11 +20,14 @@ class Color(models.Model):
     cost = models.IntegerField(validators=[MinValueValidator(0)], default=0)
 
     def __str__(self):
-        return self.hex_code
+        return self.name
 
 
 class WordList(models.Model):
     name = models.TextField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 
 class Word(models.Model):
@@ -101,6 +104,9 @@ class UserProfile(models.Model):
         )
         self.save()
 
+    def __str__(self):
+        return self.user.username
+
 
 class Pixel(models.Model):
     x_pos = models.IntegerField(validators=[MinValueValidator(0)])
@@ -114,3 +120,6 @@ class Pixel(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["x_pos", "y_pos"], name="pixel_uniq_pos")
         ]
+
+    def __str__(self):
+        return f"{self.x_pos}, {self.y_pos}"
