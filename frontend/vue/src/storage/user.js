@@ -7,10 +7,15 @@ export const useUserStore = defineStore('user', () => {
   const userInfos       = ref(JSON.parse(sessionStorage.getItem(STORAGE_KEY)) ?? null);
   const getLoggedStatus = computed(() => !!userInfos.value);
   const getProfilePic   = computed(() => userInfos.value ? userInfos.value.profile_image : null);
+  
+    function set(infos) {
+      userInfos.value = infos;
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(infos));
+    }
 
-  function set(infos) {
-    userInfos.value = infos;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(infos));
+  function changeProfilePic(newProfilePic) {
+    userInfos.value.profile_image = newProfilePic;
+    set(userInfos.value)
   }
 
   function clear() {
@@ -26,7 +31,6 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function initUserInfos() {
-    // if (userInfos.value) return userInfos.value;
     const infos = await fetchInfos();
     return infos.status === 'ok' ? infos.data : null;
   }
@@ -36,6 +40,7 @@ export const useUserStore = defineStore('user', () => {
     clear,
     fetchInfos,
     initUserInfos,
+    changeProfilePic,
     getLoggedStatus,
     getProfilePic,
     userInfos
