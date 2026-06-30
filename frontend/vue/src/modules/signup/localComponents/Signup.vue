@@ -65,6 +65,11 @@
               input-type="password"
             />
           </div>
+          <div class="text-center text-red-600 h-10 w-full" v-if="apiError">
+            <p v-if="apiError.username">{{ apiError.username }}</p>
+            <p v-else-if="apiError.email">{{ apiError.email[0] }}</p>
+            <p v-else-if="apiError.password">{{ apiError.password }}</p>
+          </div>
           <div class="flex-center h-10 w-26 self-end mr-3">
             <div class="size-4"/>
             <input
@@ -259,13 +264,12 @@ const submit    = async () => {
     });
     if (!response.ok) {
       apiError.value  = await response.json();
-      console.log(apiError.value.detail);
-      throw new Error(`Wrong Informations inserted: ${response.status}`)
+      throw new Error(response.status)
     }
     window.location.href  = nextPage();
   }
   catch (error) {
-    console.error("error catched :", error);
+    // console.error(error);
   }
 }
 </script>
