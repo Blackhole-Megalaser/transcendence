@@ -168,6 +168,7 @@ We used django for the backend.
 This module is necessary to implement our collaborative drawing game properly.
 
 **cczerwin** worked on this module.
+**tlair** worked whith it for the tplace.
 
 ### Major: Allow users to interact with other users
 
@@ -179,6 +180,7 @@ This module is important for the social aspect needed for collaborative oriented
 
 **cczerwin** worked on the chat.<br>
 **lvan-bre** worked on the profile page and friend system.
+**ael-ghaz** & **tlair** worked on collaborative features.
 
 ### Minor: Use an ORM for the database
 
@@ -190,7 +192,7 @@ This is included in Django features, ORM (Object–relational mapping) helps for
 
 The tplace cover this module, it's a collaborative drawing canvas (/r/place like)
 
-**tlair** worked on this module.
+**tlair** && **ael-ghaz** worked on this module.
 
 ### Minor: Custom-made design system with reusable components, including a proper color palette, typography, and icons (minimum: 10 reusable components).
 
@@ -209,7 +211,7 @@ Thanks to Vue system, all of our components are re-usable, they react to our the
 
 This module is useful to add a layering tool for our pixel drawing app, it allows coordination between users willing to cooperate to build one large drawing together.
 
-**tlair** worked on this module.
+**kcolin** worked on this module.
 
 ## Accessibility and Internationalization modules (starting on subject page 13)
 
@@ -249,7 +251,7 @@ This module pairs with the basic interaction module, here focusing on making the
 
 We have a collaborative drawing guess (Pictionary like), this is the corresponding module.
 
-**ael-ghaz** works on this module.
+**ael-ghaz** worked on this module.
 
 ### Major: Remote players — Enable two players on separate computers to play the same game in real-time
 
@@ -259,7 +261,7 @@ We have a collaborative drawing guess (Pictionary like), this is the correspondi
 
 We also have a collaborative drawing platform (/r/place like), this is the corresponding module.
 
-**tlair** works on this module.
+**tlair** & **ael-ghaz** worked on this module.
 
 ### Major: Multiplayer game (more than 2 players)
 
@@ -269,7 +271,7 @@ We also have a collaborative drawing platform (/r/place like), this is the corre
 
 *See above modules*
 
-**ael-ghaz** works on this module.
+**ael-ghaz** & **tlair** worked on this module.
 
 ### Minor: Game customization options
 
@@ -294,7 +296,7 @@ The drawing time can be changed
 
 This module can be easily added to the game since we're already synchronizing clients.
 
-**ael-ghaz** and **tlair** worked on this module.
+**tlair** worked on this module.
 
 # Individual Contributions
 
@@ -305,7 +307,7 @@ NB: I added some initial contributions from what I could remember, feel free to 
 ## tlair
 
 - Created team on the intranet
-- Made the tplace feature
+- Made THE tplace of all time, front & back (one line is not enough to describe all work on this unfortunately)
 - Created the website graphical assets with AI
 - Installed [font-awesome](https://fontawesome.com/)
 
@@ -328,7 +330,8 @@ NB: I added some initial contributions from what I could remember, feel free to 
 - Populated and updated the readme + docs
 - Added ssl termination on nginx
 - Configured the websocket server
-- Tweaked the dockerfiles / docker compose
+- Tweaked the dockerfiles / do..
+- cker compose
 - Added aliases in Vue
 - Worked on the project folder structure
 - Made the base chat and the associated websocket/redis configuration
@@ -344,5 +347,5 @@ NB: I added some initial contributions from what I could remember, feel free to 
 ## ael-ghaz
 
 - Setup first team meeting to decide on project roles
-- Made the skribble game
-- Fought against the canvas anti-aliasing and won
+- Made THE skribbl.cat game (like the tplace, one line is also not enough to describe all work on this unfortunately)
+- Fought against the canvas anti-aliasing and partially won
