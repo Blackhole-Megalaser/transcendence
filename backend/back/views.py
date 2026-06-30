@@ -40,7 +40,6 @@ from .serializers import (
     AvatarSerializer,
     EmailUpdateSerializer,
     FriendlistSerializer,
-    FriendsRequestSerializer,
     FriendsSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
@@ -53,6 +52,7 @@ from .serializers import (
     StartTurnSerializer,
     TplaceSerializer,
     UnlockedColorsSerializer,
+    UserProfileSerializer,
     UserSerializer,
     WordListSerializer,
 )
@@ -203,6 +203,8 @@ class UserViewSet(viewsets.ModelViewSet):
         data = UserSerializer(user, context={"request": request}).data
         return Response(data)
 
+    # currently not double check for password since email is not used for anything
+    # you need to be logged still to change your mail
     @action(
         detail=True,
         methods=["post"],
@@ -279,8 +281,68 @@ class FriendlistView(NestedUserProfileView, RetrieveAPIView):
 
 
 # /api/users/me/friend_request
-class FriendsRequestView(NestedUserProfileView, RetrieveAPIView):
-    serializer_class = FriendsRequestSerializer
+# class FriendsRequestView(NestedUserProfileBase, APIView):
+#     serializer_class = FriendsRequestSerializer
+
+
+class FriendsRequestView(NestedUserProfileBase, APIView):
+    def get_permissions(self):
+        """
+        Users can update only their own avatar. Admin can update everyone's avatar.
+        """
+        if (
+            self.request.user.is_anonymous
+            or self.request.user.username != self.get_object().user.username
+        ):
+            permission_classes = [permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def get(self, request, user):
+        profile = request.user.userprofile
+        serializer = UserProfileSerializer(
+            profile.pending_friend_requests.all(), many=True
+        )
+        return Response({"pending_friend_requests": serializer.data})
+
+    def post(self, request, user):
+        action = request.data.get("action")
+        username = request.data.get("username")
+
+        # action = [send / accept / reject] only
+        if action not in {"send", "accept", "reject"}:
+            return Response(
+                {"detail": "Invalid action."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        profile = request.user.userprofile
+        target_user = get_object_or_404(UserProfile, user__username=username)
+
+        if action == "send":
+            target_user.pending_friend_requests.add(profile)
+            return Response(
+                {"detail": "Friend request sent."},
+                status=HTTP_200_OK,
+            )
+
+        if action in {"accept", "reject"}:
+            if not profile.pending_friend_requests.filter(id=target_user.id).exists():
+                return Response(
+                    {"detail": "No such request."},
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+            if action == "accept":
+                profile.friends.add(target_user)
+                target_user.friends.add(profile)
+
+            profile.pending_friend_requests.remove(target_user)
+            return Response(
+                {"detail": f"Friend request {action}ed."},
+                status=HTTP_200_OK,
+            )
 
 
 class AvatarView(NestedUserProfileBase, APIView):

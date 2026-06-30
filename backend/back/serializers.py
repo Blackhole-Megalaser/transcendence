@@ -200,7 +200,18 @@ class AvatarSerializer(serializers.ModelSerializer):
         fields = ["profile_image"]
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ["username"]
+
+
 class FriendsSerializer(serializers.ModelSerializer):
+    friends = UserProfileSerializer(many=True, read_only=True)
+    pending_friend_requests = UserProfileSerializer(many=True, read_only=True)
+
     class Meta:
         model = UserProfile
         fields = ["friends", "pending_friend_requests"]
@@ -208,17 +219,22 @@ class FriendsSerializer(serializers.ModelSerializer):
 
 
 class FriendlistSerializer(serializers.ModelSerializer):
+    friends = UserProfileSerializer(many=True, read_only=True)
+
     class Meta:
         model = UserProfile
         fields = ["friends"]
         read_only_fields = fields
 
 
+# currently unused
 class FriendsRequestSerializer(serializers.ModelSerializer):
+    pending_friend_requests = UserProfileSerializer(many=True, read_only=True)
+
     class Meta:
         model = UserProfile
         fields = ["pending_friend_requests"]
-        read_only_fields = fields
+        # read_only_fields = fields
 
 
 class LoginRequestSerializer(serializers.Serializer):
