@@ -33,6 +33,7 @@
 							isPaintMode && canPaint && !isLoginRequired ? 'border-red-200 ring-4 ring-red-300/70' : '',
 						]"
 						type="button"
+						:title="paintButtonTitle"
 						aria-controls="tplace-tools"
 						:aria-expanded="!isLoginRequired && isPaintMode && isToolMenuOpen"
 						@click="handlePaintButtonClick"
@@ -52,7 +53,7 @@
 						v-if="!isLoginRequired && isPaintMode && !isToolMenuOpen"
 						class="grid size-12 place-items-center rounded-full border border-white/35 bg-blue-600 text-white shadow-[0_12px_30px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-95"
 						type="button"
-						title="Expand paint tools"
+						title="Expand paint tools (X)"
 						aria-label="Expand paint tools"
 						aria-controls="tplace-tools"
 						:aria-expanded="isToolMenuOpen"
@@ -99,7 +100,7 @@
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									:class="isEyedropperMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
 									type="button"
-									title="Pick canvas color"
+									title="Pick canvas color (F)"
 									aria-label="Pick canvas color"
 									:aria-pressed="isEyedropperMode"
 									@click="toggleEyedropperMode"
@@ -110,7 +111,7 @@
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									:class="isEraserMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
 									type="button"
-									title="Erase draft pixels"
+									title="Erase draft pixels (E)"
 									aria-label="Erase draft pixels"
 									:aria-pressed="isEraserMode"
 									@click="toggleEraserMode"
@@ -120,7 +121,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Undo"
+									title="Undo (Ctrl+Z)"
 									aria-label="Undo"
 									@click="undo"
 								>
@@ -129,7 +130,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Redo"
+									title="Redo (Ctrl+Shift+Z)"
 									aria-label="Redo"
 									@click="redo"
 								>
@@ -138,7 +139,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									type="button"
-									title="Collapse paint tools"
+									title="Collapse paint tools (X)"
 									aria-label="Collapse paint tools"
 									:aria-expanded="isToolMenuOpen"
 									aria-controls="tplace-tools"
@@ -149,7 +150,7 @@
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-red-400/60 bg-bg-main text-sm text-red-500 shadow-sm transition hover:bg-red-500 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
 									type="button"
-									title="Cancel paint draft"
+									title="Cancel paint draft (Esc)"
 									aria-label="Cancel paint draft"
 									@click="cancelPaintMode"
 								>
@@ -181,7 +182,7 @@
 											: ''"
 										type="button"
 										:style="{ backgroundColor: color.value }"
-										:title="color.name"
+										:title="`${color.name} (Q)`"
 										:aria-label="color.name"
 										:aria-pressed="selectedColor === color.value"
 										@click="handleColorClick(color.value, $event)"
@@ -189,7 +190,7 @@
 								</div>
 							</div>
 
-							<label class="inline-flex shrink-0 cursor-pointer select-none items-center justify-between gap-3 rounded-2xl border border-borders-outline bg-bg-main/80 px-3 py-2 text-sm font-bold text-text-main shadow-sm sm:min-w-36">
+							<label class="inline-flex shrink-0 cursor-pointer select-none items-center justify-between gap-3 rounded-2xl border border-borders-outline bg-bg-main/80 px-3 py-2 text-sm font-bold text-text-main shadow-sm sm:min-w-36" title="Toggle grid (G)">
 								<span class="flex items-center gap-2">
 									<FontAwesomeIcon :icon="byPrefixAndName.fas['table-cells']" class="text-xs opacity-75" />
 									Grid
@@ -336,6 +337,18 @@ const paintButtonText = computed(() => {
 	}
 
 	return `Paint ${pixelsLeft.value}`
+})
+
+const paintButtonTitle = computed(() => {
+	if (isLoginRequired.value) {
+		return 'Log in to place your pixels'
+	}
+
+	if (isPaintMode.value) {
+		return 'Place pixels (Enter)'
+	}
+
+	return 'Open paint tools'
 })
 
 function getPaletteElement(event) {
