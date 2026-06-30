@@ -7,14 +7,23 @@
         :key="index"
         v-for="( message, index ) in chatLog"
       >
-        <div class="min-w-12">
+        <div 
+          class="group relative min-w-12 rounded-full overflow-hidden cursor-pointer"
+          :class="message.showAuthorInfos ? 'h-12' : ''" 
+          >
+          <div 
+            class="absolute inset-0 size-12 bg-cover bg-center"
+            :style="{ backgroundImage: `url(${message.profile_pic ?? defaultcat})` }"
+            v-if="message.showAuthorInfos"
+          />
+        </div>
+        <!-- <div class="min-w-12">
           <img
-            :src="message.profile_pic ? message.profile_pic : defaultcat"
+            :src="message.profile_pic ?? defaultcat"
             alt="Pfp"
             class="size-12 rounded-full overload-hidden"
-            v-if="message.showAuthorInfos"
             >
-        </div>
+        </div> -->
         <div>
           <h3
             class="text-lg font-semibold"
