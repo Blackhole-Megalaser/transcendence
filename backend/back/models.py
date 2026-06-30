@@ -43,7 +43,8 @@ class Word(models.Model):
 
 
 def get_image_path(instance, filename):
-    path = os.path.join("profile_images/", str(instance.user.username))
+    now = timezone.now()
+    path = os.path.join("profile_images/", str(instance.user.username) + "_" + str(now))
     return path
 
 
