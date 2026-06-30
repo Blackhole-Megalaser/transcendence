@@ -1,9 +1,11 @@
 <template>
   <div class="w-full flex-center flex-col">
-    <img
-      :src='profilePic' alt="profile picture"
-      class="size-20 rounded-full"
-    >
+    <div class="group relative size-20 rounded-full overflow-hidden cursor-pointer">
+      <div 
+        class="absolute inset-0 bg-cover bg-center"
+        :style="{ backgroundImage: `url(${profilePic})` }"
+      />
+    </div>
     <h2 class="mt-6 text-center font-bold text-2xl text-title">
       Hello
       <br class="xs:hidden"> {{ username }} !</h2>

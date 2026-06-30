@@ -88,8 +88,8 @@ class UserProfile(models.Model):
         if self.pk:
             try:
                 old = UserProfile.objects.get(pk=self.pk)
-                if old.profile_image != self.profile_image:
-                    old.profile_image.delete(save=False)
+                # if old.profile_image != self.profile_image:
+                #     old.profile_image.delete(save=False)
             except UserProfile.DoesNotExist:
                 pass
         super().save(*args, **kwargs)

@@ -1,10 +1,9 @@
 <template>
-  <button class="size-10 rounded-full overflow-hidden outline-0
-    hover:outline-4 outline-navbar-profile-outline duration-150">
-    <img
-      :src="profilePic"
-      alt="profile_pic"
-    >
+  <button class="group relative size-10 rounded-full overflow-hidden outline-0 hover:outline-4 outline-navbar-profile-outline duration-150">
+    <div 
+      class="absolute inset-0 bg-cover bg-center"
+      :style="{ backgroundImage: `url(${profilePic})` }"
+    />
   </button>
 </template>
 
