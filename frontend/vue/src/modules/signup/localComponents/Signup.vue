@@ -206,7 +206,7 @@ const validateUser    = computed(() => {
   else if (forbiddenUsername.suffixes.some(suffix => lowerCaseUsername.endsWith(suffix)))   { return false }
   else if (forbiddenUsername.includes.some(word => lowerCaseUsername.includes(word)))       { return false }
   else if (!/[a-z]/.test(lowerCaseUsername))                                                { return false } // si aucuns characteres alphabetiques ne sont trouvers return false
-  else if (lowerCaseUsername.includes(' '))                                                 { return false }
+  else if (!/^[\x21-\x7E]*$/.test(lowerCaseUsername))                                        { return false } // test si tous les chars sont ascii imprimables
   else if (lowerCaseUsername.length < 3 || lowerCaseUsername.length > 12)                   { return false }
   else                                                                                      { return true  }
 })

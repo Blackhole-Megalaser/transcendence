@@ -46,7 +46,17 @@
 
     <li class="flex items-center gap-2.5">
       <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-      <span class="text-left flex-1">Must be an available & valid username</span>
+      <span class="text-left flex-1">Must only composed of ASCII printable characters</span>
+      <component
+        class="size-4 right-0 shrink-0"
+        :is="isOnlyAscii ? check : cross"
+        :class="isOnlyAscii ? '' : 'fill-red-600'"
+      />
+    </li>
+
+    <li class="flex items-center gap-2.5">
+      <span class="size-1.5 rounded-full bg-title shrink-0"></span>
+      <span class="text-left flex-1">Must be an available (checked on call) & valid username</span>
       <component
         v-if="!emptyUsername"
         class="size-4 right-0 shrink-0"
@@ -76,6 +86,7 @@ const emptyUsername = computed(() => props.usernameCheck.trim().length === 0)
 const isValidLength = computed(() => props.usernameCheck.length >= 3 && props.usernameCheck.length <= 12)
 const hasLetter     = computed(() => /[a-z]/.test(lowerUsername.value))
 const hasNoSpaces   = computed(() => !props.usernameCheck.includes(' '))
+const isOnlyAscii   = computed(() => /^[\x20-\x7E]*$/.test(props.usernameCheck))
 
 const isAllowedUsername = computed(() => {
   const name = lowerUsername.value
