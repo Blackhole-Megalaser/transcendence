@@ -1,5 +1,7 @@
 <script setup>
     import { ref, onMounted, onUnmounted, computed } from 'vue';
+	import { useSkribbleStore } from '@shared';
+	import { storeToRefs } from 'pinia';
     import bucket from './bucket.png'
 
     const width 		= ref(1000);
@@ -28,25 +30,27 @@
 		{ r: 255, g: 255, b: 255, hex: '#ffffff'}  // White
 	];
 
-	const history 		  = ref([]); 
-	const tmpHistory	  = ref([]);
+	const skribbleStore = useSkribbleStore();
+
+	const { isDrawer,
+			history,
+			tmpHistory,
+			isConnected,
+			isConnecting,
+			connectionAttempt
+		} = storeToRefs(skribbleStore);
     let currentPath 	  = null;
 
 	// WebSocket
 	const roomName 		  = "skribble_test";
 	const roomCode        = ref('');
-	const isDrawer 		  = ref(false);
 	const drawId 		  = ref(0);
 
-	let Socket 			  = null;
 	let intervalId 		  = null;
 
-	let isConnecting 	  = false;
-	let isConnected		  = false;
 	const baseDelay		  = 300;
 	let currentDelay	  = 3000;
 	const jitter 		  = 0.05;
-	let connectionAttempt = -1;
 
 
     onMounted(() => {
@@ -74,7 +78,11 @@
 			return;
 		}
 		roomCode.value = roomFromUrl;
-		connectWebSocket(roomCode.value);
+
+		skribbleStore.connectWebSocket(roomCode.value, handleSocketMessage);
+		if (skribbleStore.socket) {
+			skribbleStore.socket.onmessage = handleSocketMessage;
+		}
 		
 		intervalId = setInterval(refreshDelay, currentDelay);
     });
@@ -84,20 +92,25 @@
         if (resizeObserver) {
             resizeObserver.disconnect();
         }
-		if (Socket){
-			Socket.close();
+		if (skribbleStore.socket){
+			skribbleStore.socket.close();
+			skribbleStore.socket = null;
 		}
 		clearInterval(intervalId);
     });
 
 	// see chat component for documentation
 	const refreshDelay = () => {
-		if (!isConnected && !isConnecting) {
-			connectWebSocket(intervalId);
+		if (!isConnected.value && !isConnecting.value) {
+			skribbleStore.connectWebSocket(roomCode.value, handleSocketMessage);
+			if (skribbleStore.socket) {
+				skribbleStore.socket.onmessage = handleSocketMessage;
+			}
+
 			clearInterval(intervalId);
 
-			currentDelay = baseDelay * (10 + connectionAttempt);
-			jitterValue = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
+			currentDelay = baseDelay * (10 + connectionAttempt.value);
+			const jitterValue = Math.floor(currentDelay * (Math.random() * 2 - 1) * jitter);
 
 			currentDelay = currentDelay + jitterValue;
 
@@ -105,128 +118,91 @@
 		}
 	};
 
-	const connectWebSocket = (code) => {
-		if (Socket?.readyState == WebSocket.OPEN) {
-			isConnecting 	  = false;
-			isConnected 	  = true;
-			connectionAttempt = -1;
-			return;
-		}
-
-		isConnected = false;
-		connectionAttempt++;
-
-		const protocol 	 = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host 		 = window.location.host;
-		const wsUrl 	 = `${protocol}//${host}/ws/skribble/${code}/`;
+	const handleSocketMessage = (e) => {
+		if (!e.data || isDrawer.value) return;
+		
+		try {
+			const message = JSON.parse(e.data);
 	
-		Socket 			 = new WebSocket(wsUrl);
-		isConnecting 	 = true;
+			if (message.type === "canvas.init" && message.history) {
+				if (!isDrawer.value) {
+					history.value = message.history;
+					tmpHistory.value = [];
+					redrawLines();
+				}
+				return;
+			}
+			
+			if (message.type === "canvas.update" && message.payload) {
+				const received = message.payload;
 	
-		Socket.onopen = () => {
-			isConnecting = false;
-			isConnected  = true;
-		};
+				if (received.type === 'clear') {
 	
-		Socket.onerror = () => {
-			isConnecting = false;
-			isConnected  = false;
-		};
-	
-		Socket.onclose = () => {
-			isConnecting = false;
-			isConnected  = false;
-		};
-	
-		// --- RECEIVE MESSAGE ---
-		Socket.onmessage = (e) => {
-			if (!e.data || isDrawer.value) return;
-
-			try {
-				const message = JSON.parse(e.data);
-
-				if (message.type === "canvas.init" && message.history) {
-					if (!isDrawer.value) {
-						history.value = message.history;
-						tmpHistory.value = [];
-						redrawLines();
-					}
+					history.value = [{
+						type: 'fill',
+						x: 0,
+						y: 0,
+						color: '#ffffff'
+					}];
+					tmpHistory.value = [];
+					redrawLines();
 					return;
 				}
-
-
-				if (message.type === "canvas.update" && message.payload) {
-					const received = message.payload;
-
-					if (received.type === 'clear') {
-
-						history.value = [{
-							type: 'fill',
-							x: 0,
-							y: 0,
-							color: '#ffffff'
-						}];
-						tmpHistory.value = [];
-						redrawLines();
-						return;
+	
+				if (received.type === 'undo') {
+					if (history.value.length > 1) {
+						const removed = history.value.pop();
+						if (removed) tmpHistory.value.push(removed);
 					}
-
-					if (received.type === 'undo') {
-						if (history.value.length > 1) {
-							const removed = history.value.pop();
-							if (removed) tmpHistory.value.push(removed);
-						}
-						redrawLines();
-						return;
+					redrawLines();
+					return;
+				}
+	
+				if (received.type === 'redo') {
+					if (tmpHistory.value.length > 0) {
+						const restored = tmpHistory.value.pop();
+						if (restored) history.value.push(restored);
 					}
-
-					if (received.type === 'redo') {
-						if (tmpHistory.value.length > 0) {
-							const restored = tmpHistory.value.pop();
-							if (restored) history.value.push(restored);
-						}
-						redrawLines();
-						return;
-					}
-
-					if (received.type === 'paint') {
-						const lastAction = history.value[history.value.length - 1];
-
-						if (lastAction && lastAction.type === 'paint'
-							&& lastAction.id === received.id
-							&& lastAction.color === received.color
-							&& lastAction.stroke === received.stroke) {
-
-							const prevPoint = lastAction.points[lastAction.points.length - 1];
-							lastAction.points.push(...received.points);
-
-							const ctx = vueCanvas.value;
-							if (ctx && prevPoint) {
-								ctx.beginPath();
-								ctx.lineWidth = parseInt(received.stroke);
-								ctx.lineCap = 'round';
-								ctx.lineJoin = 'round';
-								ctx.strokeStyle = received.color;
-								ctx.moveTo(prevPoint.x * width.value, prevPoint.y * height.value);
-								ctx.lineTo(received.points[0].x * width.value, received.points[0].y * height.value);
-								ctx.stroke();
-							}
-						} else {
-							history.value.push(received);
-							redrawLines();
+					redrawLines();
+					return;
+				}
+	
+				if (received.type === 'paint') {
+					const lastAction = history.value[history.value.length - 1];
+	
+					if (lastAction && lastAction.type === 'paint'
+						&& lastAction.id === received.id
+						&& lastAction.color === received.color
+						&& lastAction.stroke === received.stroke) {
+	
+						const prevPoint = lastAction.points[lastAction.points.length - 1];
+						lastAction.points.push(...received.points);
+	
+						const ctx = vueCanvas.value;
+						if (ctx && prevPoint) {
+							ctx.beginPath();
+							ctx.lineWidth = parseInt(received.stroke);
+							ctx.lineCap = 'round';
+							ctx.lineJoin = 'round';
+							ctx.strokeStyle = received.color;
+							ctx.moveTo(prevPoint.x * width.value, prevPoint.y * height.value);
+							ctx.lineTo(received.points[0].x * width.value, received.points[0].y * height.value);
+							ctx.stroke();
 						}
 					} else {
 						history.value.push(received);
 						redrawLines();
 					}
-					tmpHistory.value = [];
+				} else {
+					history.value.push(received);
+					redrawLines();
 				}
-			} catch (err) {
-				console.error("Erreur de lecture du flux de dessin:", err);
+				tmpHistory.value = [];
 			}
-		};
-	};
-
+		} catch (err) {
+			console.error("Erreur de lecture du flux de dessin:", err);
+		}
+	}
 
 	const handleKeyDown = (event) => {
 		if (!isDrawer.value) return;
@@ -256,11 +232,11 @@
 			if (lastHistory) {
 				tmpHistory.value.push(lastHistory);
 				redrawLines();
-				if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
-					Socket.send(JSON.stringify({
+				if (isDrawer.value) {
+					skribbleStore.sendAction({
 						action: 'send_drawing',
 						payload: { type: 'undo' }
-					}));
+					});
 				}
 			}
 		}
@@ -272,11 +248,11 @@
 			if (tmpHistory) {
 				history.value.push(lastTmpHistory);
 				redrawLines();
-				if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
-					Socket.send(JSON.stringify({
+				if (isDrawer.value) {
+					skribbleStore.sendAction({
 						action: 'send_drawing',
 						payload: { type: 'redo' }
-					}));
+					});
 				}
 			}
 		}
@@ -370,18 +346,16 @@
 
         currentPath.points.push(newPoint);
 
-        if (Socket && Socket.readyState === WebSocket.OPEN) {
-            Socket.send(JSON.stringify({
-                action: 'send_drawing',
-                payload: {
-					id: drawId.value,
-                    type: 'paint',
-                    color: penColor.value,
-                    stroke: penStroke.value,
-                    points: [newPoint]
-                }
-            }));
-        }
+		skribbleStore.sendAction({
+			action: 'send_drawing',
+			payload: {
+				id: drawId.value,
+				type: 'paint',
+				color: penColor.value,
+				stroke: penStroke.value,
+				points: [newPoint]
+			}
+		});
     }
 };
 
@@ -411,11 +385,11 @@
 			color: '#ffffff'
 		}];
 		tmpHistory.value = [];
-		if (Socket && Socket.readyState === WebSocket.OPEN && isDrawer.value) {
-			Socket.send(JSON.stringify({
+		if (isDrawer.value) {
+			skribbleStore.sendAction({
 				action: 'send_drawing',
 				payload: { type: 'clear' }
-			}));
+			});
 		}
     };
 
@@ -577,11 +551,11 @@
         history.value.push(fillPayLoad);
 		tmpHistory.value = [];
 
-		if (isDrawer.value && Socket && Socket.readyState === WebSocket.OPEN) {
-			Socket.send(JSON.stringify({
+		if (isDrawer.value) {
+			skribbleStore.sendAction({
 				action: 'send_drawing',
 				payload: fillPayLoad
-			}));
+			});
 		}
     };
 </script>

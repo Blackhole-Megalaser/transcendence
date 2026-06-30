@@ -1,6 +1,8 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch } from 'vue';
-    import { getCookie }            from '@shared';
+    import { ref, onMounted, onUnmounted, watch }	from 'vue';
+	import { storeToRefs }							from 'pinia';							
+	import { useSkribbleStore, getCookie }			from '@shared';							
+
 
     let roomCode = ref('Default');
     let roomName = ref('Default');
@@ -12,6 +14,12 @@
     let gameStarted   = ref(false);
     let seeRoomInfo   = ref(false);
 
+	const skribbleStore = useSkribbleStore();
+	const {
+		isConnected,
+		isConnecting
+	} = storeToRefs(skribbleStore);
+
     onMounted(() => {
         getUserRoomInfo();
     });
@@ -20,9 +28,23 @@
         
     });
 
-    // watch(message, (newMessage) => {
+	const handleLobbyMessage = async (e) => {
+		if (!e.data) return;
+		try {
+			const message = JSON.parse(e.data);
+			
+			if (message.type === "update_players") {
+				await getUserRoomInfo();
+			}
+				
+			if (message.type === "game_started") {
+				window.location.href = `/skribbl?room=${roomCode.value}`;
+			}
 
-    // });
+		} catch (error) {
+			console.error("Error lobby websocket:", error);
+		}
+	};
 
     const getUserRoomInfo = async () => {
         users.value = [];
@@ -34,10 +56,9 @@
                 roomCode.value = dataUser.skribble.code;
                 roomName.value = dataUser.skribble.name;
                 gameStarted.value = dataUser.skribble.game_started;
-                dataUser.skribble.players.forEach(element => {
-                    users.value.push(element.username);
-                });
+                users.value = dataUser.skribble.players.map(element => element.username);
                 seeRoomInfo.value = true;
+				skribbleStore.connectWebSocket(roomCode.value, handleLobbyMessage);
             } else {
                 seeRoomInfo.value = false;
             }
@@ -60,8 +81,7 @@
 			});
             if (response.ok) {
                 inputRoomName.value = '';
-                getUserRoomInfo();
-                window.location.href = '/lobbyskbl'
+                await getUserRoomInfo();
             }
 		} catch (error) {
 			console.error("Creation error :", error);
@@ -82,8 +102,7 @@
 			});
             if (response.ok) {
                 inputRoomCode.value = '';
-                getUserRoomInfo();
-                window.location.href = '/lobbyskbl'
+                await getUserRoomInfo();
             }
 		} catch (error) {
 			console.error("Join error :", error);
@@ -103,8 +122,12 @@
 				}
 			});
             if (response.ok) {
-                getUserRoomInfo();
-                window.location.href = '/lobbyskbl'
+                seeRoomInfo.value = false;
+				if (skribbleStore.socket) {
+					skribbleStore.socket.close();
+					skribbleStore.socket = null;
+				}
+				users.value = [];
             }
 		} catch (error) {
 			console.error("Leave error :", error);
@@ -123,9 +146,6 @@
 					'Content-type' : 'application/json'
 				}
 			});
-            if (response.ok) {
-                window.location.href = `/skribbl?room=${roomCode.value}`;
-            }
 		} catch (error) {
 			console.error("Leave error :", error);
 		}

@@ -450,6 +450,18 @@ class SkribbleRoomViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
+        user_profile = request.user.userprofile
+        old_room_code = None
+
+        try:
+            if (
+                hasattr(user_profile, "skribbleplayer")
+                and user_profile.skribbleplayer.room
+            ):
+                old_room_code = user_profile.skribbleplayer.room.code
+        except Exception:
+            pass
+
         SkribbleRoom.cleanup_empty_rooms()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -459,6 +471,21 @@ class SkribbleRoomViewSet(ModelViewSet):
             self.perform_create(serializer)
             room = serializer.instance
             request.user.userprofile.join_skribble(room)
+
+        if old_room_code:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+
+            def send_websocket_update():
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"chat_{old_room_code}",
+                    {
+                        "type": "update_players",
+                    },
+                )
+
+            transaction.on_commit(send_websocket_update)
         return Response(self.get_serializer(room).data, status=HTTP_201_CREATED)
 
     @action(methods=["post"], detail=True)
@@ -481,6 +508,17 @@ class SkribbleRoomViewSet(ModelViewSet):
                 {"detail": "The game already started"}, status=HTTP_409_CONFLICT
             )
         request.user.userprofile.join_skribble(room)
+
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{room.code}",
+            {
+                "type": "update_players",
+            },
+        )
         return Response(self.get_serializer(room).data)
 
     @action(methods=["post"], detail=False)
@@ -494,9 +532,33 @@ class SkribbleRoomViewSet(ModelViewSet):
 
         Always succeeds, no data is returned.
         """
+        user_profile = request.user.userprofile
+        room_code = None
+
+        try:
+            if (
+                hasattr(user_profile, "skribbleplayer")
+                and user_profile.skribbleplayer.room
+            ):
+                room_code = user_profile.skribbleplayer.room.code
+        except Exception:
+            pass
+
         with transaction.atomic():
             request.user.userprofile.leave_skribble()
             SkribbleRoom.cleanup_empty_rooms()
+
+        if room_code:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"chat_{room_code}",
+                {
+                    "type": "update_players",
+                },
+            )
         return Response()
 
     @action(methods=["post"], detail=True)
@@ -553,6 +615,18 @@ class SkribbleRoomViewSet(ModelViewSet):
             room.game_started = True
             room.round_counter = 1
             room.save()
+
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{room.code}",
+            {
+                "type": "game_started",
+            },
+        )
+
         return Response(self.get_serializer(room).data)
 
     @action(methods=["get"], detail=True)
