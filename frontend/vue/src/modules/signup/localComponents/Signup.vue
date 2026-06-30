@@ -10,6 +10,11 @@
         :password-check="Password"
         :username-check="Username"
       />
+      <component 
+        :is=cross alt="close window" 
+        class="size-9 fill-exit-cross absolute right-3 top-3"
+        @click="OpenBox = false"
+      />
     </div>
     <div class="flex items-center justify-evenly flex-col bg-navbar w-full h-full sm:w-96 sm:h-96 xl:w-xl xl:h-auto sm:rounded-4xl shadow-xl py-4">
       <h2 class="text-title text-4xl xl:my-4">
@@ -125,6 +130,7 @@ import UsernameInformations from './UsernameInformations.vue';
 import Informations         from './Informations.vue'
 
 import interogation         from '@assets/interrogation.svg'
+import cross                from '@assets/cross-svgrepo-com.svg'
 
 const Email           = ref("");
 const Username        = ref("");
