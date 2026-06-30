@@ -10,12 +10,13 @@ const DEFAULT_VIEWPORT_WIDTH = 896
 const DEFAULT_VIEWPORT_HEIGHT = 608
 const WORLD_WIDTH = WORLD_X_MAX * CELL_SIZE
 const WORLD_HEIGHT = WORLD_Y_MAX * CELL_SIZE
-const MIN_ZOOM = 0.4
+const MIN_ZOOM = 0.2
 const MAX_ZOOM = 8
 const EDGE_BORDER_COLOR = '#FF1A1A'
 const EDGE_BORDER_SCREEN_SIZE = 6
 const TPLACE_ROOM_NAME = 'tplace-main'
 const DEFAULT_PIXEL_COLOR = '#FFFFFF'
+const DESKTOP_CLICK_DRAG_THRESHOLD = 4
 
 export function runTplace() {
 	const userStore = useUserStore()
@@ -94,6 +95,8 @@ export function runTplace() {
 	let isPanning = false
 	let lastPanX = 0
 	let lastPanY = 0
+	let isSpacePressed = false
+	let pendingPaintClick = null
 	let touchMode = null
 	let lastTouchDistance = 0
 	let resizeObserver = null
@@ -120,6 +123,21 @@ export function runTplace() {
 		return true
 	}
 
+	function activateBrushMode() {
+		isEraserMode.value = false
+		isEyedropperMode.value = false
+	}
+
+	function activateEraserMode() {
+		isEraserMode.value = true
+		isEyedropperMode.value = false
+	}
+
+	function activateEyedropperMode() {
+		isEraserMode.value = false
+		isEyedropperMode.value = true
+	}
+
 	function toggleEraserMode() {
 		isEraserMode.value = !isEraserMode.value
 
@@ -142,6 +160,9 @@ export function runTplace() {
 
 		if (!isPaintMode.value) {
 			isDrawing = false
+			isPanning = false
+			isSpacePressed = false
+			pendingPaintClick = null
 			isEraserMode.value = false
 			isEyedropperMode.value = false
 			commitStroke()
@@ -699,6 +720,8 @@ export function runTplace() {
 		isEyedropperMode.value = false
 		isDrawing = false
 		isPanning = false
+		isSpacePressed = false
+		pendingPaintClick = null
 		touchMode = null
 		hoverCell = null
 		cancelDraftPixels()
@@ -1020,26 +1043,49 @@ export function runTplace() {
 		}
 	}
 
-	function colorize(event) {
-		const pos = getMousePos(event)
+	function clearPendingPaintClick() {
+		pendingPaintClick = null
+	}
 
-		if (pos === null) {
+	function endKeyboardPaintStroke() {
+		if (!isDrawing) {
 			return
 		}
 
-		applyActiveToolToCell(pos.cellX, pos.cellY)
+		isDrawing = false
+		commitStroke()
+	}
+
+	function paintWithActiveTool(cellX, cellY) {
+		if (isEyedropperMode.value) {
+			pickColorFromCell(cellX, cellY)
+			isSpacePressed = false
+			return
+		}
+
+		if (!isDrawing) {
+			isDrawing = true
+			beginStroke()
+		}
+
+		applyActiveToolToCell(cellX, cellY)
+	}
+
+	function beginPanAt(mouseX, mouseY) {
+		isPanning = true
+		isDrawing = false
+		pendingPaintClick = null
+		commitStroke()
+		lastPanX = mouseX
+		lastPanY = mouseY
 	}
 
 	function beginPan(event) {
 		event.preventDefault()
-		isPanning = true
-		isDrawing = false
-		commitStroke()
 
 		const { mouseX, mouseY } = getViewportMousePos(event)
 
-		lastPanX = mouseX
-		lastPanY = mouseY
+		beginPanAt(mouseX, mouseY)
 	}
 
 	function panCameraTo(mouseX, mouseY) {
@@ -1190,6 +1236,26 @@ export function runTplace() {
 	}
 
 	function handleMouseMove(event) {
+		if (isPaintMode.value && isSpacePressed) {
+			event.preventDefault()
+			isPanning = false
+			clearPendingPaintClick()
+
+			const pos = getMousePos(event)
+
+			if (pos === null) {
+				hoverCell = null
+				return
+			}
+
+			hoverCell = {
+				x: pos.cellX,
+				y: pos.cellY,
+			}
+			paintWithActiveTool(pos.cellX, pos.cellY)
+			return
+		}
+
 		if (isPanning) {
 			panCamera(event)
 			return
@@ -1207,17 +1273,30 @@ export function runTplace() {
 			y: pos.cellY,
 		}
 
-		if (isDrawing) {
-			applyActiveToolToCell(pos.cellX, pos.cellY)
+		if (pendingPaintClick !== null) {
+			const { mouseX, mouseY } = getViewportMousePos(event)
+			const movedDistance = Math.hypot(mouseX - pendingPaintClick.mouseX, mouseY - pendingPaintClick.mouseY)
+
+			if (movedDistance > DESKTOP_CLICK_DRAG_THRESHOLD) {
+				event.preventDefault()
+
+				const panStart = pendingPaintClick
+
+				clearPendingPaintClick()
+				beginPanAt(panStart.mouseX, panStart.mouseY)
+				panCameraTo(mouseX, mouseY)
+			}
+
+			return
 		}
 	}
 
 	function handleMouseLeave() {
 		pointerStatus.value = 'Mouse not here :('
 		hoverCell = null
-		isDrawing = false
+		clearPendingPaintClick()
 		isPanning = false
-		commitStroke()
+		endKeyboardPaintStroke()
 	}
 
 	function handleMouseDown(event) {
@@ -1249,14 +1328,22 @@ export function runTplace() {
 			y: pos.cellY,
 		}
 
-		if (isEyedropperMode.value) {
-			pickColorFromCell(pos.cellX, pos.cellY)
+		if (isSpacePressed) {
+			paintWithActiveTool(pos.cellX, pos.cellY)
 			return
 		}
 
-		isDrawing = true
-		beginStroke()
-		applyActiveToolToCell(pos.cellX, pos.cellY)
+		const { mouseX, mouseY } = getViewportMousePos(event)
+
+		isPanning = false
+		isDrawing = false
+		commitStroke()
+		pendingPaintClick = {
+			mouseX,
+			mouseY,
+			cellX: pos.cellX,
+			cellY: pos.cellY,
+		}
 	}
 
 	function handleMouseUp(event) {
@@ -1269,13 +1356,35 @@ export function runTplace() {
 			return
 		}
 
+		if (pendingPaintClick !== null) {
+			event.preventDefault()
+
+			const click = pendingPaintClick
+			const pos = getMousePos(event)
+			const cellX = pos?.cellX ?? click.cellX
+			const cellY = pos?.cellY ?? click.cellY
+
+			if (pos !== null) {
+				hoverCell = {
+					x: pos.cellX,
+					y: pos.cellY,
+				}
+			}
+
+			clearPendingPaintClick()
+			paintWithActiveTool(cellX, cellY)
+			endKeyboardPaintStroke()
+			return
+		}
+
 		if (isPanning) {
 			isPanning = false
 			return
 		}
 
-		isDrawing = false
-		commitStroke()
+		if (!isSpacePressed) {
+			endKeyboardPaintStroke()
+		}
 	}
 
 	function handleTouchStart(event) {
@@ -1360,18 +1469,96 @@ export function runTplace() {
 		}
 	}
 
+	function isShortcutInputTarget(target) {
+		if (!(target instanceof HTMLElement)) {
+			return false
+		}
+
+		return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+	}
+
 	function handleKeydown(event) {
-		if (!event.ctrlKey || event.key.toLowerCase() !== 'z') {
+		const key = event.key.toLowerCase()
+		const isUndoRedoShortcut = (event.ctrlKey || event.metaKey) && !event.altKey && key === 'z'
+
+		if (isUndoRedoShortcut) {
+			event.preventDefault()
+
+			if (event.shiftKey) {
+				redo()
+			} else {
+				undo()
+			}
 			return
 		}
 
-		event.preventDefault()
-
-		if (event.shiftKey) {
-			redo()
-		} else {
-			undo()
+		if (isShortcutInputTarget(event.target) || event.ctrlKey || event.metaKey || event.altKey || !isPaintMode.value) {
+			return
 		}
+
+		if (event.code === 'Space') {
+			event.preventDefault()
+
+			if (!event.repeat) {
+				isSpacePressed = true
+				isPanning = false
+				clearPendingPaintClick()
+			}
+			return
+		}
+
+		switch (key) {
+		case 'e':
+			event.preventDefault()
+			activateEraserMode()
+			break
+		case 'q':
+			event.preventDefault()
+			activateBrushMode()
+			break
+		case 'f':
+			event.preventDefault()
+			activateEyedropperMode()
+			break
+		case 'escape':
+			event.preventDefault()
+			cancelPaintMode()
+			break
+		case 'x':
+			event.preventDefault()
+			toggleToolMenu()
+			break
+		case 'g':
+			event.preventDefault()
+			showGrid.value = !showGrid.value
+			break
+		case 'enter':
+			event.preventDefault()
+			confirmDraftPixels()
+			break
+		default:
+			break
+		}
+	}
+
+	function handleKeyup(event) {
+		if (event.code !== 'Space') {
+			return
+		}
+
+		if (isPaintMode.value) {
+			event.preventDefault()
+		}
+
+		isSpacePressed = false
+		endKeyboardPaintStroke()
+	}
+
+	function handleWindowBlur() {
+		isSpacePressed = false
+		isPanning = false
+		clearPendingPaintClick()
+		endKeyboardPaintStroke()
 	}
 
 	function loop() {
@@ -1412,6 +1599,8 @@ export function runTplace() {
 
 		canvas.addEventListener('auxclick', preventMiddleClick)
 		document.addEventListener('keydown', handleKeydown)
+		document.addEventListener('keyup', handleKeyup)
+		window.addEventListener('blur', handleWindowBlur)
 		updatePixelCounter()
 		loadCanvas()
 		loadTplaceProfile()
@@ -1432,6 +1621,8 @@ export function runTplace() {
 		resizeObserver = null
 
 		document.removeEventListener('keydown', handleKeydown)
+		document.removeEventListener('keyup', handleKeyup)
+		window.removeEventListener('blur', handleWindowBlur)
 		clearInterval(profileRefreshIntervalId)
 		clearInterval(regenerationTimerIntervalId)
 		closeTplaceSocket()
