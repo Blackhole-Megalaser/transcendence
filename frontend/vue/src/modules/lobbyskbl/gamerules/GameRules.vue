@@ -9,6 +9,8 @@
 
     let inputRoomName = ref('');
     let inputRoomCode = ref('');
+    let gameStarted   = ref(false);
+    let seeRoomInfo   = ref(false);
 
     onMounted(() => {
         getUserRoomInfo();
@@ -31,9 +33,13 @@
                 username.value = dataUser.username;
                 roomCode.value = dataUser.skribble.code;
                 roomName.value = dataUser.skribble.name;
+                gameStarted.value = dataUser.skribble.game_started;
                 dataUser.skribble.players.forEach(element => {
                     users.value.push(element.username);
                 });
+                seeRoomInfo.value = true;
+            } else {
+                seeRoomInfo.value = false;
             }
         } catch (error) {
             console.error("Recuperation error :", error);
@@ -55,6 +61,7 @@
             if (response.ok) {
                 inputRoomName.value = '';
                 getUserRoomInfo();
+                window.location.href = '/lobbyskbl'
             }
 		} catch (error) {
 			console.error("Creation error :", error);
@@ -76,6 +83,7 @@
             if (response.ok) {
                 inputRoomCode.value = '';
                 getUserRoomInfo();
+                window.location.href = '/lobbyskbl'
             }
 		} catch (error) {
 			console.error("Join error :", error);
@@ -96,6 +104,7 @@
 			});
             if (response.ok) {
                 getUserRoomInfo();
+                window.location.href = '/lobbyskbl'
             }
 		} catch (error) {
 			console.error("Leave error :", error);
@@ -114,6 +123,9 @@
 					'Content-type' : 'application/json'
 				}
 			});
+            if (response.ok) {
+                window.location.href = `/skribbl?room=${roomCode.value}`;
+            }
 		} catch (error) {
 			console.error("Leave error :", error);
 		}
@@ -162,21 +174,22 @@
                 <div class="flex flex-row">
                     <div>Game Start:</div>
                     <div>
-                        <a href="/skribbl">
-                            <button
-                                @click="postStartGame"
-                                class="bg-green-600 rounded-sm">Start Game</button>
-                        </a>
+                        <button
+                            @click="postStartGame"
+                            class="bg-green-600 rounded-sm">Start Game</button>
                     </div>
                 </div>
-                <div class="text-center">__________ROOM INFO__________</div>
-                    <div>Room Code: {{ roomCode }}</div>
-                    <div>Room Name: {{ roomName }}</div>
-                    <div>Users in lobby:</div>
-                <div class="flex flex-row gap-4">
-                    <div v-for="(user, index) in users">
-                        <div>Avatar: </div>
-                        <div class="bg-navbar-menu">Username{{ index + 1 }}: {{ user }}</div>
+                <div v-if="seeRoomInfo">
+                    <div class="text-center">__________ROOM INFO__________</div>
+                        <div>Room Code: {{ roomCode }}</div>
+                        <div>Room Name: {{ roomName }}</div>
+                        <div>Game Started: {{ gameStarted }}</div>
+                        <div>Users in lobby:</div>
+                    <div class="flex flex-row gap-4">
+                        <div v-for="(user, index) in users">
+                            <div>Avatar: </div>
+                            <div class="bg-navbar-menu">Username{{ index + 1 }}: {{ user }}</div>
+                        </div>
                     </div>
                 </div>
             </div>

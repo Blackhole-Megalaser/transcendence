@@ -34,6 +34,7 @@
 
 	// WebSocket
 	const roomName 		  = "skribble_test";
+	const roomCode        = ref('');
 	const isDrawer 		  = ref(false);
 	const drawId 		  = ref(0);
 
@@ -50,11 +51,13 @@
 
     onMounted(() => {
 		window.addEventListener('keydown', handleKeyDown);
+
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver  = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
 		vueCanvas.value.fillStyle = '#ffffff';
 		vueCanvas.value.fillRect(0, 0, width.value, height.value);
+		
 		history.value = [{
 			type: 'fill',
 			x: 0,
@@ -62,7 +65,17 @@
 			color: '#ffffff'
 		}];
 		tmpHistory.value = [];
-		connectWebSocket();
+		
+		const urlParams = new URLSearchParams(window.location.search);
+		const roomFromUrl = urlParams.get('room');
+		if (!roomFromUrl) {
+			alert("Error: No room specified! Go back to lobby.");
+			window.location.href = 'lobbyskbl';
+			return;
+		}
+		roomCode.value = roomFromUrl;
+		connectWebSocket(roomCode.value);
+		
 		intervalId = setInterval(refreshDelay, currentDelay);
     });
 
@@ -92,7 +105,7 @@
 		}
 	};
 
-	const connectWebSocket = () => {
+	const connectWebSocket = (code) => {
 		if (Socket?.readyState == WebSocket.OPEN) {
 			isConnecting 	  = false;
 			isConnected 	  = true;
@@ -105,7 +118,7 @@
 
 		const protocol 	 = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const host 		 = window.location.host;
-		const wsUrl 	 = `${protocol}//${host}/ws/skribble/${roomName}/`;
+		const wsUrl 	 = `${protocol}//${host}/ws/skribble/${code}/`;
 	
 		Socket 			 = new WebSocket(wsUrl);
 		isConnecting 	 = true;
