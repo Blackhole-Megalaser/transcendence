@@ -343,14 +343,16 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
                 {"detail": f"Friend request {action}ed."},
                 status=HTTP_200_OK,
             )
-        
+
         if action == "remove_friend":
             if not profile.friends.filter(id=target_user.id).exists():
                 return Response({"detail": "Not in friend list."}, status=HTTP_400_BAD_REQUEST)
 
             profile.friends.remove(target_user)
             target_user.friends.remove(profile)
-            return Response({"detail": "Friend removed."}, status=HTTP_200_OK)
+            return Response(
+                {"detail": "Friend removed."}, status=HTTP_200_OK
+            )
 
 
 class AvatarView(NestedUserProfileBase, APIView):
