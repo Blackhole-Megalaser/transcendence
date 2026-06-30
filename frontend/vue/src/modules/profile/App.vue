@@ -1,6 +1,6 @@
 <template>
   <BasePage
-    navBarVariant="nav"
+    navBarVariant="home"
   >
     <Profile />
   </BasePage>
