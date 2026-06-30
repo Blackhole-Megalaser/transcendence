@@ -85,13 +85,14 @@ class UserProfile(models.Model):
     pending_friend_requests = models.ManyToManyField("UserProfile")
 
     def save(self, *args, **kwargs):
-        # if self.pk:
-            # try:
+        if self.pk:
+            try:
+                UserProfile.objects.get(pk=self.pk)
                 # old = UserProfile.objects.get(pk=self.pk)
                 # if old.profile_image != self.profile_image:
                 #     old.profile_image.delete(save=False)
-            # except UserProfile.DoesNotExist:
-            #     pass
+            except UserProfile.DoesNotExist:
+                pass
         super().save(*args, **kwargs)
 
     def regenerate_pixels(self):
