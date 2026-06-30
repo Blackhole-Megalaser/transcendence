@@ -1,5 +1,5 @@
 <template>
-  <section class="w-full flex-center flex-col gap-8 lg:gap-12 p-8 pt-12 md:max-xl:pb-0 lg:pt-24!">
+  <section class="w-full flex-center flex-col gap-6 md:gap-10 p-8 pt-12 md:max-xl:pb-0 lg:pt-24!">
     <div class="w-full grid grid-cols-1 md:grid-cols-2 items-center gap-4">
       <div class="flex-center flex-col gap-8">
         <div
@@ -18,32 +18,37 @@
         <p class="text-text-main/60">{{ email }}</p>
       </div>
     </div>
+    <hr>
     <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4" v-if="gameInfos">
-      <div class="flex-center flex-col gap-2 p-6 rounded-2xl bg-surface">
+      <div class="flex-center flex-col gap-2 p-6 rounded-full bg-navbar">
         <div class="flex items-center gap-2">
           <img src="" alt="Nyancoins" class="size-6">
           <span class="text-2xl font-bold text-title">{{ gameInfos?.nyancoins }}</span>
         </div>
         <p class="text-text-main/60 text-sm">Nyancoins</p>
       </div>
-      <div class="flex-center flex-col gap-2 p-6 rounded-2xl bg-surface">
+      <div class="flex-center flex-col gap-2 p-6 rounded-full bg-navbar">
         <span class="text-2xl font-bold text-title">
           {{ gameInfos.placable_pixels }}/{{ gameInfos.max_placable_pixels }}
-        </span><p class="text-text-main/60 text-sm">Pixels disponibles</p>
+        </span><p class="text-text-main/60 text-sm">Available pixels</p>
       </div>
-      <div class="flex-center flex-col gap-2 p-6 rounded-2xl bg-surface">
+      <div class="flex-center flex-col gap-2 p-6 rounded-full bg-navbar">
         <span class="text-2xl font-bold text-title">{{ gameInfos.unlocked_colors.length }}</span>
-        <p class="text-text-main/60 text-sm text-center">Couleurs débloquées</p>
+        <p class="text-text-main/60 text-sm text-center">Unlocked Colors</p>
       </div>
     </div>
-    <div class="w-full flex flex-wrap items-center justify-center gap-2" v-if="gameInfos">
-      <div
-        v-for="color in gameInfos.unlocked_colors"
-        :key="color.hex_code"
-        class="size-8 rounded-full border border-text-main/10"
-        :style="{ backgroundColor: color.hex_code }"
-        :title="color.name"
-      />
+    <hr>
+    <div class="w-full flex-center flex-col gap-4">
+      <span class="text-2xl font-bold text-title">Unlocked colors : </span>
+      <div class="w-full flex flex-wrap items-center justify-center gap-2" v-if="gameInfos">
+        <div
+          v-for="color in gameInfos.unlocked_colors"
+          :key="color.hex_code"
+          class="size-8 rounded-full border border-text-main/10"
+          :style="{ backgroundColor: color.hex_code }"
+          :title="color.name"
+        />
+      </div>
     </div>
   </section>
 </template>
@@ -120,4 +125,9 @@ onBeforeMount(async () => {
 </script>
 
 <style scoped>
+@import '@/style.css';
+
+hr {
+  @apply h-px w-full border-sidebar-border/50 mx-4 my-0;
+}
 </style>
