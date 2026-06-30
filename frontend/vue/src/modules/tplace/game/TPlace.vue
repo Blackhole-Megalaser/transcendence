@@ -8,7 +8,7 @@
 			<canvas
 				ref="canvasRef"
 				class="tplace-canvas block h-full w-full bg-bg-card"
-				:class="isPaintMode ? 'cursor-crosshair' : 'cursor-grab'"
+				:class="isEyedropperMode ? 'cursor-copy' : (isPaintMode ? 'cursor-crosshair' : 'cursor-grab')"
 				width="896"
 				height="608"
 				@mousemove="handleMouseMove"
@@ -95,6 +95,17 @@
 									<img :src="nyancoinIcon" alt="" class="size-5 shrink-0" draggable="false">
 									<span>{{ nyancoins }}</span>
 								</div>
+								<button
+									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
+									:class="isEyedropperMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
+									type="button"
+									title="Pick canvas color"
+									aria-label="Pick canvas color"
+									:aria-pressed="isEyedropperMode"
+									@click="toggleEyedropperMode"
+								>
+									<FontAwesomeIcon :icon="byPrefixAndName.fas['eye-dropper']" />
+								</button>
 								<button
 									class="grid size-9 place-items-center rounded-xl border border-borders-outline bg-bg-main text-sm text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
 									:class="isEraserMode ? 'border-button-1-hover bg-button-1-normal text-text-button-1 ring-2 ring-button-1-hover/70 hover:bg-button-1-hover' : ''"
@@ -223,6 +234,7 @@ const {
 	handleTouchStart,
 	handleWheel,
 	isEraserMode,
+	isEyedropperMode,
 	isLoginRequired,
 	isPaintMode,
 	isToolMenuOpen,
@@ -236,6 +248,7 @@ const {
 	selectedColor,
 	showGrid,
 	toggleEraserMode,
+	toggleEyedropperMode,
 	togglePaintMode,
 	toggleToolMenu,
 	undo,
