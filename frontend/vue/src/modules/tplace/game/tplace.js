@@ -47,12 +47,14 @@ export function runTplace() {
 	]
 
 	const colorNameByHex = new Map(colors.map((color) => [normalizeHexColor(color.value), color.name]))
+	const unlockedColorValues = new Set()
 
 	const canvasRef = ref(null)
 	const showGrid = ref(false)
 	const isToolMenuOpen = ref(false)
 	const isPaintMode = ref(false)
 	const isEraserMode = ref(false)
+	const isEyedropperMode = ref(false)
 	const isAuthenticated = ref(true)
 	const isAuthenticationResolved = ref(false)
 	const selectedColor = ref(colors[0].value)
@@ -105,12 +107,33 @@ export function runTplace() {
 	const draftPixels = new Map()
 
 	function selectColor(color) {
+		const normalized = normalizeHexColor(color)
+
+		if (normalized === null) {
+			return false
+		}
+
 		isEraserMode.value = false
-		selectedColor.value = color
+		isEyedropperMode.value = false
+		selectedColor.value = normalized
+
+		return true
 	}
 
 	function toggleEraserMode() {
 		isEraserMode.value = !isEraserMode.value
+
+		if (isEraserMode.value) {
+			isEyedropperMode.value = false
+		}
+	}
+
+	function toggleEyedropperMode() {
+		isEyedropperMode.value = !isEyedropperMode.value
+
+		if (isEyedropperMode.value) {
+			isEraserMode.value = false
+		}
 	}
 
 	function togglePaintMode() {
@@ -120,6 +143,7 @@ export function runTplace() {
 		if (!isPaintMode.value) {
 			isDrawing = false
 			isEraserMode.value = false
+			isEyedropperMode.value = false
 			commitStroke()
 		}
 	}
@@ -160,6 +184,7 @@ export function runTplace() {
 		isAuthenticated.value = false
 		isAuthenticationResolved.value = true
 		userStore.clear()
+		unlockedColorValues.clear()
 		setPixelQuota(0, 0)
 		setNyancoins(0)
 		setNextRegeneration(null)
@@ -231,6 +256,30 @@ export function runTplace() {
 
 	function getPixelColor(x, y) {
 		return pixels[y]?.[x] ?? DEFAULT_PIXEL_COLOR
+	}
+
+	function getVisiblePixelColor(x, y) {
+		return draftPixels.get(getDraftKey(x, y))?.newColor ?? getPixelColor(x, y)
+	}
+
+	function isColorUnlocked(color) {
+		const normalized = normalizeHexColor(color)
+
+		return normalized !== null && unlockedColorValues.has(normalized)
+	}
+
+	function pickColorFromCell(x, y) {
+		const color = getVisiblePixelColor(x, y)
+
+		if (!isColorUnlocked(color)) {
+			pointerStatus.value = 'Color not unlocked'
+			return false
+		}
+
+		selectColor(color)
+		pointerStatus.value = `${getColorName(color) ?? color} picked`
+
+		return true
 	}
 
 	function setPixelColor(x, y, color) {
@@ -363,8 +412,13 @@ export function runTplace() {
 			markAuthenticated()
 
 			if (Array.isArray(payload?.unlocked_colors)) {
+				unlockedColorValues.clear()
 				payload.unlocked_colors.forEach((color) => {
 					const hexCode = normalizeHexColor(color.hex_code)
+
+					if (hexCode !== null) {
+						unlockedColorValues.add(hexCode)
+					}
 
 					if (hexCode !== null && color.name) {
 						colorNameByHex.set(hexCode, color.name)
@@ -642,6 +696,7 @@ export function runTplace() {
 
 	function cancelPaintMode() {
 		isEraserMode.value = false
+		isEyedropperMode.value = false
 		isDrawing = false
 		isPanning = false
 		touchMode = null
@@ -956,7 +1011,9 @@ export function runTplace() {
 	}
 
 	function applyActiveToolToCell(cellX, cellY) {
-		if (isEraserMode.value) {
+		if (isEyedropperMode.value) {
+			pickColorFromCell(cellX, cellY)
+		} else if (isEraserMode.value) {
 			eraseDraftPixel(cellX, cellY)
 		} else {
 			recordPixelChange(cellX, cellY, selectedColor.value)
@@ -1066,15 +1123,20 @@ export function runTplace() {
 			return
 		}
 
-		touchMode = 'draw'
-		isPanning = false
-		isDrawing = true
-		beginStroke()
-
 		hoverCell = {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
+
+		if (isEyedropperMode.value) {
+			pickColorFromCell(pos.cellX, pos.cellY)
+			return
+		}
+
+		touchMode = 'draw'
+		isPanning = false
+		isDrawing = true
+		beginStroke()
 		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
@@ -1182,14 +1244,18 @@ export function runTplace() {
 			return
 		}
 
-		isDrawing = true
-		beginStroke()
-
 		hoverCell = {
 			x: pos.cellX,
 			y: pos.cellY,
 		}
 
+		if (isEyedropperMode.value) {
+			pickColorFromCell(pos.cellX, pos.cellY)
+			return
+		}
+
+		isDrawing = true
+		beginStroke()
 		applyActiveToolToCell(pos.cellX, pos.cellY)
 	}
 
@@ -1391,6 +1457,7 @@ export function runTplace() {
 		handleTouchStart,
 		handleWheel,
 		isEraserMode,
+		isEyedropperMode,
 		isLoginRequired,
 		isPaintMode,
 		isToolMenuOpen,
@@ -1404,6 +1471,7 @@ export function runTplace() {
 		selectedColor,
 		showGrid,
 		toggleEraserMode,
+		toggleEyedropperMode,
 		togglePaintMode,
 		toggleToolMenu,
 		undo,
