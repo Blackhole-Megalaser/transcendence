@@ -5,6 +5,31 @@
 </template>
 
 <script setup>
+import { 
+  onMounted,
+  onUnmounted, 
+  provide, 
+  ref 
+} from 'vue';
+import { fetchFriendRequests }  from '@shared';
+
+const friendRequests  = ref([]);
+let timer             = null;
+
+provide('FRIENDREQUESTS', friendRequests);
+
+const refreshFriendRequest = async () => {
+  friendRequests.value = await fetchFriendRequests(); 
+}
+
+onMounted(async () => {
+  await refreshFriendRequest();
+  timer = setInterval( refreshFriendRequest, 5000);
+})
+
+onUnmounted(() => {
+  clearInterval(timer);
+})
 </script>
 
 <style scoped>
