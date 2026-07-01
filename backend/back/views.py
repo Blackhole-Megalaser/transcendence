@@ -905,11 +905,7 @@ class SkribbleRoomViewSet(ModelViewSet):
         now = timezone.now()
         drawer_points = 0
         with transaction.atomic():
-            room = (
-                SkribbleRoom.objects.select_for_update()
-                .select_related("current_word", "host__user")
-                .get(pk=room.pk)
-            )
+            room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
             if not room.turn_started:
                 return room, {"turn_ended": False, "drawer_points": 0}
 
@@ -1303,11 +1299,12 @@ class SkribbleRoomViewSet(ModelViewSet):
             )
 
         with transaction.atomic():
-            room = (
-                SkribbleRoom.objects.select_for_update()
-                .select_related("current_word")
-                .get(pk=room.pk)
-            )
+            room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
+            if not room.turn_started or not room.current_word_id:
+                return Response({"correct": False, "turn_ended": True})
+            if guess != self._normalize_guess(room.current_word.word):
+                return Response({"correct": False, "turn_ended": False})
+
             player = SkribblePlayer.objects.select_for_update().get(pk=player.pk)
             if player.found:
                 return Response(
