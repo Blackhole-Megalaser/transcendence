@@ -1,5 +1,5 @@
 <template>
-  <section class="w-full flex-center flex-col gap-6 md:gap-10 p-8 pt-12 md:max-xl:pb-0 lg:pt-24!">
+  <section class="w-full flex-center flex-col gap-6 md:gap-10 p-8 py-12 lg:pt-24!">
     <div class="w-full grid grid-cols-1 md:grid-cols-2 items-center gap-4 lg:gap-12p">
       <div class="flex justify-center lg:justify-end">
         <div class="flex-center flex-col gap-8">
@@ -37,7 +37,7 @@
     <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4" v-if="gameInfos">
       <div class="flex-center flex-col gap-2 p-6 rounded-full bg-navbar">
         <div class="flex items-center gap-2">
-          <img src="" alt="Nyancoins" class="size-6">
+          <img :src="nyancoins" alt="Nyancoins" class="size-6">
           <span class="text-2xl font-bold text-title">{{ gameInfos?.nyancoins }}</span>
         </div>
         <p class="text-text-main/60 text-sm">Nyancoins</p>
@@ -65,6 +65,23 @@
         />
       </div>
     </div>
+    <hr>
+    <div class="w-full flex-center flex-col gap-4">
+      <span class="text-2xl font-bold text-title">Friends : </span>
+      <div class="w-full flex flex-wrap items-center justify-center gap-2" v-if="userInfos">
+        <div 
+          v-for="friend in userInfos.friendlist"
+          :key="friend.username"
+          class="group relative size-12 rounded-full overflow-hidden cursor-pointer border border-text-main/10"
+          :title="friend.username"
+        >
+          <div 
+            class="absolute inset-0 bg-cover bg-center"
+            :style="{ backgroundImage: `url(${friend.profile_image ?? defaultCat})` }"
+          />
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -76,6 +93,7 @@ import { useUserStore } from '@storage';
 import { getCookie }    from '@shared';
 import Button           from '@components/Button.vue';
 import defaultCat       from '@assets/default_cat.png';
+import nyancoins        from '@assets/nyancoin.png';
 import edit             from '@assets/edit.svg';
 
 const userStore = useUserStore();
