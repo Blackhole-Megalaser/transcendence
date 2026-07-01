@@ -31,12 +31,13 @@ export async function fetchFriends() {
     if (!response.ok) throw new Error('Error');
     const result    = await response.json();
     return {
+      status: 'ok',
       friends: result.friends ?? [],
       pending_friend_requests: result.pending_friend_requests ?? []
     };
   }
   catch (error) {
     console.error('Friend request fetching failed: ', error);
-    return { friends: [],  pending_friend_requests: [] };
+    return { status: 'error' };
   }
 }
