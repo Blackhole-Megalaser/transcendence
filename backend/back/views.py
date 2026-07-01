@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Count, Max
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from rest_framework import permissions, viewsets
@@ -333,19 +334,19 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
         profile = self.get_object()
         try:
             target_user = get_object_or_404(UserProfile, user__username=username)
-        except:
+        except Http404:
             return Response(
                 {"detail": "User doesn't exist."},
                 status=HTTP_403_FORBIDDEN,
             )
-        
 
         if action == "send":
             if profile.friends.filter(id=target_user.id).exists():
                 return Response(
-                {"detail": "User already in friendlist."},
-                status=HTTP_403_FORBIDDEN,
-            )
+                    {"detail": "User already in friendlist."},
+                    status=HTTP_403_FORBIDDEN,
+                )
+
             target_user.pending_friend_requests.add(profile)
             return Response(
                 {"detail": "Friend request sent."},
