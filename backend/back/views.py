@@ -71,13 +71,6 @@ BASE_REGENERATION_DELAY_SECONDS = 60
 MIN_REGENERATION_DELAY_SECONDS = 15
 
 
-# turns the last logged into a fortune last activity timer
-def update_last_logged(username):
-    user = User.objects.get(username=username)
-    user.last_login = timezone.now()
-    return
-
-
 def index(request):
     user = request.user
     return render(request, "back/index.html", {"user": user})
@@ -322,7 +315,6 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
 
     def get(self, request, user):
         profile = self.get_object()
-        update_last_logged(profile.user)
         serializer = UserProfileSerializer(
             profile.pending_friend_requests.all(), many=True
         )
