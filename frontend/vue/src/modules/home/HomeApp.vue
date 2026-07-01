@@ -124,7 +124,7 @@ import {
 
 import { fetchFriends }  from '@shared';
 
-const friendInfos       = ref({ friends: [], pending_friend_requests: [] });
+const friendInfos       = ref({ status: '', friends: [], pending_friend_requests: []});
 const scrollY           = ref(0);
 const navBarControl     = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
 let   friendRequestTimer  = null;
@@ -132,7 +132,15 @@ let   friendRequestTimer  = null;
 provide('FRIENDREQUESTS', friendInfos);
 
 const refreshFriendRequest = async () => {
-  friendInfos.value = await fetchFriends(); 
+  const result = await fetchFriends();
+  if (result.status === 'ok') {
+    friendInfos.value = result;
+  } else {
+    friendInfos.value = {
+      ...friendInfos.value,
+      status: 'error'
+    }
+  }
 }
 
 function handleScroll() {
