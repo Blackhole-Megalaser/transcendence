@@ -206,10 +206,24 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
-        fields = ["username"]
+        fields = ["username", "profile_image", "last_seen"]
+
+    def get_profile_image(self, obj):
+        try:
+            profile = obj
+        except UserProfile.DoesNotExist:
+            return None
+        if profile.profile_image:
+            request = self.context.get("request")
+            url = profile.profile_image.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        return None
 
 
 class FriendsSerializer(serializers.ModelSerializer):
