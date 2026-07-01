@@ -191,7 +191,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
         validated_data = serializer.validated_data
         logging.info("data valid %s", validated_data)
+        username = validated_data["username"]
         password = validated_data["password1"]
+
+        if self.queryset.filter(username=username) is not None:
+            return Response({"detail": "This username is already taken"}, status=409)
 
         user = User.objects.create_user(
             username=validated_data["username"],
