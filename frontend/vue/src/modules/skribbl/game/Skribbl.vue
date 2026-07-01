@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed } from 'vue';
+    import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 	import { useSkribbleStore } from '@shared';
 	import { storeToRefs } from 'pinia';
     import bucket from './bucket.png'
@@ -42,8 +42,6 @@
     let currentPath 	  = null;
 
 	// WebSocket
-	const roomName 		  = "skribble_test";
-	const roomCode        = ref('');
 	const drawId 		  = ref(0);
 
 	let intervalId 		  = null;
@@ -52,16 +50,35 @@
 	let currentDelay	  = 3000;
 	const jitter 		  = 0.05;
 
+	const roomName 		  = "skribble_test";
+	const roomCode        = ref('');
+	const wordlist		= ref([]);
+	let word			= ref('');
+	let player_index	= ref(1);
+	let round_counter	= ref(0);
+	const round_max		= 3;
+	let round_started	= ref(false);
+	let word_history	= [];
+	let timer			= ref(0);
+	const timer_end		= 60;
+
+	//	SkribblPlayer
+
+	let username		= ref('');
+	let score			= ref(0);
+	let found			= ref(false);
+
+	let message1		= ref('');
+	let nextWord		= ref(0);
+
 
     onMounted(() => {
 		window.addEventListener('keydown', handleKeyDown);
-
         vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
         resizeObserver  = new ResizeObserver(resizeCanvas);
         resizeObserver.observe(canvasRef.value.parentElement);
 		vueCanvas.value.fillStyle = '#ffffff';
 		vueCanvas.value.fillRect(0, 0, width.value, height.value);
-		
 		history.value = [{
 			type: 'fill',
 			x: 0,
@@ -85,6 +102,8 @@
 		}
 		
 		intervalId = setInterval(refreshDelay, currentDelay);
+		fetchUserData();
+		fetchWords();
     });
 
     onUnmounted(() => {
@@ -99,7 +118,66 @@
 		clearInterval(intervalId);
     });
 
-	// see chat component for documentation
+	watch(message1, (newMessage) => {
+		if (!isDrawer.value && newMessage === word.value) {
+			postSkribble();
+			isDrawer.value = !isDrawer.value;
+			nextWord.value++;
+			fetchWords();
+		}
+	});
+
+	const postSkribble = async () => {
+		score.value += 10;
+		try {
+			const response = await fetch(`api/skribble/rooms/${roomCode.value}/`, {
+				method: 'POST',
+				body: JSON.stringify({
+					username: username.value,
+					score: score.value
+				}),
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken'),
+					'Content-type' : 'application/json'
+				}
+			});
+		} catch (error) {
+			console.error("Recuperation error :", error);
+		}
+	};
+
+	const fetchUserData = async () => {
+		try {
+			const response = await fetch('/api/users/me/');
+			const dataUser = await response.json();
+			if (!dataUser.skribble) {
+				window.location.href = "/lobbyskbl";
+				return;
+			}
+			if (roomCode.value !== dataUser.skribble.code) {
+				window.location.href = "/lobbyskbl";
+				return;
+			}
+			username.value = dataUser.username;
+			if (dataUser.score) score.value = dataUser.score;
+		} catch (error) {
+			console.error("Recuperation error :", error);
+		}
+	};
+
+	const fetchWords = async () => {
+		try {
+			const response = await fetch('/api/wordlists/basic/');
+			const dataWords = await response.json();
+			wordlist.value = dataWords.words;
+			// take always the first word of the list because having random word everytime in frontend makes 2 users having different words
+			word.value = wordlist.value[nextWord.value];
+
+		} catch (error) {
+			console.error("Recuperation error :", error);
+		}
+	};
+
 	const refreshDelay = () => {
 		if (!isConnected.value && !isConnecting.value) {
 			skribbleStore.connectWebSocket(roomCode.value, handleSocketMessage);
@@ -570,8 +648,11 @@
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
 				<div class="bg-white ">
-					<p>SCORES</p>
-					<p>1 billion points for Gryffondor</p>
+					<p>LastMessage:								{{ message1 }}</p>
+					<p>Username:								{{ username }}</p>
+					<p>Score:									{{ score }}</p>
+					<p v-if="isDrawer">Word:					{{ word }}</p>
+					<p v-if="!isDrawer && message1 === word">You Win</p>
 					<button @click="isDrawer = !isDrawer" class="p-2 bg-button-1-normal text-white rounded">
 						Player Status : {{ isDrawer ? 'Drawer' : 'Guesser' }}
 					</button>
@@ -599,6 +680,7 @@
 					initialModuleName="skribble"
         			v-bind:initialRoomName="roomName"
 					v-bind:initialHistoryFetch="false"
+					@input_message="message1 = $event"
         		/>
 			</div>
 			<!-- __________ COLORS __________ -->
