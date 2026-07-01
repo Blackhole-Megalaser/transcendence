@@ -53,14 +53,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted }  from 'vue';
-import default_cat        from '@assets/default_cat.png'
+import { ref, computed, onMounted } from 'vue';
+import { storeToRefs }              from 'pinia';
+import { useUserStore } from '@storage'
+import default_cat      from '@assets/default_cat.png'
 
-const friendList  = ref(null);
+const userStore     = useUserStore();
+const { userInfos } = storeToRefs();
+const friendList    = computed(() => userInfos?.friendlist ?? []);
 
-onMounted(() => {
-  
-})
 </script>
 
 <style scoped>
