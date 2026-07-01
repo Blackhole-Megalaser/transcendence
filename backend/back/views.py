@@ -764,12 +764,12 @@ class SkribbleRoomViewSet(ModelViewSet):
     def _mask_word(self, word):
         return "".join(" " if char.isspace() else "_" for char in word)
 
-    def _guess_score(self, guess_position, guesser_count):
-        if guesser_count <= 1:
-            return self.guesser_first_score
+    def _guess_score(self, room, now):
+        timer_seconds = max(room.timer.total_seconds(), 1)
+        remaining_seconds = max((room.timer_end - now).total_seconds(), 0)
+        remaining_ratio = min(remaining_seconds / timer_seconds, 1)
         score_range = self.guesser_first_score - self.guesser_last_score
-        step = score_range / (guesser_count - 1)
-        return round(self.guesser_first_score - ((guess_position - 1) * step))
+        return round(self.guesser_last_score + (score_range * remaining_ratio))
 
     def _drawer_score(self, room, found_count, now):
         if found_count <= 0:
@@ -1298,6 +1298,7 @@ class SkribbleRoomViewSet(ModelViewSet):
                 {"correct": True, "already_found": True, "turn_ended": False}
             )
 
+        timer_expired = False
         with transaction.atomic():
             room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
             if not room.turn_started or not room.current_word_id:
@@ -1305,20 +1306,29 @@ class SkribbleRoomViewSet(ModelViewSet):
             if guess != self._normalize_guess(room.current_word.word):
                 return Response({"correct": False, "turn_ended": False})
 
-            player = SkribblePlayer.objects.select_for_update().get(pk=player.pk)
-            if player.found:
-                return Response(
-                    {"correct": True, "already_found": True, "turn_ended": False}
-                )
-            drawer = self._current_drawer(room)
-            guesser_count = room.players.exclude(pk=drawer.pk).count()
-            guess_position = (
-                room.players.exclude(pk=drawer.pk).filter(found=True).count() + 1
+            now = timezone.now()
+            if now >= room.timer_end:
+                timer_expired = True
+            else:
+                player = SkribblePlayer.objects.select_for_update().get(pk=player.pk)
+                if player.found:
+                    return Response(
+                        {"correct": True, "already_found": True, "turn_ended": False}
+                    )
+                points = self._guess_score(room, now)
+                player.found = True
+                player.score += points
+                player.save(update_fields=["found", "score"])
+
+        if timer_expired:
+            room, turn_info = self._finish_turn(room, reason="timer")
+            return Response(
+                {
+                    "correct": False,
+                    "turn_ended": turn_info["turn_ended"],
+                    "state": self._room_state(room, request),
+                }
             )
-            points = self._guess_score(guess_position, guesser_count)
-            player.found = True
-            player.score += points
-            player.save(update_fields=["found", "score"])
 
         self._broadcast(
             room.code,
