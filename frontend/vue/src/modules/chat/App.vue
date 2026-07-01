@@ -35,7 +35,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, provide }  from 'vue';
 import { useBreakpoints }               from '@vueuse/core';
-import { fetchFriendRequests }          from '@shared';
+import { fetchFriends }          from '@shared';
 import menu                             from '@assets/menu-chat.svg';
 
 const getChannelOnLoad  = () => {
@@ -97,7 +97,7 @@ const changeChannel   = (channelName) => {
 }
 
 const refreshFriendRequest = async () => {
-  friendRequests.value = await fetchFriendRequests(); 
+  friendRequests.value = await fetchFriends(); 
 }
 
 let timer = null;

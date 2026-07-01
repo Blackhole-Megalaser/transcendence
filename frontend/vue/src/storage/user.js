@@ -1,6 +1,6 @@
 import { computed, defineAsyncComponent, ref }  from "vue";
 import { defineStore }                          from "pinia";
-import { fetchUserInfos, fetchFriends }         from "@shared";
+import { fetchUserInfos, fetchFriendlist }         from "@shared";
 
 export const useUserStore = defineStore('user', () => {
   const STORAGE_KEY     ='user_infos_cache';
@@ -23,8 +23,8 @@ export const useUserStore = defineStore('user', () => {
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
-  async function addFriend() {
-      const friendlist  = await fetchFriends();
+  async function updateFriendlist() {
+      const friendlist  = await fetchFriendlist();
       if (userInfos.value) {
         const data = { ...userInfos.value };
         data["friendlist"] = friendlist;
@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
   async function fetchInfos() {
     const infos       = await fetchUserInfos();
     if (infos.status === 'ok') {
-      const friendlist  = await fetchFriends();
+      const friendlist  = await fetchFriendlist();
       infos.data["friendlist"] = friendlist;
       set(infos.data);
     }
@@ -58,10 +58,10 @@ export const useUserStore = defineStore('user', () => {
   return {
     set,
     clear,
-    addFriend,
     fetchInfos,
     removeFriend,
     initUserInfos,
+    updateFriendlist,
     changeProfilePic,
     getLoggedStatus,
     getProfilePic,

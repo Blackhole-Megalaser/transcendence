@@ -71,7 +71,7 @@ const handleFriendRequest = async (username, method) => {
     }
     FriendRequests.value = FriendRequests.value.filter((w) => w.username !== username);
     if (method === 'accept') {
-      UserStore.addFriend();
+      UserStore.updateFriendlist();
     }
   }
   catch (e) {

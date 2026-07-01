@@ -10,6 +10,6 @@ export { getCookie }        from './cookieGetter'
 export { useSkribbleStore }	from './skribble'
 export { 
   fetchUserInfos,
-  fetchFriends,
-  fetchFriendRequests 
+  fetchFriendlist,
+  fetchFriends 
 } from './fetchUserInfos'

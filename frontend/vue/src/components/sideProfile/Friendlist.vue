@@ -1,10 +1,13 @@
 <template>
-  <ul class="overflow-auto max-h-60">
+  <ul 
+    class="overflow-auto max-h-60"
+    v-if="friendList?.friends?.length > 0"
+  >
     <li
       class="w-full flex items-center flex-col rounded-xl overflow-hidden my-1"
+      v-for="friend in friendList.friends"
       :key="friend.username"
-      v-for="friend in friendList"
-      >
+    >
       <div
         class="flex items-center gap-4 w-full z-10 cursor-pointer px-4 py-2 hover:bg-button-2-active"
         @click="friend.isOpen = !friend.isOpen"
@@ -14,11 +17,11 @@
           <img
             alt="Profile Picture"
             class="size-10 min-w-10 z-11 rounded-full"
-            :src="friend.profilePicture ?? default_cat"
+            :src="friend.profile_image ?? default_cat"
           >
           <div
             class="size-3 rounded-full z-11 absolute right-0.5 top-0.5"
-            :class="friend.isLogged ? 'bg-green-500' : 'bg-red-600'"
+            :class="isLogged(friend.last_seen) ? 'bg-green-500' : 'bg-red-600'"
           ></div>
         </div>
         <p class="text-text-main text-lg font-semibold truncate max-w-52">{{ friend.username }}</p>
@@ -41,24 +44,32 @@
   </ul>
   <div
     class="text-text-main font-semibold w-full py-2 flex-center"
-    v-if="friendList.length === 0"
-    @click="console.log(userInfos)"
+    v-else
+    @click="console.log(friendList.friends)"
   >
     <p>No Friends ! :c</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
 import { storeToRefs }              from 'pinia';
 
 import { getCookie }                from '@shared';
 import { useUserStore }             from '@storage';
 import default_cat                  from '@assets/default_cat.png';
 
-const userStore     = useUserStore();
-const { userInfos } = storeToRefs(userStore);
-const friendList    = computed(() => userInfos.value?.friendlist ?? []);
+const userStore         = useUserStore();
+const { userInfos }     = storeToRefs(userStore);
+const friendList        = inject('FRIENDREQUESTS');
+const currentTimestamp  = ref(Date.now());
+let   logStatusInterval = null;
+
+const isLogged        = (lastActivityTimeISO) => {
+  if (!lastActivityTimeISO) return (false);
+  const lateTimestamp    = Date.parse(lastActivityTimeISO);
+  return (currentTimestamp.value - lateTimestamp <= 4 * 60 * 1000);
+}
 
 const deleteFriend  = async (username) => {
   try {
@@ -81,11 +92,15 @@ const deleteFriend  = async (username) => {
   }
   catch (e) {
     console.error(e);
-
   }
 }
-const logInfos  = () => {console.log(userInfos.value)}
-</script>
 
-<style scoped>
-</style>
+onMounted(() => {
+  logStatusInterval = setInterval(() => {
+    currentTimestamp.value = Date.now();
+  }, 10 * 1000)
+})
+onUnmounted(() => {
+  clearInterval(logStatusInterval);
+})
+</script>
