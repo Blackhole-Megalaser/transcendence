@@ -22,6 +22,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
+    HTTP_403_FORBIDDEN,
     HTTP_409_CONFLICT,
 )
 from rest_framework.views import APIView
@@ -333,6 +334,11 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
         target_user = get_object_or_404(UserProfile, user__username=username)
 
         if action == "send":
+            if profile.friends.filter(id=target_user.id).exists():
+                return Response(
+                {"detail": "User already in friendlist."},
+                status=HTTP_403_FORBIDDEN,
+            )
             target_user.pending_friend_requests.add(profile)
             return Response(
                 {"detail": "Friend request sent."},
