@@ -44,6 +44,7 @@ from .serializers import (
     FriendsSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
+    NyancoinsGrantSerializer,
     NyancoinsSerializer,
     PixelPlaceSerializer,
     PixelSerializer,
@@ -591,6 +592,27 @@ class PixelPlaceView(APIView):
             },
             status=status,
         )
+
+
+# /api/tplace/giveme/
+class TplaceGiveNyancoinsView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = NyancoinsGrantSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        amount = serializer.validated_data["amount"]
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            profile.regenerate_pixels()
+            profile.nyancoins += amount
+            profile.save(update_fields=["nyancoins"])
+
+        data = TplaceSerializer(profile).data
+        data["nyancoins_added"] = amount
+        return Response(data, status=HTTP_200_OK)
 
 
 # /api/tplace/canvas/
