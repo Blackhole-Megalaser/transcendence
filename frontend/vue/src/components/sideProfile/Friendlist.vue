@@ -50,15 +50,21 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useUserStore }             from '@storage'
 import { storeToRefs }              from 'pinia';
+<<<<<<< HEAD
 import { getCookie }                from '@shared';
 import { useUserStore }             from '@storage';
 import default_cat                  from '@assets/default_cat.png';
+=======
+import default_cat      from '@assets/default_cat.png'
+>>>>>>> 76054ad (Update: now successfully see friends)
 
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const friendList    = computed(() => userInfos.value?.friendlist ?? []);
 
+<<<<<<< HEAD
 const deleteFriend  = async (username) => {
   try {
     const response  = await fetch('/api/users/me/friends_request/', {
@@ -84,6 +90,8 @@ const deleteFriend  = async (username) => {
   }
 }
 
+=======
+>>>>>>> 76054ad (Update: now successfully see friends)
 const logInfos  = () => {console.log(userInfos.value)}
 </script>
 
