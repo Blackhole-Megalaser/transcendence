@@ -267,6 +267,10 @@ class PixelPlaceSerializer(serializers.Serializer):
     )
 
 
+class TplaceUpgradePurchaseSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField(min_value=1)
+
+
 class PixelSerializer(serializers.ModelSerializer):
     color = ColorSerializer()
 

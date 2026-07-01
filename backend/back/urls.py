@@ -24,6 +24,11 @@ urlpatterns = [
     path("api/users/<str:user>/friends_request/", views.FriendsRequestView.as_view()),
     path("api/users/<str:user>/avatar/", views.AvatarView.as_view()),
     path("api/tplace/pixels/", views.PixelPlaceView.as_view()),
+    path("api/tplace/upgrades/max-pixels/", views.TplaceMaxPixelsUpgradeView.as_view()),
+    path(
+        "api/tplace/upgrades/regeneration-delay/",
+        views.TplaceRegenerationDelayUpgradeView.as_view(),
+    ),
     path("api/tplace/canvas/", views.CanvasView.as_view()),
     path("api-auth/signup", views.signup),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),

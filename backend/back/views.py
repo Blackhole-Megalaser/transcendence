@@ -1,5 +1,6 @@
 import logging
 import random
+from decimal import ROUND_CEILING, Decimal
 
 from django.conf import settings
 from django.contrib import messages
@@ -51,6 +52,7 @@ from .serializers import (
     SkribbleRoomSerializer,
     StartTurnSerializer,
     TplaceSerializer,
+    TplaceUpgradePurchaseSerializer,
     UnlockedColorsSerializer,
     UserProfileSerializer,
     UserSerializer,
@@ -58,6 +60,12 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+MAX_PIXEL_UPGRADE_PRICE = 150
+COOLDOWN_UPGRADE_BASE_PRICE = 300
+COOLDOWN_UPGRADE_PRICE_MULTIPLIER = Decimal("1.10")
+BASE_REGENERATION_DELAY_SECONDS = 60
+MIN_REGENERATION_DELAY_SECONDS = 15
 
 
 def index(request):
@@ -356,6 +364,113 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
             profile.friends.remove(target_user)
             target_user.friends.remove(profile)
             return Response({"detail": "Friend removed."}, status=HTTP_200_OK)
+
+
+def get_cooldown_upgrade_count(profile):
+    current_seconds = int(profile.regeneration_delay.total_seconds())
+    return max(0, BASE_REGENERATION_DELAY_SECONDS - current_seconds)
+
+
+def get_cooldown_upgrade_price(upgrade_index):
+    price = Decimal(COOLDOWN_UPGRADE_BASE_PRICE) * (
+        COOLDOWN_UPGRADE_PRICE_MULTIPLIER**upgrade_index
+    )
+    return int(price.to_integral_value(rounding=ROUND_CEILING))
+
+
+def get_cooldown_upgrade_total_price(first_upgrade_index, quantity):
+    return sum(
+        get_cooldown_upgrade_price(first_upgrade_index + offset)
+        for offset in range(quantity)
+    )
+
+
+def get_tplace_upgrade_response(profile, nyancoins_spent):
+    data = TplaceSerializer(profile).data
+    data["nyancoins_spent"] = nyancoins_spent
+    return Response(data, status=HTTP_200_OK)
+
+
+class TplaceMaxPixelsUpgradeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TplaceUpgradePurchaseSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quantity = serializer.validated_data["quantity"]
+        total_cost = quantity * MAX_PIXEL_UPGRADE_PRICE
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            profile.regenerate_pixels()
+
+            if profile.nyancoins < total_cost:
+                return Response(
+                    {
+                        "detail": "Not enough nyancoins",
+                        "required_nyancoins": total_cost,
+                        "nyancoins": profile.nyancoins,
+                    },
+                    status=HTTP_409_CONFLICT,
+                )
+
+            profile.nyancoins -= total_cost
+            profile.max_placable_pixels += quantity
+            profile.save(update_fields=["nyancoins", "max_placable_pixels"])
+
+        return get_tplace_upgrade_response(profile, total_cost)
+
+
+class TplaceRegenerationDelayUpgradeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TplaceUpgradePurchaseSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quantity = serializer.validated_data["quantity"]
+        delay_reduction = timezone.timedelta(seconds=quantity)
+
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            profile.regenerate_pixels()
+
+            next_regeneration_delay = profile.regeneration_delay - delay_reduction
+            if next_regeneration_delay.total_seconds() < MIN_REGENERATION_DELAY_SECONDS:
+                return Response(
+                    {"detail": "Regeneration delay cannot go below 15 seconds"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+            cooldown_upgrades = get_cooldown_upgrade_count(profile)
+            total_cost = get_cooldown_upgrade_total_price(cooldown_upgrades, quantity)
+            if profile.nyancoins < total_cost:
+                return Response(
+                    {
+                        "detail": "Not enough nyancoins",
+                        "required_nyancoins": total_cost,
+                        "nyancoins": profile.nyancoins,
+                    },
+                    status=HTTP_409_CONFLICT,
+                )
+
+            profile.nyancoins -= total_cost
+            profile.regeneration_delay = next_regeneration_delay
+            if profile.placable_pixels < profile.max_placable_pixels:
+                profile.next_regeneration = max(
+                    timezone.now(),
+                    profile.next_regeneration - delay_reduction,
+                )
+            profile.save(
+                update_fields=[
+                    "nyancoins",
+                    "regeneration_delay",
+                    "next_regeneration",
+                ]
+            )
+
+        return get_tplace_upgrade_response(profile, total_cost)
 
 
 class AvatarView(NestedUserProfileBase, APIView):
