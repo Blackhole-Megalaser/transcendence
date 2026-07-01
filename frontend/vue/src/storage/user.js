@@ -23,6 +23,12 @@ export const useUserStore = defineStore('user', () => {
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
+  async function addFriend() {
+      const friendlist  = await fetchFriends();
+      infos.data["friendlist"] = friendlist;
+      set(infos.data);
+  }
+
   async function fetchInfos() {
     const infos       = await fetchUserInfos();
     if (infos.status === 'ok') {
@@ -42,6 +48,7 @@ export const useUserStore = defineStore('user', () => {
   return {
     set,
     clear,
+    addFriend,
     fetchInfos,
     initUserInfos,
     changeProfilePic,
