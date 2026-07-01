@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from .models import SkribblePlayer, SkribbleRoom, Word, WordList
@@ -134,13 +135,43 @@ class SkribbleRoomApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["correct"])
         self.assertTrue(response.data["turn_ended"])
-        self.assertEqual(response.data["points"], 200)
+        self.assertGreaterEqual(response.data["points"], 190)
+        self.assertLessEqual(response.data["points"], 200)
         self.assertGreater(response.data["drawer_points"], 0)
 
         room.refresh_from_db()
         self.assertFalse(room.turn_started)
         self.assertIsNone(room.current_word)
         self.assertFalse(room.game_finished)
+
+    def test_guess_score_decreases_with_elapsed_time(self):
+        code = self.create_room("Timed score room")
+        self.join_guest(code)
+        room = self.start_game(code)
+        drawer = self.current_drawer(room)
+        drawer_client = self.client_for_player(drawer)
+        guesser_client = self.other_client_for_player(drawer)
+
+        response = drawer_client.post(
+            f"/api/skribble/rooms/{code}/start_turn/",
+            {"word": self.words[0].word},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        room.refresh_from_db()
+        room.timer_end = timezone.now() + (room.timer / 2)
+        room.save(update_fields=["timer_end"])
+
+        response = guesser_client.post(
+            f"/api/skribble/rooms/{code}/guess/",
+            {"guess": self.words[0].word},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["correct"])
+        self.assertGreaterEqual(response.data["points"], 110)
+        self.assertLessEqual(response.data["points"], 140)
 
     def test_game_finishes_after_three_draws_per_player_and_replay_resets(self):
         code = self.create_room()
