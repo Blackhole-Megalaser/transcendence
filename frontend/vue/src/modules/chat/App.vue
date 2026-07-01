@@ -33,8 +33,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted }  from 'vue';
+import { ref, onMounted, onUnmounted, provide }  from 'vue';
 import { useBreakpoints }               from '@vueuse/core';
+import { fetchFriendRequests }          from '@shared';
 import menu                             from '@assets/menu-chat.svg';
 
 const getChannelOnLoad  = () => {
@@ -60,6 +61,9 @@ const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox'];
 const currentChannel    = ref(getChannelOnLoad());
 const breakpoints       = useBreakpoints({ sm: 640 });
 const isSmallScreen     = breakpoints.smaller("sm");
+const friendRequests    = ref([]);
+
+provide('FRIENDREQUESTS', friendRequests);
 
 const formatChanName  = (str) => {
   const lowerCaseWithSpaces = str.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
@@ -92,11 +96,21 @@ const changeChannel   = (channelName) => {
   window.history.pushState({ path: newURL }, formatChanName(currentChannel.value), newURL)
 }
 
-onMounted(() => {
+const refreshFriendRequest = async () => {
+  friendRequests.value = await fetchFriendRequests(); 
+}
+
+let timer = null;
+
+onMounted(async () => {
   getChannelFromUrl();
+  await refreshFriendRequest();
+  timer = setInterval( refreshFriendRequest, 5000);
   window.addEventListener('popstate', getChannelFromUrl);
 })
+
 onUnmounted(() => {
+  clearInterval(timer);
   window.removeEventListener('popstate', getChannelFromUrl);
 })
 </script>
