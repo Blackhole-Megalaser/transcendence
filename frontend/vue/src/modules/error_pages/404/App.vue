@@ -14,7 +14,7 @@ import {
   provide, 
   ref 
 } from 'vue';
-import { fetchFriendRequests }  from '@shared';
+import { fetchFriends }  from '@shared';
 
 const friendRequests  = ref([]);
 let timer             = null;
@@ -22,7 +22,7 @@ let timer             = null;
 provide('FRIENDREQUESTS', friendRequests);
 
 const refreshFriendRequest = async () => {
-  friendRequests.value = await fetchFriendRequests(); 
+  friendRequests.value = await fetchFriends(); 
 }
 
 onMounted(async () => {

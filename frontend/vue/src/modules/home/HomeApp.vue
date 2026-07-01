@@ -122,17 +122,17 @@ import {
   ref 
 } from 'vue';
 
-import { fetchFriendRequests }  from '@shared';
+import { fetchFriends }  from '@shared';
 
-const friendRequests  = ref([]);
-const scrollY         = ref(0);
-const navBarControl   = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
-let timer             = null;
+const friendInfos       = ref({ friends: [], pending_friend_requests: [] });
+const scrollY           = ref(0);
+const navBarControl     = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+let   friendRequestTimer  = null;
 
-provide('FRIENDREQUESTS', friendRequests);
+provide('FRIENDREQUESTS', friendInfos);
 
 const refreshFriendRequest = async () => {
-  friendRequests.value = await fetchFriendRequests(); 
+  friendInfos.value = await fetchFriends(); 
 }
 
 function handleScroll() {
@@ -142,12 +142,11 @@ function handleScroll() {
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll);
   await refreshFriendRequest();
-  timer = setInterval( refreshFriendRequest, 5000);
+  friendRequestTimer  = setInterval(refreshFriendRequest, 5000);
 })
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
-  clearInterval(timer);
-
+  clearInterval(friendRequestTimer);
 })
 </script>
 

@@ -12,7 +12,7 @@ export async function fetchUserInfos() {
   }
 }
 
-export async function fetchFriends() {
+export async function fetchFriendlist() {
   try {
     const response  = await fetch('/api/users/me/friendlist');
     if (!response.ok) throw new Error('Error');
@@ -25,15 +25,18 @@ export async function fetchFriends() {
   }
 }
 
-export async function fetchFriendRequests() {
+export async function fetchFriends() {
    try {
-    const response  = await fetch('/api/users/me/friends_request');
+    const response  = await fetch('/api/users/me/friends/');
     if (!response.ok) throw new Error('Error');
     const result    = await response.json();
-    return result.pending_friend_requests;
+    return {
+      friends: result.friends ?? [],
+      pending_friend_requests: result.pending_friend_requests ?? []
+    };
   }
   catch (error) {
     console.error('Friend request fetching failed: ', error);
-    return [];
+    return { friends: [],  pending_friend_requests: [] };
   }
 }
