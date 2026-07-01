@@ -16,13 +16,21 @@ import {
 } from 'vue';
 import { fetchFriends }  from '@shared';
 
-const friendRequests  = ref([]);
-let timer             = null;
+const friendInfos = ref({ status: '', friends: [], pending_friend_requests: []});
+let   timer       = null;
 
-provide('FRIENDREQUESTS', friendRequests);
+provide('FRIENDREQUESTS', friendInfos);
 
 const refreshFriendRequest = async () => {
-  friendRequests.value = await fetchFriends(); 
+  const result = await fetchFriends();
+  if (result.status === 'ok') {
+    friendInfos.value = result;
+  } else {
+    friendInfos.value = {
+      ...friendInfos.value,
+      status: 'error'
+    }
+  }
 }
 
 onMounted(async () => {
