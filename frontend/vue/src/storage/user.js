@@ -1,6 +1,6 @@
-import { computed, ref }  from "vue";
-import { defineStore }    from "pinia";
-import { fetchUserInfos } from "@shared";
+import { computed, defineAsyncComponent, ref }  from "vue";
+import { defineStore }                          from "pinia";
+import { fetchUserInfos, fetchFriends }         from "@shared";
 
 export const useUserStore = defineStore('user', () => {
   const STORAGE_KEY     ='user_infos_cache';
@@ -24,8 +24,12 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function fetchInfos() {
-    const infos = await fetchUserInfos();
-    if (infos.status === 'ok')                    set(infos.data);
+    const infos       = await fetchUserInfos();
+    if (infos.status === 'ok') {
+      const friendlist  = await fetchFriends();
+      infos.data["friendlist"] = friendlist;
+      set(infos.data);
+    }
     else if (infos.status === 'unauthenticated')  clear()
     return(infos);
   }
