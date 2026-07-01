@@ -53,59 +53,14 @@
 </template>
 
 <script setup>
-import { ref, computed }  from 'vue';
+import { ref, computed, onMounted }  from 'vue';
 import default_cat        from '@assets/default_cat.png'
 
-const friendList = ref([
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_with_a_wayyyyyyyyy_too_long_username',
-    isLogged:       true,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_2',
-    isLogged:       false,
-    isOpen:         false
-  },
-    {
-    profilePicture: default_cat,
-    username:       'lab_cat_3',
-    isLogged:       true,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_4',
-    isLogged:       false,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_5',
-    isLogged:       true,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_6',
-    isLogged:       false,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_7',
-    isLogged:       true,
-    isOpen:         false
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_8',
-    isLogged:       false,
-    isOpen:         false
-  }
-])
+const friendList  = ref(null);
+
+onMounted(() => {
+  
+})
 </script>
 
 <style scoped>

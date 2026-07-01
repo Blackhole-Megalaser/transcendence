@@ -99,7 +99,3 @@ const isAllowedUsername = computed(() => {
   return true
 })
 </script>
-
-<style scoped>
-/* Tu peux lier ton style.css ici si nécessaire, comme sur l'autre composant */
-</style>
