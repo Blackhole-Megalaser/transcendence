@@ -17,29 +17,29 @@
       </button>
       <button
         @click="bar = 2"
-        class="size-10 cursor-pointer flex-center rounded-full text-text-main"
+        class="size-10 cursor-pointer flex-center rounded-full"
         :class="selectWindow === 2 ? 'bg-sidebar border border-text-main' : ''"
       >
-        <component :is="settingsIcon" class="size-8"/>
+        <component :is="addFriend" class="size-7.5 text-text-main"/>
       </button>
     </div>
     <hr>
     <BasicInformations v-if="selectWindow === 0"/>
     <Social v-else-if="selectWindow === 1"/>
-    <Settings v-else/>
+    <AddFriends v-else/>
   </dialog>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
 
-import settingsIcon             from '@assets/settings.svg';
 import profileIcon              from '@assets/profile.svg';
 import contacstIcon             from '@assets/contacts.svg';
+import addFriend                from '@assets/addFriend.svg';
 
 import BasicInformations        from './sideProfile/BasicInformations.vue';
 import Social                   from './sideProfile/Social.vue';
-import Settings                 from './sideProfile/Settings.vue';
+import AddFriends               from './sideProfile/AddFriends.vue';
 
 const props         = defineProps({ open: Boolean });
 const dialog        = ref(null);
