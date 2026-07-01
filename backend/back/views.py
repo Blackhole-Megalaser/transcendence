@@ -331,7 +331,14 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
             )
 
         profile = self.get_object()
-        target_user = get_object_or_404(UserProfile, user__username=username)
+        try:
+            target_user = get_object_or_404(UserProfile, user__username=username)
+        except:
+            return Response(
+                {"detail": "User doesn't exist."},
+                status=HTTP_403_FORBIDDEN,
+            )
+        
 
         if action == "send":
             if profile.friends.filter(id=target_user.id).exists():
