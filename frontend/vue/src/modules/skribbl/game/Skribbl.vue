@@ -1,6 +1,6 @@
 <script setup>
     import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-	import { useSkribbleStore } from '@shared';
+	import { useSkribbleStore, getCookie } from '@shared';
 	import { storeToRefs } from 'pinia';
     import bucket from './bucket.png'
 
@@ -50,16 +50,19 @@
 	let currentDelay	  = 3000;
 	const jitter 		  = 0.05;
 
+	const roomName		= ref(null);
 	const roomCode      = ref(null);
 	const wordlist		= ref([]);
-	let word			= ref('');
-	let player_index	= ref(1);
+	let word			= ref(null);
+	let drawer_index	= ref(null);
+	let player_index	= ref(null);
 	let round_counter	= ref(0);
 	const round_max		= 3;
 	let round_started	= ref(false);
 	let word_history	= [];
-	let timer			= ref(0);
-	const timer_end		= 60;
+	let timer			= ref(null);
+	let timer_end		= ref(null);
+	let created_at		= ref(null);
 
 	//	SkribblPlayer
 
@@ -69,6 +72,8 @@
 
 	let message1		= ref('');
 	let nextWord		= ref(0);
+
+	let isWordChoose	= ref(false);
 
 
     onMounted(() => {
@@ -102,7 +107,7 @@
 		
 		intervalId = setInterval(refreshDelay, currentDelay);
 		fetchUserData();
-		fetchWords();
+		getSkribblData();
     });
 
     onUnmounted(() => {
@@ -117,13 +122,17 @@
 		clearInterval(intervalId);
     });
 
-	watch(message1, (newMessage) => {
-		if (!isDrawer.value && newMessage === word.value) {
-			postSkribble();
-			isDrawer.value = !isDrawer.value;
-			nextWord.value++;
-			fetchWords();
-		}
+	// watch(message1, (newMessage) => {
+	// 	if (!isDrawer.value && newMessage === word.value) {
+	// 		postSkribble();
+	// 		isDrawer.value = !isDrawer.value;
+	// 		nextWord.value++;
+	// 		// fetchWords();
+	// 	}
+	// });
+
+	watch(isWordChoose, (newIsWC) => {
+		if (newIsWC === true) postStartTurn();
 	});
 
 	const postSkribble = async () => {
@@ -164,18 +173,74 @@
 		}
 	};
 
-	const fetchWords = async () => {
-		try {
-			const response = await fetch('/api/wordlists/basic/');
-			const dataWords = await response.json();
-			wordlist.value = dataWords.words;
-			// take always the first word of the list because having random word everytime in frontend makes 2 users having different words
-			word.value = wordlist.value[nextWord.value];
+	// const fetchWords = async () => {
+	// 	try {
+	// 		const response = await fetch('/api/wordlists/basic/');
+	// 		const dataWords = await response.json();
+	// 		wordlist.value = dataWords.words;
+	// 		// take always the first word of the list because having random word everytime in frontend makes 2 users having different words
+	// 		word.value = wordlist.value[nextWord.value];
 
+	// 	} catch (error) {
+	// 		console.error("Recuperation error :", error);
+	// 	}
+	// };
+
+	const getSkribblData = async () => {
+		try {
+			const response = await fetch('/api/users/me/');
+			const dataUser = await response.json();
+			if (!dataUser.skribble) {
+				window.location.href = "/lobbyskbl";
+				return;
+			}
+			if (roomCode.value !== dataUser.skribble.code) {
+				window.location.href = "/lobbyskbl";
+				return;
+			}
+			const player = dataUser.skribble.players.find((player) => player.username === username.value)
+			if (player) player_index.value = player.order;
+			drawer_index.value = dataUser.skribble.current_player_index;
+			roomName.value = dataUser.skribble.name;
+			timer.value = dataUser.skribble.timer;
+			timer_end.value = dataUser.skribble.timer_end;
+			created_at.value = dataUser.skribble.created_at;
+			isDrawer.value = (drawer_index.value === player_index.value);
+			if (isDrawer.value) getWords();
 		} catch (error) {
-			console.error("Recuperation error :", error);
+			console.error("Recuperation skribbl data error :", error);
+		}
+	}
+
+	const getWords = async () => {
+		try {
+			const response = await fetch(`/api/skribble/rooms/${roomCode.value}/select_word`);
+			const dataWords = await response.json();
+			
+			wordlist.value = dataWords.words;
+		} catch (error) {
+			console.error("Recuperation words error :", error);
 		}
 	};
+
+
+	const postStartTurn = async () => {
+		try {
+			const response = await fetch(`api/skribble/rooms/${roomCode.value}/start_turn/`, {
+				method: 'POST',
+				body: JSON.stringify({
+					word: word.value
+				}),
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken'),
+					'Content-type' : 'application/json'
+				}
+			});
+		} catch (error) {
+			console.error("Post word to start error :", error);
+		}
+	};
+
 
 	const refreshDelay = () => {
 		if (!isConnected.value && !isConnecting.value) {
@@ -639,6 +704,15 @@
 
 <template>
 	<div class="w-full h-full">
+		<div class="flex justify-center">
+			<div class="flex flex-row justify-center" v-if="isDrawer && !isWordChoose">
+				<template v-for="w in wordlist">
+					<button @click="word = w; isWordChoose = true;" class="p-2 bg-button-1-normal text-white rounded">
+						{{ w }}
+					</button>
+				</template>
+			</div>
+		</div>
 		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr_0.30fr]
 			gap-2 w-full h-full max-w-full max-h-full p-4
 			bg-bg-main">
@@ -646,13 +720,12 @@
 			<div class="order-2 lg:order-1 row-start-2 lg:row-start-1 
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
-				<div class="bg-white ">
-					<p>LastMessage:								{{ message1 }}</p>
-					<p>Username:								{{ username }}</p>
+				<div class="bg-white">
+					<p>{{ roomName }} || {{ drawer_index }} || {{ player_index }} || {{ timer }}</p>
 					<p>Score:									{{ score }}</p>
-					<p v-if="isDrawer">Word:					{{ word }}</p>
-					<p v-if="!isDrawer && message1 === word">You Win</p>
-					<button @click="isDrawer = !isDrawer" class="p-2 bg-button-1-normal text-white rounded">
+					<p>Word:									{{ word }}</p>
+					<p>{{ !isDrawer && message1 === word ? 'You Win' : ''  }}</p>
+					<button class="p-2 bg-button-1-normal text-white rounded">
 						Player Status : {{ isDrawer ? 'Drawer' : 'Guesser' }}
 					</button>
 				</div>
