@@ -24,3 +24,16 @@ export async function fetchFriends() {
     return [];
   }
 }
+
+export async function fetchFriendRequests() {
+   try {
+    const response  = await fetch('/api/users/me/friends_request');
+    if (!response.ok) throw new Error('Error');
+    const result    = await response.json();
+    return result.pending_friend_requests;
+  }
+  catch {
+    console.error('Friend fetching failed: ', error);
+    return [];
+  }
+}

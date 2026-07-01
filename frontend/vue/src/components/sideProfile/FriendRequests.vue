@@ -8,18 +8,11 @@
       <div
         class="flex items-center flex:none gap-4 w-full z-10 px-4 py-2 hover:bg-button-2-active"
       >
-        <div class="relative">
-          <a :href="`users/${friend.username}`">
-            <img
-              alt="Profile Picture"
-              class="size-10 z-11 rounded-full cursor-pointer"
-              :src="friend.profilePicture"
-            >
-            <div
-              class="size-3 rounded-full z-11 absolute right-0.5 top-0.5"
-              :class="friend.isLogged ? 'bg-green-500' : 'bg-red-600'"
-            ></div>
-          </a>
+        <div class="group relative size-10 rounded-full overflow-hidden">
+          <div 
+            class="absolute inset-0 bg-cover bg-center"
+            :style="{ backgroundImage: `url(${friend.profile_image ?? default_cat})` }"
+          />
         </div>
         <p class="text-text-main text-lg font-semibold truncate max-w-44 flex-1">{{ friend.username }}</p>
         <div
@@ -40,23 +33,12 @@
 </template>
 
 <script setup>
-import { ref, computed }  from 'vue';
+import { ref, computed, inject }  from 'vue';
 import default_cat        from '@assets/default_cat.png'
 import cross              from '@assets/wrong_cross.svg'
 import check              from '@assets/check-mark.svg'
 
-const FriendRequests = ref([
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_lsjglkjlwkgjwlgkjwwjvkvoweijvwe1',
-    isLogged:       true
-  },
-  {
-    profilePicture: default_cat,
-    username:       'lab_cat_2',
-    isLogged:       false
-  }
-])
+const FriendRequests = inject('FRIENDREQUESTS');
 </script>
 
 <style scoped>
