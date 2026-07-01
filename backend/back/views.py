@@ -735,8 +735,8 @@ class SkribbleRoomViewSet(ModelViewSet):
             request.user.userprofile.join_skribble(room)
 
         if old_room_code:
-            from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
 
             def send_websocket_update():
                 channel_layer = get_channel_layer()
@@ -771,8 +771,8 @@ class SkribbleRoomViewSet(ModelViewSet):
             )
         request.user.userprofile.join_skribble(room)
 
-        from channels.layers import get_channel_layer
         from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -811,8 +811,8 @@ class SkribbleRoomViewSet(ModelViewSet):
             SkribbleRoom.cleanup_empty_rooms()
 
         if room_code:
-            from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -878,8 +878,8 @@ class SkribbleRoomViewSet(ModelViewSet):
             room.round_counter = 1
             room.save()
 
-        from channels.layers import get_channel_layer
         from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
