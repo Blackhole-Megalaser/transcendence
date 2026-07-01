@@ -61,19 +61,39 @@
 
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-const scrollY = ref(0);
-const navBarControl = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+import { 
+  onMounted,
+  onUnmounted, 
+  computed, 
+  provide,
+  ref 
+} from 'vue';
+import { fetchFriendRequests }  from '@shared';
+
+const friendRequests  = ref([]);
+const scrollY         = ref(0);
+const navBarControl   = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+let timer             = null;
+
+provide('FRIENDREQUESTS', friendRequests);
+
+const refreshFriendRequest = async () => {
+  friendRequests.value = await fetchFriendRequests(); 
+}
 
 function handleScroll() {
   scrollY.value = window.scrollY
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await refreshFriendRequest();
+  timer = setInterval( refreshFriendRequest, 5000);
   window.addEventListener('scroll', handleScroll);
 })
+
 onUnmounted(() => {
+  clearInterval(timer);
   window.removeEventListener('scroll', handleScroll);
 })
 </script>
