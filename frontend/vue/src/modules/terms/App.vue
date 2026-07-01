@@ -1,6 +1,6 @@
 <template>
   <BasePage :navBarVariant="navBarControl">
-    <div class="p-8 sm:p-12 sm:my-12 lg:p-20 lg:my-6 text-text-main">
+    <div class="p-8 sm:p-12 sm:py-24 lg:p-20 lg:py-26 text-text-main">
       <h2 class="text-title text-3xl sm:text-5xl font-bold mb-8 self-center">Terms of Services</h2>
       <span class="my-12">
         <span class="important">Effective Date: May 26, 2026</span><br>
