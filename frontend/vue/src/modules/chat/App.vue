@@ -35,7 +35,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, provide }  from 'vue';
 import { useBreakpoints }               from '@vueuse/core';
-import { fetchFriends }          from '@shared';
+import { fetchFriends }                 from '@shared';
 import menu                             from '@assets/menu-chat.svg';
 
 const getChannelOnLoad  = () => {
@@ -61,9 +61,9 @@ const existingChannels  = ['general', 'naughtyCatHideout', 'cutieCardboardBox'];
 const currentChannel    = ref(getChannelOnLoad());
 const breakpoints       = useBreakpoints({ sm: 640 });
 const isSmallScreen     = breakpoints.smaller("sm");
-const friendRequests    = ref([]);
+const friendInfos       = ref({ status: '', friends: [], pending_friend_requests: []});
 
-provide('FRIENDREQUESTS', friendRequests);
+provide('FRIENDREQUESTS', friendInfos);
 
 const formatChanName  = (str) => {
   const lowerCaseWithSpaces = str.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
@@ -97,7 +97,15 @@ const changeChannel   = (channelName) => {
 }
 
 const refreshFriendRequest = async () => {
-  friendRequests.value = await fetchFriends(); 
+  const result = await fetchFriends();
+  if (result.status === 'ok') {
+    friendInfos.value = result;
+  } else {
+    friendInfos.value = {
+      ...friendInfos.value,
+      status: 'error'
+    }
+  }
 }
 
 let timer = null;

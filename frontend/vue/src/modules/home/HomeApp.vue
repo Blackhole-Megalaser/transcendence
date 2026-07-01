@@ -124,9 +124,9 @@ import {
 
 import { fetchFriends }  from '@shared';
 
-const friendInfos       = ref({ status: '', friends: [], pending_friend_requests: []});
-const scrollY           = ref(0);
-const navBarControl     = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
+const friendInfos         = ref({ status: '', friends: [], pending_friend_requests: []});
+const scrollY             = ref(0);
+const navBarControl       = computed(() => scrollY.value <= 0 ? 'home' : 'nav');
 let   friendRequestTimer  = null;
 
 provide('FRIENDREQUESTS', friendInfos);
