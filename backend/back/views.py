@@ -288,14 +288,10 @@ class FriendlistView(NestedUserProfileView, RetrieveAPIView):
 
 
 # /api/users/me/friend_request
-# class FriendsRequestView(NestedUserProfileBase, APIView):
-#     serializer_class = FriendsRequestSerializer
-
-
 class FriendsRequestView(NestedUserProfileBase, APIView):
     def get_permissions(self):
         """
-        Users can update only their own avatar. Admin can update everyone's avatar.
+        Users can only access their own info. Admins can access everyones.
         """
         if (
             self.request.user.is_anonymous
@@ -307,7 +303,7 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
         return [permission() for permission in permission_classes]
 
     def get(self, request, user):
-        profile = request.user.userprofile
+        profile = self.get_object()
         serializer = UserProfileSerializer(
             profile.pending_friend_requests.all(), many=True
         )
@@ -324,7 +320,7 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
-        profile = request.user.userprofile
+        profile = self.get_object()
         target_user = get_object_or_404(UserProfile, user__username=username)
 
         if action == "send":
