@@ -83,6 +83,7 @@ class UserProfile(models.Model):
     # on reject, simply remove from this list
     # on accept, move to friends
     pending_friend_requests = models.ManyToManyField("UserProfile")
+    last_seen = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.pk:
