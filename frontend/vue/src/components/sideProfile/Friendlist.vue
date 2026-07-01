@@ -33,6 +33,7 @@
           <button
             class="px-4 cursor-pointer text-text-main w-full flex items-center justify-center text-center hover:bg-button-sidebar-2-active"
             :class="friend.isOpen ? 'py-2' : 'py-0'"
+            @click="deleteFriend(friend.username)"
           >Delete Friend</button>
         </div>
       </div>
@@ -49,13 +50,39 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useUserStore }             from '@storage'
 import { storeToRefs }              from 'pinia';
-import default_cat      from '@assets/default_cat.png'
+import { getCookie }                from '@shared';
+import { useUserStore }             from '@storage';
+import default_cat                  from '@assets/default_cat.png';
 
 const userStore     = useUserStore();
 const { userInfos } = storeToRefs(userStore);
 const friendList    = computed(() => userInfos.value?.friendlist ?? []);
+
+const deleteFriend  = async (username) => {
+  try {
+    const response  = await fetch('/api/users/me/friends_request/', {
+      method: 'POST',
+      headers: { 
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type': 'application/json'
+       },
+      body: JSON.stringify({
+        username: username,
+        action: 'remove_friend'
+      })
+    })
+    if (!response.ok) {
+      const apiResponse = await response.json();
+      throw ("Friend request error: " + apiResponse.detail);  
+    }
+    userStore.removeFriend(username);
+  }
+  catch (e) {
+    console.error(e);
+
+  }
+}
 
 const logInfos  = () => {console.log(userInfos.value)}
 </script>

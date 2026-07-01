@@ -18,8 +18,16 @@
         <div
           class="flex md:hidden md:group-hover:flex flex-none gap-2 right-0"
         >
-          <component :is="check" class="size-4 cursor-pointer"/>
-          <component :is="cross" class="size-4 fill-red-600 cursor-pointer"/>
+          <component 
+            :is="check" 
+            class="size-4 cursor-pointer"
+            @click="handleFriendRequest(friend.username, 'accept')"
+          />
+          <component 
+            :is="cross" 
+            class="size-4 fill-red-600 cursor-pointer"
+            @click="handleFriendRequest(friend.username, 'reject')"  
+          />
         </div>
       </div>
     </li>
@@ -53,15 +61,15 @@ const handleFriendRequest = async (username, method) => {
         'Content-type': 'application/json'
        },
       body: JSON.stringify({
-        action: method,
-        username: username
+        username: username,
+        action: method
       })
     })
     if (!response.ok) {
       const apiResponse = await response.json();
       throw ("Friend request error: " + apiResponse.detail);  
     }
-    FriendRequests.value = FriendRequests.value.filter((w) => w !== username);
+    FriendRequests.value = FriendRequests.value.filter((w) => w.username !== username);
     if (method === 'accept') {
       UserStore.addFriend();
     }

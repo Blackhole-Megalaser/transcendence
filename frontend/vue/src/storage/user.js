@@ -25,8 +25,18 @@ export const useUserStore = defineStore('user', () => {
 
   async function addFriend() {
       const friendlist  = await fetchFriends();
-      infos.data["friendlist"] = friendlist;
-      set(infos.data);
+      if (userInfos.value) {
+        const data = { ...userInfos.value };
+        data["friendlist"] = friendlist;
+        set(data);
+      }
+  }
+  
+  function removeFriend(username) {
+    if (userInfos.value) {
+      userInfos.value.friendlist = userInfos.value.friendlist.filter((f) => f.username !== username);
+      set(userInfos.value);
+    }
   }
 
   async function fetchInfos() {
@@ -50,6 +60,7 @@ export const useUserStore = defineStore('user', () => {
     clear,
     addFriend,
     fetchInfos,
+    removeFriend,
     initUserInfos,
     changeProfilePic,
     getLoggedStatus,
