@@ -50,8 +50,7 @@
 	let currentDelay	  = 3000;
 	const jitter 		  = 0.05;
 
-	const roomName 		  = "skribble_test";
-	const roomCode        = ref('');
+	const roomCode      = ref(null);
 	const wordlist		= ref([]);
 	let word			= ref('');
 	let player_index	= ref(1);
@@ -673,12 +672,12 @@
 				@touchcancel="stop">
 			</canvas>
 			<!-- __________ CHAT __________ -->
-			<div class="order-3 row-start-2 lg:row-start-1
+			<div v-if="roomCode" class="order-3 row-start-2 lg:row-start-1
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
 				<Chat
 					initialModuleName="skribble"
-        			v-bind:initialRoomName="roomName"
+        			v-bind:initialRoomName="roomCode"
 					v-bind:initialHistoryFetch="false"
 					@input_message="message1 = $event"
         		/>
