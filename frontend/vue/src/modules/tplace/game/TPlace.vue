@@ -83,7 +83,29 @@
 								</span>
 								<div class="min-w-0">
 									<p class="truncate text-sm font-bold leading-tight text-text-main">Paint pixel</p>
-									<p class="truncate text-xs font-semibold leading-tight text-text-main/65">{{ pixelsLeft }} charges</p>
+									<div class="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-xs font-semibold leading-tight text-text-main/65">
+										<span class="whitespace-nowrap">{{ pixelsLeft }} charges</span>
+										<button
+											class="grid size-6 place-items-center rounded-lg border border-borders-outline bg-bg-main text-[10px] text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover active:scale-95"
+											type="button"
+											title="Upgrade max charges"
+											aria-label="Upgrade max charges"
+											@click="openUpgradeModal('max-pixels')"
+										>
+											<FontAwesomeIcon :icon="byPrefixAndName.fas['arrow-up']" />
+										</button>
+										<span class="whitespace-nowrap">{{ cooldownLabel }}</span>
+										<button
+											class="grid size-6 place-items-center rounded-lg border border-borders-outline bg-bg-main text-[10px] text-text-main shadow-sm transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-bg-main"
+											type="button"
+											:title="canUpgradeCooldown ? 'Upgrade regeneration cooldown' : 'Minimum cooldown reached'"
+											aria-label="Upgrade regeneration cooldown"
+											:disabled="!canUpgradeCooldown"
+											@click="openUpgradeModal('cooldown')"
+										>
+											<FontAwesomeIcon :icon="byPrefixAndName.fas['bolt']" />
+										</button>
+									</div>
 								</div>
 							</div>
 
@@ -204,6 +226,91 @@
 					</div>
 				</div>
 			</div>
+			<div
+				v-if="upgradeModalType !== null"
+				class="absolute inset-0 z-20 grid place-items-center bg-black/45 p-4"
+				@click.self="closeUpgradeModal"
+			>
+				<section class="w-full max-w-sm rounded-2xl border border-borders-outline bg-bg-card p-4 text-text-main shadow-[0_24px_70px_rgba(0,0,0,0.35)] sm:p-5">
+					<div class="flex items-start gap-3">
+						<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-button-1-normal text-text-button-1">
+							<FontAwesomeIcon :icon="isCooldownUpgrade ? byPrefixAndName.fas['bolt'] : byPrefixAndName.fas['arrow-up']" />
+						</span>
+						<div class="min-w-0 flex-1">
+							<h2 class="text-base font-bold leading-tight">{{ upgradeModalTitle }}</h2>
+							<p class="mt-1 text-sm font-semibold leading-snug text-text-main/65">{{ upgradeModalDescription }}</p>
+						</div>
+						<button
+							class="grid size-8 shrink-0 place-items-center rounded-xl text-text-main/70 transition hover:bg-button-2-normal hover:text-text-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
+							type="button"
+							title="Close"
+							aria-label="Close upgrade modal"
+							@click="closeUpgradeModal"
+						>
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['xmark']" />
+						</button>
+					</div>
+
+					<div class="mt-4 grid grid-cols-2 gap-2 text-sm font-semibold">
+						<div class="rounded-xl bg-bg-main/80 p-3">
+							<p class="text-xs uppercase text-text-main/55">Nyancoins</p>
+							<p class="mt-1 text-lg font-bold tabular-nums">{{ nyancoins }}</p>
+						</div>
+						<div class="rounded-xl bg-bg-main/80 p-3">
+							<p class="text-xs uppercase text-text-main/55">Cost</p>
+							<p class="mt-1 text-lg font-bold tabular-nums">{{ upgradeCost }}</p>
+						</div>
+					</div>
+
+					<label class="mt-4 block text-sm font-bold text-text-main" for="tplace-upgrade-quantity">Quantity</label>
+					<div class="mt-2 flex items-center gap-2">
+						<button
+							class="grid size-10 place-items-center rounded-xl border border-borders-outline bg-bg-main text-text-main transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover active:scale-95"
+							type="button"
+							title="Decrease quantity"
+							aria-label="Decrease quantity"
+							@click="adjustUpgradeQuantity(-1)"
+						>
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['minus']" />
+						</button>
+						<input
+							id="tplace-upgrade-quantity"
+							v-model.number="upgradeQuantity"
+							class="h-10 min-w-0 flex-1 rounded-xl border border-borders-outline bg-bg-main px-3 text-center text-base font-bold tabular-nums text-text-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
+							type="number"
+							:min="1"
+							:max="upgradeQuantityMax"
+							@change="upgradeQuantity = normalizeUpgradeQuantity(upgradeQuantity)"
+						>
+						<button
+							class="grid size-10 place-items-center rounded-xl border border-borders-outline bg-bg-main text-text-main transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover active:scale-95"
+							type="button"
+							title="Increase quantity"
+							aria-label="Increase quantity"
+							@click="adjustUpgradeQuantity(1)"
+						>
+							<FontAwesomeIcon :icon="byPrefixAndName.fas['plus']" />
+						</button>
+					</div>
+
+					<p class="mt-3 text-sm font-semibold text-text-main/70">{{ upgradePreview }}</p>
+					<p v-if="upgradeError || !canAffordUpgrade" class="mt-3 rounded-xl border border-red-400/60 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-500">{{ upgradeError || 'Not enough nyancoins' }}</p>
+
+					<div class="mt-5 flex justify-end gap-2">
+						<button
+							class="rounded-xl border border-borders-outline bg-bg-main px-4 py-2 text-sm font-bold text-text-main transition hover:bg-button-2-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover"
+							type="button"
+							@click="closeUpgradeModal"
+						>Cancel</button>
+						<button
+							class="rounded-xl bg-button-1-normal px-4 py-2 text-sm font-bold text-text-button-1 transition hover:bg-button-1-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-button-1-hover disabled:cursor-not-allowed disabled:opacity-45"
+							type="button"
+							:disabled="!canConfirmUpgrade"
+							@click="confirmUpgradePurchase"
+						>{{ isBuyingUpgrade ? 'Buying...' : 'Buy upgrade' }}</button>
+					</div>
+				</section>
+			</div>
 		</section>
 	</main>
 </template>
@@ -221,9 +328,13 @@ const {
 	cancelPaintMode,
 	canPaint,
 	canvasRef,
+	buyMaxPixelUpgrades,
+	buyRegenerationDelayUpgrades,
 	colors,
 	confirmDraftPixels,
 	draftPixelCount,
+	getCooldownUpgradeCost,
+	getMaxPixelUpgradeCost,
 	gridLabel,
 	handleMouseDown,
 	handleMouseLeave,
@@ -240,10 +351,12 @@ const {
 	isPaintMode,
 	isToolMenuOpen,
 	loginUrl,
+	MIN_REGENERATION_DELAY_SECONDS,
 	nyancoins,
 	pixelsLeft,
 	pointerStatus,
 	redo,
+	regenerationDelaySeconds,
 	regenerationSecondsLeft,
 	selectColor,
 	selectedColor,
@@ -436,6 +549,106 @@ onBeforeUnmount(() => {
 	stopNavbarLogoWatcher = null
 	restoreNavbarLogo()
 })
+
+const upgradeModalType = ref(null)
+const upgradeQuantity = ref(1)
+const upgradeError = ref('')
+const isBuyingUpgrade = ref(false)
+
+const canUpgradeCooldown = computed(() => regenerationDelaySeconds.value > MIN_REGENERATION_DELAY_SECONDS)
+const cooldownLabel = computed(() => 'Next in ' + regenerationSecondsLeft.value + ' sec (' + regenerationDelaySeconds.value + ' seconds)')
+const isCooldownUpgrade = computed(() => upgradeModalType.value === 'cooldown')
+const upgradeQuantityMax = computed(() => (isCooldownUpgrade.value
+	? Math.max(1, regenerationDelaySeconds.value - MIN_REGENERATION_DELAY_SECONDS)
+	: 999))
+const upgradeCost = computed(() => (isCooldownUpgrade.value
+	? getCooldownUpgradeCost(normalizeUpgradeQuantity(upgradeQuantity.value))
+	: getMaxPixelUpgradeCost(normalizeUpgradeQuantity(upgradeQuantity.value))))
+const canAffordUpgrade = computed(() => nyancoins.value >= upgradeCost.value)
+const canConfirmUpgrade = computed(() => (
+	!isBuyingUpgrade.value
+	&& upgradeModalType.value !== null
+	&& upgradeCost.value > 0
+	&& canAffordUpgrade.value
+	&& (!isCooldownUpgrade.value || canUpgradeCooldown.value)
+))
+const upgradeModalTitle = computed(() => (isCooldownUpgrade.value
+	? 'Upgrade regeneration cooldown'
+	: 'Upgrade max charges'))
+const upgradeModalDescription = computed(() => (isCooldownUpgrade.value
+	? 'Reduce the regeneration delay by 1 second per upgrade.'
+	: 'Increase your maximum saved pixel charges.'))
+const upgradePreview = computed(() => {
+	const quantity = normalizeUpgradeQuantity(upgradeQuantity.value)
+
+	if (isCooldownUpgrade.value) {
+		const nextDelay = Math.max(MIN_REGENERATION_DELAY_SECONDS, regenerationDelaySeconds.value - quantity)
+		return 'Cooldown: ' + regenerationDelaySeconds.value + ' seconds -> ' + nextDelay + ' seconds'
+	}
+
+	return 'Max charges: +' + quantity
+})
+
+function normalizeUpgradeQuantity(value) {
+	const amount = Number(value)
+
+	if (!Number.isInteger(amount) || amount < 1) {
+		return 1
+	}
+
+	return Math.min(amount, upgradeQuantityMax.value)
+}
+
+function openUpgradeModal(type) {
+	if (type === 'cooldown' && !canUpgradeCooldown.value) {
+		return
+	}
+
+	upgradeModalType.value = type
+	upgradeQuantity.value = 1
+	upgradeError.value = ''
+}
+
+function closeUpgradeModal() {
+	if (isBuyingUpgrade.value) {
+		return
+	}
+
+	upgradeModalType.value = null
+	upgradeError.value = ''
+}
+
+function adjustUpgradeQuantity(delta) {
+	upgradeQuantity.value = normalizeUpgradeQuantity(upgradeQuantity.value + delta)
+	upgradeError.value = ''
+}
+
+async function confirmUpgradePurchase() {
+	if (!canConfirmUpgrade.value) {
+		upgradeError.value = nyancoins.value < upgradeCost.value ? 'Not enough nyancoins' : ''
+		return
+	}
+
+	isBuyingUpgrade.value = true
+	upgradeError.value = ''
+
+	try {
+		const quantity = normalizeUpgradeQuantity(upgradeQuantity.value)
+
+		if (isCooldownUpgrade.value) {
+			await buyRegenerationDelayUpgrades(quantity)
+		} else {
+			await buyMaxPixelUpgrades(quantity)
+		}
+
+		upgradeModalType.value = null
+	} catch (error) {
+		console.error(error)
+		upgradeError.value = error.message || 'Upgrade purchase failed'
+	} finally {
+		isBuyingUpgrade.value = false
+	}
+}
 
 async function handlePaintButtonClick() {
 	if (isLoginRequired.value) {

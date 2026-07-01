@@ -166,6 +166,10 @@ class NyancoinsSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class NyancoinsGrantSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(min_value=1)
+
+
 class UnlockedColorsSerializer(serializers.ModelSerializer):
     unlocked_colors = ColorSerializer(many=True, read_only=True)
 

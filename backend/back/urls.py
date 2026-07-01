@@ -24,6 +24,7 @@ urlpatterns = [
     path("api/users/<str:user>/friends_request/", views.FriendsRequestView.as_view()),
     path("api/users/<str:user>/avatar/", views.AvatarView.as_view()),
     path("api/tplace/pixels/", views.PixelPlaceView.as_view()),
+    path("api/tplace/giveme/", views.TplaceGiveNyancoinsView.as_view()),
     path("api/tplace/upgrades/max-pixels/", views.TplaceMaxPixelsUpgradeView.as_view()),
     path(
         "api/tplace/upgrades/regeneration-delay/",

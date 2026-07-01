@@ -17,6 +17,11 @@ const EDGE_BORDER_SCREEN_SIZE = 6
 const TPLACE_ROOM_NAME = 'tplace-main'
 const DEFAULT_PIXEL_COLOR = '#FFFFFF'
 const DESKTOP_CLICK_DRAG_THRESHOLD = 4
+const BASE_REGENERATION_DELAY_SECONDS = 60
+const MIN_REGENERATION_DELAY_SECONDS = 15
+const MAX_PIXEL_UPGRADE_PRICE = 150
+const COOLDOWN_UPGRADE_BASE_PRICE = 300
+const COOLDOWN_UPGRADE_PRICE_MULTIPLIER = 1.1
 
 export function runTplace() {
 	const userStore = useUserStore()
@@ -64,6 +69,7 @@ export function runTplace() {
 	const pixelsLeft = ref('0/0')
 	const canPaint = computed(() => Number(pixelsLeft.value.split('/')[0]) > 0)
 	const regenerationSecondsLeft = ref(0)
+	const regenerationDelaySeconds = ref(BASE_REGENERATION_DELAY_SECONDS)
 	const nyancoins = ref(0)
 	const draftPixelCount = ref(0)
 	const isLoginRequired = computed(() => isAuthenticationResolved.value && !isAuthenticated.value)
@@ -106,6 +112,8 @@ export function runTplace() {
 	let reconnectAttempt = 0
 	let profileRefreshIntervalId = 0
 	let regenerationTimerIntervalId = 0
+	let hadPreviousGivemeCommand = false
+	let previousGivemeCommand = undefined
 
 	const draftPixels = new Map()
 
@@ -208,9 +216,59 @@ export function runTplace() {
 		unlockedColorValues.clear()
 		setPixelQuota(0, 0)
 		setNyancoins(0)
+		setRegenerationDelay(BASE_REGENERATION_DELAY_SECONDS)
 		setNextRegeneration(null)
 		cancelPaintMode()
 	}
+
+	function parseDurationSeconds(value) {
+		if (typeof value === 'number' && Number.isFinite(value)) {
+			return Math.max(0, Math.round(value))
+		}
+
+		if (typeof value !== 'string') {
+			return null
+		}
+
+		const trimmed = value.trim()
+
+		if (/^\d+$/.test(trimmed)) {
+			return Number(trimmed)
+		}
+
+		const [dayPart, timePart = dayPart] = trimmed.includes(' ') ? trimmed.split(' ') : [null, trimmed]
+		const parts = timePart.split(':').map(Number)
+
+		if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) {
+			return null
+		}
+
+		const days = dayPart === null ? 0 : Number(dayPart)
+
+		if (!Number.isFinite(days)) {
+			return null
+		}
+
+		const [hours, minutes, seconds] = parts
+
+		return Math.max(0, Math.round((days * 86400) + (hours * 3600) + (minutes * 60) + seconds))
+	}
+
+	function setRegenerationDelay(value) {
+		const seconds = parseDurationSeconds(value)
+
+		if (seconds !== null) {
+			regenerationDelaySeconds.value = seconds
+		}
+	}
+
+	function applyTplaceProfilePayload(payload) {
+		setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
+		setNyancoins(payload?.nyancoins)
+		setRegenerationDelay(payload?.regeneration_delay)
+		setNextRegeneration(payload?.next_regeneration ?? payload?.next_pixel_at)
+	}
+
 
 	function setPixelQuota(left, max = maxPlacablePixels) {
 		const nextLeft = Number(left)
@@ -227,6 +285,37 @@ export function runTplace() {
 		updatePixelCounter()
 		collapseToolMenuIfQuotaEmpty()
 		updateRegenerationTimer()
+	}
+
+	function getCooldownUpgradeCount() {
+		return Math.max(0, BASE_REGENERATION_DELAY_SECONDS - regenerationDelaySeconds.value)
+	}
+
+	function getCooldownUpgradePrice(upgradeIndex) {
+		return Math.ceil(COOLDOWN_UPGRADE_BASE_PRICE * (COOLDOWN_UPGRADE_PRICE_MULTIPLIER ** upgradeIndex))
+	}
+
+	function getCooldownUpgradeCost(quantity) {
+		const amount = Number(quantity)
+
+		if (!Number.isInteger(amount) || amount <= 0) {
+			return 0
+		}
+
+		const firstUpgradeIndex = getCooldownUpgradeCount()
+		let total = 0
+
+		for (let offset = 0; offset < amount; offset += 1) {
+			total += getCooldownUpgradePrice(firstUpgradeIndex + offset)
+		}
+
+		return total
+	}
+
+	function getMaxPixelUpgradeCost(quantity) {
+		const amount = Number(quantity)
+
+		return Number.isInteger(amount) && amount > 0 ? amount * MAX_PIXEL_UPGRADE_PRICE : 0
 	}
 
 	function setNextRegeneration(value) {
@@ -447,9 +536,7 @@ export function runTplace() {
 				})
 			}
 
-			setPixelQuota(payload?.placable_pixels, payload?.max_placable_pixels)
-			setNyancoins(payload?.nyancoins)
-			setNextRegeneration(payload?.next_regeneration)
+			applyTplaceProfilePayload(payload)
 		} catch (error) {
 			console.error(error)
 		} finally {
@@ -585,6 +672,90 @@ export function runTplace() {
 		setNextRegeneration(payload?.next_pixel_at)
 
 		return payload
+	}
+
+	async function buyTplaceUpgrade(endpoint, quantity) {
+		const amount = Number(quantity)
+
+		if (!Number.isInteger(amount) || amount <= 0) {
+			throw new Error('Invalid quantity')
+		}
+
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken'),
+			},
+			body: JSON.stringify({ quantity: amount }),
+		})
+		const payload = await readJsonResponse(response)
+
+		if (!response.ok) {
+			throw new Error(payload?.detail ?? `Upgrade purchase failed (${response.status})`)
+		}
+
+		applyTplaceProfilePayload(payload)
+		pointerStatus.value = 'Upgrade purchased'
+
+		return payload
+	}
+
+	function buyMaxPixelUpgrades(quantity) {
+		return buyTplaceUpgrade('/api/tplace/upgrades/max-pixels/', quantity)
+	}
+
+	function buyRegenerationDelayUpgrades(quantity) {
+		return buyTplaceUpgrade('/api/tplace/upgrades/regeneration-delay/', quantity)
+	}
+
+	async function giveNyancoins(amount) {
+		const nyancoinsToAdd = Number(amount)
+
+		if (!Number.isInteger(nyancoinsToAdd) || nyancoinsToAdd <= 0) {
+			throw new Error('Amount must be a positive integer')
+		}
+
+		const response = await fetch('/api/tplace/giveme/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken'),
+			},
+			body: JSON.stringify({ amount: nyancoinsToAdd }),
+		})
+		const payload = await readJsonResponse(response)
+
+		if (!response.ok) {
+			throw new Error(payload?.detail ?? `Nyancoin grant failed (${response.status})`)
+		}
+
+		applyTplaceProfilePayload(payload)
+		pointerStatus.value = `${payload?.nyancoins_added ?? nyancoinsToAdd} nyancoins added`
+		console.info(`Nyancoins: ${payload?.nyancoins ?? nyancoins.value}`)
+
+		return payload
+	}
+
+	function installGivemeCommand() {
+		hadPreviousGivemeCommand = Object.prototype.hasOwnProperty.call(window, 'giveme')
+		previousGivemeCommand = window.giveme
+		window.giveme = giveNyancoins
+	}
+
+	function uninstallGivemeCommand() {
+		if (window.giveme !== giveNyancoins) {
+			return
+		}
+
+		if (hadPreviousGivemeCommand) {
+			window.giveme = previousGivemeCommand
+		} else {
+			delete window.giveme
+		}
+
+		hadPreviousGivemeCommand = false
+		previousGivemeCommand = undefined
 	}
 
 	function getDraftKey(x, y) {
@@ -1605,6 +1776,7 @@ export function runTplace() {
 		loadCanvas()
 		loadTplaceProfile()
 		connectTplaceSocket()
+		installGivemeCommand()
 		profileRefreshIntervalId = window.setInterval(loadTplaceProfile, 30000)
 		regenerationTimerIntervalId = window.setInterval(updateRegenerationTimer, 1000)
 		loop()
@@ -1625,6 +1797,7 @@ export function runTplace() {
 		window.removeEventListener('blur', handleWindowBlur)
 		clearInterval(profileRefreshIntervalId)
 		clearInterval(regenerationTimerIntervalId)
+		uninstallGivemeCommand()
 		closeTplaceSocket()
 		cancelAnimationFrame(animationFrameId)
 		commitStroke()
@@ -1635,8 +1808,12 @@ export function runTplace() {
 		canPaint,
 		canvasRef,
 		colors,
+		buyMaxPixelUpgrades,
+		buyRegenerationDelayUpgrades,
 		confirmDraftPixels,
 		draftPixelCount,
+		getCooldownUpgradeCost,
+		getMaxPixelUpgradeCost,
 		gridLabel,
 		handleMouseDown,
 		handleMouseLeave,
@@ -1653,10 +1830,12 @@ export function runTplace() {
 		isPaintMode,
 		isToolMenuOpen,
 		loginUrl,
+		MIN_REGENERATION_DELAY_SECONDS,
 		nyancoins,
 		pixelsLeft,
 		pointerStatus,
 		redo,
+		regenerationDelaySeconds,
 		regenerationSecondsLeft,
 		selectColor,
 		selectedColor,
