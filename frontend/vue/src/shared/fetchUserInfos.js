@@ -32,8 +32,8 @@ export async function fetchFriendRequests() {
     const result    = await response.json();
     return result.pending_friend_requests;
   }
-  catch {
-    console.error('Friend fetching failed: ', error);
+  catch (error) {
+    console.error('Friend request fetching failed: ', error);
     return [];
   }
 }

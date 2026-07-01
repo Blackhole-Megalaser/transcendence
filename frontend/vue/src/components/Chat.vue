@@ -17,13 +17,6 @@
             v-if="message.showAuthorInfos"
           />
         </div>
-        <!-- <div class="min-w-12">
-          <img
-            :src="message.profile_pic ?? defaultcat"
-            alt="Pfp"
-            class="size-12 rounded-full overload-hidden"
-            >
-        </div> -->
         <div>
           <h3
             class="text-lg font-semibold"
