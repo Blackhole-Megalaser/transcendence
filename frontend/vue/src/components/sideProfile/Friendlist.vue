@@ -14,7 +14,7 @@
           <img
             alt="Profile Picture"
             class="size-10 min-w-10 z-11 rounded-full"
-            :src="friend.profilePicture"
+            :src="friend.profilePicture ?? default_cat"
           >
           <div
             class="size-3 rounded-full z-11 absolute right-0.5 top-0.5"
@@ -30,14 +30,8 @@
         <div
           class="font-semibold overflow-hidden flex items-center w-full transition-all duration-300 ease-in-out cursor-pointer"
           >
-          <a
-            :href="`/users/${friend.username}`"
-            class="w-1/2 px-4 flex items-center justify-center text-center text-text-main hover:bg-button-sidebar-2-active"
-            :class="friend.isOpen ? 'py-2' : 'py-0'"
-          >See Profile
-          </a>
           <button
-            class="px-4 cursor-pointer text-text-main w-1/2 flex items-center justify-center text-center hover:bg-button-sidebar-2-active"
+            class="px-4 cursor-pointer text-text-main w-full flex items-center justify-center text-center hover:bg-button-sidebar-2-active"
             :class="friend.isOpen ? 'py-2' : 'py-0'"
           >Delete Friend</button>
         </div>
@@ -47,6 +41,7 @@
   <div
     class="text-text-main font-semibold w-full py-2 flex-center"
     v-if="friendList.length === 0"
+    @click="console.log(userInfos)"
   >
     <p>No Friends ! :c</p>
   </div>
@@ -54,14 +49,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useUserStore }             from '@storage'
 import { storeToRefs }              from 'pinia';
-import { useUserStore } from '@storage'
 import default_cat      from '@assets/default_cat.png'
 
 const userStore     = useUserStore();
-const { userInfos } = storeToRefs();
-const friendList    = computed(() => userInfos?.friendlist ?? []);
+const { userInfos } = storeToRefs(userStore);
+const friendList    = computed(() => userInfos.value?.friendlist ?? []);
 
+const logInfos  = () => {console.log(userInfos.value)}
 </script>
 
 <style scoped>

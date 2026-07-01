@@ -34,11 +34,42 @@
 
 <script setup>
 import { ref, computed, inject }  from 'vue';
-import default_cat        from '@assets/default_cat.png'
-import cross              from '@assets/wrong_cross.svg'
-import check              from '@assets/check-mark.svg'
+import { getCookie }              from '@shared'
+import { useUserStore }           from '@storage';
+import default_cat                from '@assets/default_cat.png'
+import cross                      from '@assets/wrong_cross.svg'
+import check                      from '@assets/check-mark.svg'
 
-const FriendRequests = inject('FRIENDREQUESTS');
+
+const UserStore       = useUserStore()
+const FriendRequests  = inject('FRIENDREQUESTS');
+
+const handleFriendRequest = async (username, method) => {
+  try {
+    const response  = await fetch('/api/users/me/friends_request/', {
+      method: 'POST',
+      headers: { 
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type': 'application/json'
+       },
+      body: JSON.stringify({
+        action: method,
+        username: username
+      })
+    })
+    if (!response.ok) {
+      const apiResponse = await response.json();
+      throw ("Friend request error: " + apiResponse.detail);  
+    }
+    FriendRequests.value = FriendRequests.value.filter((w) => w !== username);
+    if (method === 'accept') {
+      UserStore.addFriend();
+    }
+  }
+  catch (e) {
+    console.error(e);
+  }
+}
 </script>
 
 <style scoped>
