@@ -194,7 +194,10 @@ class UserViewSet(viewsets.ModelViewSet):
         username = validated_data["username"]
         password = validated_data["password1"]
 
-        if self.queryset.filter(username=username) is not None:
+        if not str.isascii(username):
+            return Response({"detail": "Invalid characters (ASCII only)"}, status=400)
+
+        if self.queryset.filter(username=username).exists():
             return Response({"detail": "This username is already taken"}, status=409)
 
         user = User.objects.create_user(
