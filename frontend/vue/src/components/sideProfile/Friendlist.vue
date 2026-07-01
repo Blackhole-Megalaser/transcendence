@@ -20,7 +20,7 @@
             :src="friend.profile_image ?? default_cat"
           >
           <div
-            class="size-3 rounded-full z-11 absolute right-0.5 top-0.5"
+            class="size-3 rounded-full z-11 absolute right-0 bottom-0 border-2 border-navbar"
             :class="isLogged(friend.last_seen) ? 'bg-green-500' : 'bg-red-600'"
           ></div>
         </div>
