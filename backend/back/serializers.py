@@ -24,6 +24,7 @@ from .models import (
 class PlayerSerializer(serializers.ModelSerializer):
     room = serializers.SlugRelatedField(read_only=True, slug_field="code")
     username = serializers.CharField(source="player.user.username", read_only=True)
+    is_host = serializers.SerializerMethodField()
 
     class Meta:
         model = SkribblePlayer
@@ -33,22 +34,30 @@ class PlayerSerializer(serializers.ModelSerializer):
             "order",
             "score",
             "found",
+            "is_host",
         ]
         read_only_fields = fields
+
+    def get_is_host(self, obj):
+        return obj.room.host_id == obj.player_id
 
 
 class SkribbleRoomSerializer(serializers.ModelSerializer):
     players = PlayerSerializer(many=True, read_only=True)
+    host = serializers.SerializerMethodField()
 
     class Meta:
         model = SkribbleRoom
         fields = [
             "code",
             "name",
+            "host",
             "players",
             "current_player_index",
             "round_counter",
+            "max_rounds",
             "game_started",
+            "game_finished",
             "turn_started",
             "timer",
             "timer_end",
@@ -56,15 +65,23 @@ class SkribbleRoomSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "code",
+            "host",
             "players",
             "current_player_index",
             "round_counter",
             "game_started",
+            "game_finished",
             "turn_started",
             "timer",
             "timer_end",
             "created_at",
         ]
+
+
+    def get_host(self, obj):
+        if obj.host_id is None:
+            return None
+        return obj.host.user.username
 
 
 # /users/
@@ -309,3 +326,15 @@ class StartTurnSerializer(serializers.ModelSerializer):
     class Meta:
         model = Word
         fields = ["word"]
+
+
+class SkribbleRoomSettingsSerializer(serializers.Serializer):
+    max_rounds = serializers.IntegerField(min_value=3, required=False)
+
+
+class GuessSerializer(serializers.Serializer):
+    guess = serializers.CharField(max_length=255, trim_whitespace=True)
+
+
+class EndTurnSerializer(serializers.Serializer):
+    reason = serializers.CharField(max_length=64, required=False, default="manual")

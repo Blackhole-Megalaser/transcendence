@@ -159,9 +159,18 @@ class SkribbleRoom(models.Model):
         null=True,
     )
     wordlist = models.ForeignKey(WordList, on_delete=RESTRICT)
+    host = models.ForeignKey(
+        UserProfile,
+        on_delete=RESTRICT,
+        related_name="hosted_skribble_rooms",
+        blank=True,
+        null=True,
+    )
     current_player_index = models.IntegerField(default=0)
     round_counter = models.IntegerField(default=0)
+    max_rounds = models.IntegerField(validators=[MinValueValidator(3)], default=3)
     game_started = models.BooleanField(default=False)
+    game_finished = models.BooleanField(default=False)
     # True once a word has been chosen and the timer is running
     turn_started = models.BooleanField(default=False)
 
@@ -171,7 +180,7 @@ class SkribbleRoom(models.Model):
         related_name="rooms_with_word_in_history",
     )
 
-    timer = models.DurationField(default=timezone.timedelta(minutes=1))
+    timer = models.DurationField(default=timezone.timedelta(seconds=80))
     timer_end = models.DateTimeField(default=timezone.now)
 
     created_at = models.DateTimeField(auto_now_add=True)
