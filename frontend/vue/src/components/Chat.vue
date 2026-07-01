@@ -199,6 +199,8 @@ export default {
          return;
       }
 
+      this.$emit('input_message', message);
+
       this.chatSocket.send(JSON.stringify({
           message
         }));
