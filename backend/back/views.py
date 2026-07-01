@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Count, Max
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -42,8 +42,10 @@ from .models import (
 from .serializers import (
     AvatarSerializer,
     EmailUpdateSerializer,
+    EndTurnSerializer,
     FriendlistSerializer,
     FriendsSerializer,
+    GuessSerializer,
     LoginRequestSerializer,
     MaxPixelsSerializer,
     NyancoinsGrantSerializer,
@@ -53,6 +55,7 @@ from .serializers import (
     PixelsSerializer,
     SignupRequestSerializer,
     SkribbleRoomSerializer,
+    SkribbleRoomSettingsSerializer,
     StartTurnSerializer,
     TplaceSerializer,
     TplaceUpgradePurchaseSerializer,
@@ -689,11 +692,8 @@ class WordListViewSet(ReadOnlyModelViewSet):
         return Response({"word": word.word})
 
 
-class SkribbleRoomViewSet(ModelViewSet):
-    """
-    Skribble room view
-    """
 
+class SkribbleRoomViewSet(ModelViewSet):
     queryset = SkribbleRoom.objects.annotate(num_players=Count("players")).filter(
         num_players__gt=0
     )
@@ -701,222 +701,490 @@ class SkribbleRoomViewSet(ModelViewSet):
     lookup_field = "code"
     lookup_url_kwarg = "code"
 
+    min_players = 2
+    guesser_first_score = 200
+    guesser_last_score = 50
+    drawer_score_per_guesser = 70
+
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
         if self.action in ["destroy", "update", "partial_update"]:
             permission_classes = [permissions.IsAdminUser]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    def get_queryset(self):
+        return (
+            SkribbleRoom.objects.annotate(num_players=Count("players"))
+            .filter(num_players__gt=0)
+            .select_related("host__user", "current_word", "wordlist")
+            .prefetch_related("players__player__user")
+        )
+
+    def _broadcast(self, room_code, event_type, **payload):
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{room_code}",
+            {
+                "type": event_type,
+                **payload,
+            },
+        )
+
+    def _get_user_player(self, request):
+        try:
+            return request.user.userprofile.skribbleplayer
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
+            return None
+
+    def _get_room_player(self, request, room):
+        player = self._get_user_player(request)
+        if player is None or player.room_id != room.id:
+            return None
+        return player
+
+    def _ordered_players(self, room):
+        return list(room.players.select_related("player__user").order_by("order", "id"))
+
+    def _current_drawer(self, room):
+        return (
+            room.players.select_related("player__user")
+            .filter(order=room.current_player_index)
+            .first()
+        )
+
+    def _is_host(self, request, room):
+        return room.host_id == request.user.userprofile.id
+
+    def _normalize_guess(self, value):
+        return " ".join(value.casefold().strip().split())
+
+    def _mask_word(self, word):
+        return "".join(" " if char.isspace() else "_" for char in word)
+
+    def _guess_score(self, guess_position, guesser_count):
+        if guesser_count <= 1:
+            return self.guesser_first_score
+        score_range = self.guesser_first_score - self.guesser_last_score
+        step = score_range / (guesser_count - 1)
+        return round(self.guesser_first_score - ((guess_position - 1) * step))
+
+    def _drawer_score(self, room, found_count, now):
+        if found_count <= 0:
+            return 0
+        timer_seconds = max(room.timer.total_seconds(), 1)
+        remaining_seconds = max((room.timer_end - now).total_seconds(), 0)
+        remaining_ratio = min(remaining_seconds / timer_seconds, 1)
+        speed_multiplier = 0.5 + (0.5 * remaining_ratio)
+        return round(self.drawer_score_per_guesser * found_count * speed_multiplier)
+
+    def _all_guessers_found(self, room):
+        drawer = self._current_drawer(room)
+        guessers = room.players.all()
+        if drawer is not None:
+            guessers = guessers.exclude(pk=drawer.pk)
+        return guessers.exists() and not guessers.filter(found=False).exists()
+
+    def _winner_usernames(self, players):
+        if not players:
+            return []
+        best_score = max(player.score for player in players)
+        return [
+            player.player.user.username
+            for player in players
+            if player.score == best_score
+        ]
+
+    def _room_state(self, room, request=None):
+        players = self._ordered_players(room)
+        drawer = self._current_drawer(room)
+        request_player = None
+        if request is not None and request.user.is_authenticated:
+            request_player = self._get_room_player(request, room)
+
+        is_request_drawer = (
+            request_player is not None
+            and drawer is not None
+            and request_player.pk == drawer.pk
+        )
+        current_word = None
+        word_mask = None
+        if room.turn_started and room.current_word_id:
+            word_value = room.current_word.word
+            word_mask = self._mask_word(word_value)
+            if is_request_drawer:
+                current_word = word_value
+
+        remaining_seconds = None
+        if room.turn_started:
+            remaining_seconds = max(
+                round((room.timer_end - timezone.now()).total_seconds()), 0
+            )
+
+        return {
+            "code": room.code,
+            "name": room.name,
+            "host": room.host.user.username if room.host_id else None,
+            "is_host": self._is_host(request, room) if request is not None else False,
+            "current_drawer": drawer.player.user.username if drawer is not None else None,
+            "is_drawer": is_request_drawer,
+            "players": [
+                {
+                    "username": player.player.user.username,
+                    "order": player.order,
+                    "score": player.score,
+                    "found": player.found,
+                    "is_host": player.player_id == room.host_id,
+                    "is_drawer": drawer is not None and player.pk == drawer.pk,
+                }
+                for player in players
+            ],
+            "round_counter": room.round_counter,
+            "max_rounds": room.max_rounds,
+            "game_started": room.game_started,
+            "game_finished": room.game_finished,
+            "turn_started": room.turn_started,
+            "current_player_index": room.current_player_index,
+            "timer_seconds": round(room.timer.total_seconds()),
+            "timer_end": room.timer_end,
+            "remaining_seconds": remaining_seconds,
+            "word": current_word,
+            "word_mask": word_mask,
+            "winners": self._winner_usernames(players) if room.game_finished else [],
+        }
+
+    def _require_player_in_room(self, request, room, message):
+        player = self._get_room_player(request, room)
+        if player is None:
+            return None, Response({"detail": message}, status=HTTP_401_UNAUTHORIZED)
+        return player, None
+
+    def _shuffle_players(self, room):
+        players = self._ordered_players(room)
+        for index, player in enumerate(players):
+            player.order = len(players) + index
+            player.found = False
+        if players:
+            SkribblePlayer.objects.bulk_update(players, ["order", "found"])
+
+        order = list(range(len(players)))
+        random.shuffle(order)
+        for index, player in enumerate(players):
+            player.order = order[index]
+        if players:
+            SkribblePlayer.objects.bulk_update(players, ["order"])
+        return players
+
+    def _start_room_game(self, room, max_rounds=None):
+        with transaction.atomic():
+            room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
+            if max_rounds is not None:
+                room.max_rounds = max_rounds
+            players = self._shuffle_players(room)
+            for player in players:
+                player.score = 0
+            SkribblePlayer.objects.bulk_update(players, ["score"])
+            room.word_history.clear()
+            room.current_word = None
+            room.current_player_index = 0
+            room.round_counter = 1
+            room.game_started = True
+            room.game_finished = False
+            room.turn_started = False
+            room.timer_end = timezone.now() + room.timer
+            room.save()
+        self._broadcast(room.code, "game_started")
+        self._broadcast(room.code, "state_changed")
+        return room
+
+    def _finish_turn(self, room, award_points=True, reason="manual"):
+        now = timezone.now()
+        drawer_points = 0
+        with transaction.atomic():
+            room = (
+                SkribbleRoom.objects.select_for_update()
+                .select_related("current_word", "host__user")
+                .get(pk=room.pk)
+            )
+            if not room.turn_started:
+                return room, {"turn_ended": False, "drawer_points": 0}
+
+            players = self._ordered_players(room)
+            drawer = self._current_drawer(room)
+            found_count = 0
+            if drawer is not None:
+                found_count = sum(
+                    1 for player in players if player.pk != drawer.pk and player.found
+                )
+
+            if award_points and drawer is not None and found_count > 0:
+                drawer_points = self._drawer_score(room, found_count, now)
+                drawer.score += drawer_points
+                drawer.save(update_fields=["score"])
+
+            for player in players:
+                player.found = False
+            if players:
+                SkribblePlayer.objects.bulk_update(players, ["found"])
+
+            room.current_word = None
+            room.turn_started = False
+            room.timer_end = now
+
+            active_players = self._ordered_players(room)
+            if len(active_players) < self.min_players:
+                room.game_started = False
+                room.game_finished = True
+            else:
+                next_orders = [
+                    player.order
+                    for player in active_players
+                    if player.order > room.current_player_index
+                ]
+                if next_orders:
+                    room.current_player_index = min(next_orders)
+                else:
+                    room.current_player_index = min(
+                        player.order for player in active_players
+                    )
+                    room.round_counter += 1
+
+                if room.round_counter > room.max_rounds:
+                    room.round_counter = room.max_rounds
+                    room.game_started = False
+                    room.game_finished = True
+
+            room.save()
+
+        self._broadcast(
+            room.code,
+            "turn_ended",
+            reason=reason,
+            drawer_points=drawer_points,
+        )
+        if room.game_finished:
+            self._broadcast(room.code, "game_finished")
+        self._broadcast(room.code, "state_changed")
+        return room, {"turn_ended": True, "drawer_points": drawer_points}
+
     def create(self, request, *args, **kwargs):
         user_profile = request.user.userprofile
         old_room_code = None
 
         try:
-            if (
-                hasattr(user_profile, "skribbleplayer")
-                and user_profile.skribbleplayer.room
-            ):
+            if user_profile.skribbleplayer.room:
                 old_room_code = user_profile.skribbleplayer.room.code
-        except Exception:
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
             pass
 
         SkribbleRoom.cleanup_empty_rooms()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
-            request.user.userprofile.leave_skribble()
+            user_profile.leave_skribble()
             SkribbleRoom.cleanup_empty_rooms()
-            self.perform_create(serializer)
+            serializer.save(host=user_profile)
             room = serializer.instance
-            request.user.userprofile.join_skribble(room)
+            user_profile.join_skribble(room)
 
         if old_room_code:
-            from asgiref.sync import async_to_sync
-            from channels.layers import get_channel_layer
-
-            def send_websocket_update():
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"chat_{old_room_code}",
-                    {
-                        "type": "update_players",
-                    },
-                )
-
-            transaction.on_commit(send_websocket_update)
+            self._broadcast(old_room_code, "update_players")
+        self._broadcast(room.code, "update_players")
         return Response(self.get_serializer(room).data, status=HTTP_201_CREATED)
+
+    @action(methods=["get"], detail=True)
+    def state(self, request, code):
+        room = self.get_object()
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can inspect it"
+        )
+        if error:
+            return error
+        return Response(self._room_state(room, request))
 
     @action(methods=["post"], detail=True)
     def join(self, request, code):
-        """
-        Join an existing room.
-
-        1. Player will leave any room they joined (will trigger empty room cleanup)
-        2. Player will join the specified room
-
-        Preconditions:
-
-        1. A game can only be joined if it has not started -> 409 Conflict
-
-        Returns the current room status
-        """
         room = self.get_object()
-        if room.game_started:
+        if room.game_started or room.game_finished:
             return Response(
-                {"detail": "The game already started"}, status=HTTP_409_CONFLICT
+                {"detail": "The game is not joinable"}, status=HTTP_409_CONFLICT
             )
+
+        old_room_code = None
+        try:
+            current_room = request.user.userprofile.skribbleplayer.room
+            if current_room.pk != room.pk:
+                old_room_code = current_room.code
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
+            pass
+
         request.user.userprofile.join_skribble(room)
-
-        from asgiref.sync import async_to_sync
-        from channels.layers import get_channel_layer
-
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"chat_{room.code}",
-            {
-                "type": "update_players",
-            },
-        )
+        if room.host_id is None:
+            room.host = request.user.userprofile
+            room.save(update_fields=["host"])
+        if old_room_code:
+            self._broadcast(old_room_code, "update_players")
+            self._broadcast(old_room_code, "state_changed")
+        self._broadcast(room.code, "update_players")
+        self._broadcast(room.code, "state_changed")
         return Response(self.get_serializer(room).data)
 
     @action(methods=["post"], detail=False)
     def leave(self, request):
-        """
-        Leave the room.
-
-        1. Player will leave any room they are in (will trigger empty room cleanup)
-
-        As a reminder, a player can only be in one room at once.
-
-        Always succeeds, no data is returned.
-        """
         user_profile = request.user.userprofile
-        room_code = None
+        room = None
+        player = None
 
         try:
-            if (
-                hasattr(user_profile, "skribbleplayer")
-                and user_profile.skribbleplayer.room
-            ):
-                room_code = user_profile.skribbleplayer.room.code
-        except Exception:
+            player = user_profile.skribbleplayer
+            room = player.room
+        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
             pass
 
+        if room is None:
+            return Response()
+
+        room_code = room.code
+        drawer_left = room.turn_started and player.order == room.current_player_index
+
         with transaction.atomic():
-            request.user.userprofile.leave_skribble()
+            user_profile.leave_skribble()
+            if SkribbleRoom.objects.filter(pk=room.pk).exists():
+                room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
+                if room.host_id == user_profile.id:
+                    next_player = (
+                        room.players.select_related("player").order_by("order").first()
+                    )
+                    room.host = next_player.player if next_player is not None else None
+                    room.save(update_fields=["host"])
             SkribbleRoom.cleanup_empty_rooms()
+            room_exists = SkribbleRoom.objects.filter(pk=room.pk).exists()
 
-        if room_code:
-            from asgiref.sync import async_to_sync
-            from channels.layers import get_channel_layer
+        if room_exists:
+            room = SkribbleRoom.objects.get(pk=room.pk)
+            if room.game_started and room.players.count() < self.min_players:
+                room.game_started = False
+                room.game_finished = True
+                room.turn_started = False
+                room.current_word = None
+                room.save()
+                self._broadcast(room_code, "game_finished")
+            elif drawer_left:
+                self._finish_turn(room, award_points=False, reason="drawer_left")
+            elif room.turn_started and self._all_guessers_found(room):
+                self._finish_turn(room, reason="all_found")
 
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"chat_{room_code}",
-                {
-                    "type": "update_players",
-                },
-            )
+        self._broadcast(room_code, "update_players")
+        self._broadcast(room_code, "state_changed")
         return Response()
 
     @action(methods=["post"], detail=True)
     def start_game(self, request, code):
-        """
-        Start the game in a room.
-
-        1. Shuffles the player order
-        2. Set game_started to true
-
-        Next: The first player in the order should call select_word to get a choice of words
-
-        Preconditions:
-
-        1. Only a player in the room can start the game -> 401 Unauthorized
-        2. A game can only be started if it wasn't already -> 409 Conflict
-
-        Returns the current room status.
-        """
         room = self.get_object()
-        player = request.user.userprofile.skribbleplayer
-        room_players = room.players.all()
-        if player not in room_players:
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can start the game"
+        )
+        if error:
+            return error
+        if not self._is_host(request, room):
             return Response(
-                {"detail": "You must join the room before you can start the game"},
-                status=HTTP_401_UNAUTHORIZED,
+                {"detail": "Only the room host can start the game"},
+                status=HTTP_403_FORBIDDEN,
             )
         if room.game_started:
             return Response(
                 {"detail": "The game already started"}, status=HTTP_409_CONFLICT
             )
-        with transaction.atomic():
-            num_players = len(room_players)
-
-            # first set it to a dummy value that is too high to cause conflicts
-            max_order = (
-                SkribblePlayer.objects.select_for_update()
-                .filter(room=room)
-                .aggregate(m=Max("order"))
-                .get("m")
+        if room.game_finished:
+            return Response(
+                {"detail": "Replay the room to start a new game"},
+                status=HTTP_409_CONFLICT,
             )
-            for i, p in enumerate(room_players):
-                p.order = max_order + 1 + i
-            SkribblePlayer.objects.bulk_update(room_players, ["order"])
-
-            # then actually shuffle the order
-            order = list(range(num_players))
-            random.shuffle(order)
-            for i, p in enumerate(room_players):
-                p.order = order[i]
-            SkribblePlayer.objects.bulk_update(room_players, ["order"])
-
-            # do the bookkeeping
-            room.game_started = True
-            room.round_counter = 1
-            room.save()
-
-        from asgiref.sync import async_to_sync
-        from channels.layers import get_channel_layer
-
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"chat_{room.code}",
-            {
-                "type": "game_started",
-            },
-        )
-
+        if room.players.count() < self.min_players:
+            return Response(
+                {"detail": "At least two players are required to start the game"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        room = self._start_room_game(room)
         return Response(self.get_serializer(room).data)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        serializer_class=SkribbleRoomSettingsSerializer,
+    )
+    def configure(self, request, code):
+        room = self.get_object()
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can configure it"
+        )
+        if error:
+            return error
+        if not self._is_host(request, room):
+            return Response(
+                {"detail": "Only the room host can configure the game"},
+                status=HTTP_403_FORBIDDEN,
+            )
+        if room.game_started:
+            return Response(
+                {"detail": "The game already started"}, status=HTTP_409_CONFLICT
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        max_rounds = serializer.validated_data.get("max_rounds")
+        if max_rounds is not None:
+            room.max_rounds = max_rounds
+            room.save(update_fields=["max_rounds"])
+
+        self._broadcast(room.code, "state_changed")
+        return Response(SkribbleRoomSerializer(room).data)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        serializer_class=SkribbleRoomSettingsSerializer,
+    )
+    def replay(self, request, code):
+        room = self.get_object()
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can replay it"
+        )
+        if error:
+            return error
+        if not self._is_host(request, room):
+            return Response(
+                {"detail": "Only the room host can replay the game"},
+                status=HTTP_403_FORBIDDEN,
+            )
+        if room.players.count() < self.min_players:
+            return Response(
+                {"detail": "At least two players are required to replay the game"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        room = self._start_room_game(
+            room, max_rounds=serializer.validated_data.get("max_rounds")
+        )
+        self._broadcast(room.code, "game_restarted")
+        return Response(SkribbleRoomSerializer(room).data)
 
     @action(methods=["get"], detail=True)
     def select_word(self, request, code):
-        """
-        Get 3 possible words, that the player may draw during their turn.
-
-        Next: The player should call start_turn with their selected word.
-
-        Preconditions:
-
-        1. The player is in the room -> 401 Unauthorized
-        2. The game has started -> 400 Bad Request
-        3. The player is the current player -> 401 Unauthorized
-        4. The turn has not started yet -> 400 Bad Request
-
-        Returns three words chosen at random from the room's wordlist, that have not appeared in the room as of yet.
-        """
         room = self.get_object()
-        try:
-            player = request.user.userprofile.skribbleplayer
-        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
-            player = None
-        room_players = room.players.all()
-        if not player or player not in room_players:
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can start a turn"
+        )
+        if error:
+            return error
+        if room.game_finished:
             return Response(
-                {"detail": "You must join the room before you can start a turn"},
-                status=HTTP_401_UNAUTHORIZED,
+                {"detail": "The game is finished"}, status=HTTP_400_BAD_REQUEST
             )
         if not room.game_started:
             return Response(
@@ -930,44 +1198,24 @@ class SkribbleRoomViewSet(ModelViewSet):
             return Response(
                 {"detail": "The turn already started"}, status=HTTP_400_BAD_REQUEST
             )
-        wordlist = room.wordlist
-        # Yes, this does the limit on the DB side
-        # https://docs.djangoproject.com/en/6.0/topics/db/queries/#limiting-querysets
         words = (
-            wordlist.words.exclude(id__in=room.word_history.all())
+            room.wordlist.words.exclude(id__in=room.word_history.all())
             .order_by("?")
             .values_list("word", flat=True)[:3]
         )
-        return Response({"words": words})
+        return Response({"words": list(words)})
 
     @action(methods=["post"], detail=True, serializer_class=StartTurnSerializer)
     def start_turn(self, request, code):
-        """
-        The player has chosen a word to draw, and starts drawing now.
-
-        1. The chosen word is added to the word_history of that room.
-        2. The timer is reset and starts counting down
-        3. The turn starts
-
-        Preconditions:
-        1. The player is in the room -> 401 Unauthorized
-        2. The game has started -> 400 Bad Request
-        3. The player is the current player -> 401 Unauthorized
-        4. The turn not has started yet -> 400 Bad Request
-        5. The word is not in word_history, but in the current wordlist -> 400 Bad Request
-
-        Returns the current room status.
-        """
         room = self.get_object()
-        try:
-            player = request.user.userprofile.skribbleplayer
-        except UserProfile.skribbleplayer.RelatedObjectDoesNotExist:
-            player = None
-        room_players = room.players.all()
-        if not player or player not in room_players:
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you play"
+        )
+        if error:
+            return error
+        if room.game_finished:
             return Response(
-                {"detail": "You must join the room before you play"},
-                status=HTTP_401_UNAUTHORIZED,
+                {"detail": "The game is finished"}, status=HTTP_400_BAD_REQUEST
             )
         if not room.game_started:
             return Response(
@@ -981,15 +1229,15 @@ class SkribbleRoomViewSet(ModelViewSet):
             return Response(
                 {"detail": "The turn already started"}, status=HTTP_400_BAD_REQUEST
             )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        word = serializer.validated_data["word"]
+        chosen_word = serializer.validated_data["word"]
 
-        wordlist = room.wordlist
         try:
             word = (
-                wordlist.words.exclude(id__in=room.word_history.all())
-                .filter(word=word)
+                room.wordlist.words.exclude(id__in=room.word_history.all())
+                .filter(word=chosen_word)
                 .get()
             )
         except Word.DoesNotExist:
@@ -999,9 +1247,137 @@ class SkribbleRoomViewSet(ModelViewSet):
             )
 
         with transaction.atomic():
+            room = SkribbleRoom.objects.select_for_update().get(pk=room.pk)
             room.word_history.add(word)
+            room.current_word = word
             room.timer_end = timezone.now() + room.timer
             room.turn_started = True
             room.save()
+            room.players.update(found=False)
 
-        return Response(SkribbleRoomSerializer(room).data)
+        self._broadcast(room.code, "canvas_reset")
+        self._broadcast(room.code, "turn_started")
+        self._broadcast(room.code, "state_changed")
+        return Response(self._room_state(room, request))
+
+    @action(methods=["post"], detail=True, serializer_class=GuessSerializer)
+    def guess(self, request, code):
+        room = self.get_object()
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can guess"
+        )
+        if error:
+            return error
+        if not room.game_started or room.game_finished:
+            return Response(
+                {"detail": "There is no active game"}, status=HTTP_400_BAD_REQUEST
+            )
+        if not room.turn_started or not room.current_word_id:
+            return Response(
+                {"detail": "There is no active turn"}, status=HTTP_400_BAD_REQUEST
+            )
+        if player.order == room.current_player_index:
+            return Response(
+                {"detail": "The drawer cannot guess"}, status=HTTP_400_BAD_REQUEST
+            )
+        if timezone.now() >= room.timer_end:
+            room, turn_info = self._finish_turn(room, reason="timer")
+            return Response(
+                {
+                    "correct": False,
+                    "turn_ended": turn_info["turn_ended"],
+                    "state": self._room_state(room, request),
+                }
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        guess = self._normalize_guess(serializer.validated_data["guess"])
+        expected = self._normalize_guess(room.current_word.word)
+        if guess != expected:
+            return Response({"correct": False, "turn_ended": False})
+        if player.found:
+            return Response(
+                {"correct": True, "already_found": True, "turn_ended": False}
+            )
+
+        with transaction.atomic():
+            room = (
+                SkribbleRoom.objects.select_for_update()
+                .select_related("current_word")
+                .get(pk=room.pk)
+            )
+            player = SkribblePlayer.objects.select_for_update().get(pk=player.pk)
+            if player.found:
+                return Response(
+                    {"correct": True, "already_found": True, "turn_ended": False}
+                )
+            drawer = self._current_drawer(room)
+            guesser_count = room.players.exclude(pk=drawer.pk).count()
+            guess_position = (
+                room.players.exclude(pk=drawer.pk).filter(found=True).count() + 1
+            )
+            points = self._guess_score(guess_position, guesser_count)
+            player.found = True
+            player.score += points
+            player.save(update_fields=["found", "score"])
+
+        self._broadcast(
+            room.code,
+            "player_found",
+            username=player.player.user.username,
+            points=points,
+        )
+
+        turn_ended = False
+        drawer_points = 0
+        if self._all_guessers_found(room):
+            room, turn_info = self._finish_turn(room, reason="all_found")
+            turn_ended = turn_info["turn_ended"]
+            drawer_points = turn_info["drawer_points"]
+        else:
+            room.refresh_from_db()
+            self._broadcast(room.code, "state_changed")
+
+        return Response(
+            {
+                "correct": True,
+                "points": points,
+                "turn_ended": turn_ended,
+                "drawer_points": drawer_points,
+                "state": self._room_state(room, request),
+            }
+        )
+
+    @action(methods=["post"], detail=True, serializer_class=EndTurnSerializer)
+    def end_turn(self, request, code):
+        room = self.get_object()
+        player, error = self._require_player_in_room(
+            request, room, "You must join the room before you can end a turn"
+        )
+        if error:
+            return error
+        if not room.turn_started:
+            return Response(
+                {"detail": "There is no active turn"}, status=HTTP_400_BAD_REQUEST
+            )
+
+        timer_expired = timezone.now() >= room.timer_end
+        is_drawer = player.order == room.current_player_index
+        if not (timer_expired or is_drawer or self._is_host(request, room)):
+            return Response(
+                {"detail": "Only the host, drawer, or timer can end the turn"},
+                status=HTTP_403_FORBIDDEN,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reason = "timer" if timer_expired else serializer.validated_data["reason"]
+        room, turn_info = self._finish_turn(room, reason=reason)
+        return Response(
+            {
+                "turn_ended": turn_info["turn_ended"],
+                "drawer_points": turn_info["drawer_points"],
+                "state": self._room_state(room, request),
+            }
+        )

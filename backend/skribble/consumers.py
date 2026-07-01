@@ -166,8 +166,53 @@ class SkribbleConsumer(AsyncWebsocketConsumer):
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
+    def reset_room_history(self):
+        ROOM_HISTORIES[self.room_name] = [
+            {"type": "fill", "x": 0, "y": 0, "color": "#ffffff"}
+        ]
+
     async def game_started(self, event):
+        self.reset_room_history()
         await self.send(text_data=json.dumps({"type": "game_started"}))
+
+    async def game_restarted(self, event):
+        self.reset_room_history()
+        await self.send(text_data=json.dumps({"type": "game_restarted"}))
 
     async def update_players(self, event):
         await self.send(text_data=json.dumps({"type": "update_players"}))
+
+    async def state_changed(self, event):
+        await self.send(text_data=json.dumps({"type": "state_changed"}))
+
+    async def canvas_reset(self, event):
+        self.reset_room_history()
+        await self.send(text_data=json.dumps({"type": "canvas.reset"}))
+
+    async def turn_started(self, event):
+        await self.send(text_data=json.dumps({"type": "turn_started"}))
+
+    async def turn_ended(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "turn_ended",
+                    "reason": event.get("reason"),
+                    "drawer_points": event.get("drawer_points", 0),
+                }
+            )
+        )
+
+    async def player_found(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "player_found",
+                    "username": event.get("username"),
+                    "points": event.get("points", 0),
+                }
+            )
+        )
+
+    async def game_finished(self, event):
+        await self.send(text_data=json.dumps({"type": "game_finished"}))
