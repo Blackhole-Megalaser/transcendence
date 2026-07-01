@@ -28,9 +28,7 @@ class SkribbleRoomApiTests(TestCase):
         self.guest.force_login(self.guest_user)
 
     def create_room(self, name="Room"):
-        response = self.host.post(
-            "/api/skribble/rooms/", {"name": name}, format="json"
-        )
+        response = self.host.post("/api/skribble/rooms/", {"name": name}, format="json")
         self.assertEqual(response.status_code, 201)
         return response.data["code"]
 
@@ -58,9 +56,7 @@ class SkribbleRoomApiTests(TestCase):
         return self.host
 
     def current_drawer(self, room):
-        return SkribblePlayer.objects.get(
-            room=room, order=room.current_player_index
-        )
+        return SkribblePlayer.objects.get(room=room, order=room.current_player_index)
 
     def test_only_host_can_start_and_requires_two_players(self):
         code = self.create_room()

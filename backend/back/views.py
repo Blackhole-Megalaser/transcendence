@@ -692,7 +692,6 @@ class WordListViewSet(ReadOnlyModelViewSet):
         return Response({"word": word.word})
 
 
-
 class SkribbleRoomViewSet(ModelViewSet):
     queryset = SkribbleRoom.objects.annotate(num_players=Count("players")).filter(
         num_players__gt=0
@@ -829,7 +828,9 @@ class SkribbleRoomViewSet(ModelViewSet):
             "name": room.name,
             "host": room.host.user.username if room.host_id else None,
             "is_host": self._is_host(request, room) if request is not None else False,
-            "current_drawer": drawer.player.user.username if drawer is not None else None,
+            "current_drawer": drawer.player.user.username
+            if drawer is not None
+            else None,
             "is_drawer": is_request_drawer,
             "players": [
                 {

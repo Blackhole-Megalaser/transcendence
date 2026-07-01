@@ -77,7 +77,6 @@ class SkribbleRoomSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
-
     def get_host(self, obj):
         if obj.host_id is None:
             return None
