@@ -123,7 +123,7 @@ const getUserRoomInfo = async () => {
     const dataUser = await response.json();
     if (dataUser.skribble) {
       username.value = dataUser.username;
-      host.value = dataUser.host;
+      host.value = dataUser.skribble.host;
       roomCode.value = dataUser.skribble.code;
       roomName.value = dataUser.skribble.name;
       gameStarted.value = dataUser.skribble.game_started;
