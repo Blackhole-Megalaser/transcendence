@@ -494,7 +494,7 @@ export function runTplace() {
 
 			isCanvasLoaded = true
 		} catch (error) {
-			console.error(error)
+			console.log(error)
 			pointerStatus.value = 'Canvas load failed'
 		}
 	}
@@ -538,7 +538,7 @@ export function runTplace() {
 
 			applyTplaceProfilePayload(payload)
 		} catch (error) {
-			console.error(error)
+			console.log(error)
 		} finally {
 			isLoadingProfile = false
 		}
@@ -870,7 +870,7 @@ export function runTplace() {
 			redoStack.length = 0
 			pointerStatus.value = 'Pixels saved'
 		} catch (error) {
-			console.error(error)
+			console.log(error)
 			pointerStatus.value = error.message || 'Pixel placement failed'
 			loadTplaceProfile()
 		} finally {

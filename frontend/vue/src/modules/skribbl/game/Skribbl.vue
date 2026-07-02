@@ -144,7 +144,7 @@
             username.value = dataUser.username;
             if (dataUser.score) score.value = dataUser.score;
         } catch (error) {
-            console.error("Recuperation error :", error);
+            console.log("Recuperation error :", error);
         }
     };
 
@@ -167,7 +167,7 @@
             isDrawer.value = (drawer_index.value === player_index.value);
             if (isDrawer.value) getWords();
         } catch (error) {
-            console.error("Recuperation skribbl data error :", error);
+            console.log("Recuperation skribbl data error :", error);
         }
     }
 
@@ -178,7 +178,7 @@
             
             wordlist.value = dataWords.words;
         } catch (error) {
-            console.error("Recuperation words error :", error);
+            console.log("Recuperation words error :", error);
         }
     };
 
@@ -207,7 +207,7 @@
 
             }
         } catch (error) {
-            console.error("Post word to start error :", error);
+            console.log("Post word to start error :", error);
         }
     };
 
@@ -330,7 +330,7 @@
                 tmpHistory.value = [];
             }
         } catch (err) {
-            console.error("Erreur de lecture du flux de dessin:", err);
+            console.log("Erreur de lecture du flux de dessin:", err);
         }
     }
 

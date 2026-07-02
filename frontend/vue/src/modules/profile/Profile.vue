@@ -181,7 +181,7 @@ const changeProfilePicture = async () => {
     newImage.value = null;
   }
   catch (e) {
-    console.error(e.message);
+    console.log(e.message);
   }
 }
 
@@ -211,7 +211,7 @@ const changeEmail = async () => {
     toggleModifyEmail();
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
   }
 }
 
@@ -224,7 +224,7 @@ const getGameInfos  = async () => {
       return await response.json();
     }
     catch (error) {
-      console.error(error.message);
+      console.log(error.message);
       return null;
     }
   }

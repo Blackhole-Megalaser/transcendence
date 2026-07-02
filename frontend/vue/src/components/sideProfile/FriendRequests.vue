@@ -80,7 +80,7 @@ const handleFriendRequest = async (friend, method) => {
       UserStore.updateFriendlist();
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
   }
 }
 </script>

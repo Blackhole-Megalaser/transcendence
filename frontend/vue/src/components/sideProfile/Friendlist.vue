@@ -108,7 +108,7 @@ const deleteFriend  = async (username) => {
     userStore.removeFriend(username);
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
   }
 }
 

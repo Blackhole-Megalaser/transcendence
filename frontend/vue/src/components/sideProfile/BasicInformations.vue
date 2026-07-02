@@ -76,7 +76,7 @@ const logout  = async (reload) => {
       return true;
   }
   catch (error) {
-    console.error(error.message);
+    console.log(error.message);
     return false;
   }
 }
