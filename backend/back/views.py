@@ -435,6 +435,7 @@ class TplaceMaxPixelsUpgradeView(APIView):
 
             profile.nyancoins -= total_cost
             profile.max_placable_pixels += quantity
+            profile.next_regeneration = timezone.now() + profile.regeneration_delay
             profile.save(update_fields=["nyancoins", "max_placable_pixels"])
 
         return get_tplace_upgrade_response(profile, total_cost)
