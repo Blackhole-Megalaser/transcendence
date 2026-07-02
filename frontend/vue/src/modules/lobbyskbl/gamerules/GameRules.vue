@@ -2,7 +2,7 @@
   <div class="flex-center h-full w-full">
     <div class="flex flex-col bg-navbar lg:rounded-4xl p-4 md:p-8 gap-4 w-full h-full lg:w-2xl lg:h-9/10">
       <div class="flex justify-center gap-4 w-full">
-        <h1 class="text-title font-bold text-4xl">~Game Rules~</h1>
+        <h1 class="text-title font-bold text-4xl">~Lobby~</h1>
       </div>
 
       <div class="h-px bg-navbar-border my-4 xl:my-0"></div>
