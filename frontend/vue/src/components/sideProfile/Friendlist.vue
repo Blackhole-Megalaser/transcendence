@@ -14,11 +14,12 @@
         :class="friend.isOpen ? 'bg-button-2-active' : ''"
       >
         <div class="relative">
-          <img
-            alt="Profile Picture"
-            class="size-10 min-w-10 z-11 rounded-full"
-            :src="friend.profile_image ?? default_cat"
-          >
+          <div class="relative z-11 size-10 rounded-full overflow-hidden cursor-pointer">
+            <div 
+              class="absolute inset-0 bg-cover bg-center"
+              :style="{ backgroundImage: `url(${friend.profile_image})` }"
+            />
+          </div>
           <div
             class="size-3 rounded-full z-11 absolute right-0 bottom-0 border-2 border-navbar"
             :class="isLogged(friend.last_seen) ? 'bg-green-500' : 'bg-red-600'"
