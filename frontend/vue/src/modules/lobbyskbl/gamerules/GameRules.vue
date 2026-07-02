@@ -50,11 +50,16 @@
                 type="submit"
                 @click="postJoinRoom"
                 class="input"
-                :class="seeRoomInfo || inputRoomCode === '' ? '' : 'cursor-pointer'"
+                :class="seeRoomInfo || rawInputRoomCode === '' ? '' : 'cursor-pointer'"
                 value="JOIN"
-                :disabled="seeRoomInfo || inputRoomCode === ''"
+                :disabled="seeRoomInfo || rawInputRoomCode === ''"
               >
             </div>
+            <p 
+              v-if="roomCodeError"
+              class="text-red-600 w-full flex-center"
+            >
+            {{ roomCodeError.detail }}</p>
           </div>
         </div>
 
@@ -146,11 +151,12 @@ import { useSkribbleStore, getCookie }        from '@shared';
 
 const breakpoints   = useBreakpoints({ xl: 1280 });
 const isSmallScreen = breakpoints.smaller("xl");
-const roomCode  = ref('Default');
-const roomName  = ref('Default');
-const username  = ref('');
-const users     = ref([]);
-const rounds    = ref(3);
+const roomCode      = ref('Default');
+const roomName      = ref('Default');
+const username      = ref('');
+const users         = ref([]);
+const rounds        = ref(3);
+const roomCodeError = ref(null);
 
 const inputRoomName     = ref('');
 const rawInputRoomCode  = ref('');
@@ -225,6 +231,7 @@ const getUserRoomInfo = async () => {
 };
 
 const postCreateRoom = async () => {
+  roomCodeError.value = null;
   try {
     const response = await fetch('/api/skribble/rooms/', {
       method: 'POST',
@@ -248,8 +255,9 @@ const postCreateRoom = async () => {
 };
 
 const postJoinRoom = async () => {
+  roomCodeError.value = null;
   try {
-    const response = await fetch(`/api/skribble/rooms/${inputRoomCode.value}/join/`, {
+    const response = await fetch(`/api/skribble/rooms/${rawInputRoomCode.value}/join/`, {
       method: 'POST',
       body: JSON.stringify({
         name: ''
@@ -260,10 +268,11 @@ const postJoinRoom = async () => {
       }
     });
     if (response.ok) {
-        inputRoomCode.value = '';
+        rawInputRoomCode.value = '';
         await getUserRoomInfo();
     }
     else
+      roomCodeError.value = await response.json();
       throw new Error("Couldn't join room");
   } catch (error) {
     console.log("Join error :", error);
