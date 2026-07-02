@@ -60,9 +60,11 @@
 	const round_max		= 3;
 	let round_started	= ref(false);
 	let word_history	= [];
+	let timeLeft		= ref(0);
 	let timer			= ref(null);
 	let timer_end		= ref(null);
 	let created_at		= ref(null);
+	let countdownInterval = null;
 
 	//	SkribblPlayer
 
@@ -120,6 +122,7 @@
 			skribbleStore.socket = null;
 		}
 		clearInterval(intervalId);
+		clearInterval(countdownInterval);
     });
 
 	// watch(message1, (newMessage) => {
@@ -134,6 +137,7 @@
 	watch(isWordChoose, (newIsWC) => {
 		if (newIsWC === true) postStartTurn();
 	});
+
 
 	const postSkribble = async () => {
 		score.value += 10;
@@ -202,9 +206,6 @@
 			if (player) player_index.value = player.order;
 			drawer_index.value = dataUser.skribble.current_player_index;
 			roomName.value = dataUser.skribble.name;
-			timer.value = dataUser.skribble.timer;
-			timer_end.value = dataUser.skribble.timer_end;
-			created_at.value = dataUser.skribble.created_at;
 			isDrawer.value = (drawer_index.value === player_index.value);
 			if (isDrawer.value) getWords();
 		} catch (error) {
@@ -226,7 +227,7 @@
 
 	const postStartTurn = async () => {
 		try {
-			const response = await fetch(`api/skribble/rooms/${roomCode.value}/start_turn/`, {
+			const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_turn/`, {
 				method: 'POST',
 				body: JSON.stringify({
 					word: word.value
@@ -236,11 +237,39 @@
 					'Content-type' : 'application/json'
 				}
 			});
+			if (response.ok) {
+				const roomData = await response.json();
+
+				timer.value = roomData.timer;
+				timer_end.value = roomData.timer_end;
+				created_at.value = roomData.created_at;
+
+				clearInterval(countdownInterval);
+				updateCountdown();
+				countdownInterval = setInterval(updateCountdown, 1000);
+
+			}
 		} catch (error) {
 			console.error("Post word to start error :", error);
 		}
 	};
 
+	const updateCountdown = () => {
+		if (!timer_end.value) return;
+
+		const endTime = new Date(timer_end.value).getTime();
+		const now = new Date().getTime();
+
+		const diffTime = Math.floor((endTime - now) / 1000);
+
+		if (diffTime <= 0) {
+			timeLeft.value = 0;
+			clearInterval(countdownInterval);
+			console.log("Time passed");
+		} else {
+			timeLeft.value = diffTime;
+		}
+	}
 
 	const refreshDelay = () => {
 		if (!isConnected.value && !isConnecting.value) {
@@ -713,6 +742,13 @@
 				</template>
 			</div>
 		</div>
+		<div class="flex justify-center">
+			<div class="flex flex-row justify-center" v-if="timeLeft !== 0">
+				<h1 class="text-2xl font-bold">
+					{{ timeLeft }}
+				</h1>
+			</div>
+		</div>
 		<div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr_0.30fr]
 			gap-2 w-full h-full max-w-full max-h-full p-4
 			bg-bg-main">
@@ -721,7 +757,8 @@
 				w-full h-full min-h-0
 				border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
 				<div class="bg-white">
-					<p>{{ roomName }} || {{ drawer_index }} || {{ player_index }} || {{ timer }}</p>
+					<p>{{ roomName }} || {{ drawer_index }} || {{ player_index }}</p>
+					<p>{{ timer }} || {{ timer_end}} || {{ created_at }}</p>
 					<p>Score:									{{ score }}</p>
 					<p>Word:									{{ word }}</p>
 					<p>{{ !isDrawer && message1 === word ? 'You Win' : ''  }}</p>
