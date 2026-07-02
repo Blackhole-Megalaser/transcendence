@@ -21,12 +21,15 @@
                 v-model="inputRoomName"
                 placeholder="Room name, ex: Room-1"
                 class="informations flex-1"
+                :disabled="seeRoomInfo"
               />
               <input
                 type="submit"
                 @click="postCreateRoom"
                 class="input"
+                :class="seeRoomInfo || inputRoomName === '' ? '' : 'cursor-pointer'"
                 value="CREATE"
+                :disabled="seeRoomInfo || inputRoomName === ''"
               >
             </div>
           </div>
@@ -40,12 +43,15 @@
                 v-model="inputRoomCode"
                 placeholder="Room code, ex: IJJJK"
                 class="informations flex-1"
+                :disabled="seeRoomInfo"
               />
               <input
                 type="submit"
                 @click="postJoinRoom"
                 class="input"
+                :class="seeRoomInfo || inputRoomCode === '' ? '' : 'cursor-pointer'"
                 value="JOIN"
+                :disabled="seeRoomInfo || inputRoomCode === ''"
               >
             </div>
           </div>
@@ -289,9 +295,9 @@ const postLeaveRoom = async () => {
 @import '@/style.css';
 
 .input {
-  @apply shadow-button-1-normal bg-button-1-normal text-text-button-1 hover:bg-button-1-hover disabled:bg-button-1-disable px-4 py-1 rounded-full mt-1 cursor-pointer;
+  @apply shadow-button-1-normal bg-button-1-normal text-text-button-1 hover:bg-button-1-hover disabled:bg-button-1-disable px-4 py-1 rounded-full mt-1;
 }
-.input:active {
+.input:active:not(:disabled) {
   @apply duration-100 px-3.5 py-0.5;
 }
 .informations {
