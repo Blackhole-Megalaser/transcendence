@@ -108,7 +108,7 @@ const userStore           = useUserStore();
 const { getLoggedStatus } = storeToRefs(userStore);
 const currentURI          = window.location.href.slice(window.location.origin.length).replace('?', '&');
 const URI                 = currentURI !== '/' ? `?next=${currentURI}` : '';
-const friendData          = inject('FRIENDREQUESTS');
+const friendData          = inject('FRIENDREQUESTS', ref({ friends: [], pending_friend_requests: [] }));
 const friendRequests      = computed(() => friendData.value.pending_friend_requests);
 
 const nextPage            = () => {

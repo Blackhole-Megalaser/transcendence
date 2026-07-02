@@ -31,7 +31,7 @@ import FriendRequests             from './FriendRequests.vue';
 
 const bar             = ref(0);
 const selectWindow    = computed(() => bar.value === 0 ? 0 : 1);
-const friendData      = inject('FRIENDREQUESTS');
+const friendData      = inject('FRIENDREQUESTS', ref({ friends: [], pending_friend_requests: [] }));
 const friendRequests  = computed(() => friendData.value.pending_friend_requests);
 
 </script>
