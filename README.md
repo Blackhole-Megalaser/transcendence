@@ -94,7 +94,13 @@ The official FT_CAT instance is accessible for everyone at https://ft.lien.cat
 
 ## AI Usage
 
-AI was used to generate some graphical assets in this project, as a search engine, and to find some toy examples on how to use various django-rest-framework features.
+AI was used in different ways for this projects:
+
+- **tlair**: Used it to generate image assets and to generate and understand code.
+- **kcolin**: Used it as a search engine and to find some toy examples on how to use various django-rest-framework features.
+- **lvan-bre**: Used it for debugging, as a search engine mostly because Vue's documentation is bad and to find some design ideas.
+- **ael-ghaz**: Used it as a search engine and to learn with code structure examples.
+- **cczerwin**: Used it to search for specific Django cases and to get code structure examples and to convert from a language to another.
 
 # Team Information
 
