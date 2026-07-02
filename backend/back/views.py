@@ -199,12 +199,10 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer_class=SignupRequestSerializer,
     )
     def signup(self, request):
-        logging.info("here we are %s", request)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        logging.info("data valid %s", validated_data)
         username = validated_data["username"]
         password = validated_data["password1"]
 
