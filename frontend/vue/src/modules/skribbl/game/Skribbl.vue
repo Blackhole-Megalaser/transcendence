@@ -182,8 +182,6 @@
         }
     };
 
-
-
     const postStartTurn = async () => {
         try {
             const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_turn/`, {
