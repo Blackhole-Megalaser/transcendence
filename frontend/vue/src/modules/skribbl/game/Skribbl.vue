@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+    import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
     import { useSkribbleStore, getCookie } from '@shared';
     import { storeToRefs } from 'pinia';
     import bucket from './bucket.png'
@@ -86,6 +86,24 @@
     const timer_seconds = ref(0);
     const remaining_seconds = ref(0);
     const found = ref(false);
+    const playerList = ref([]);
+    const showRoundEndSummary = ref(false);
+    const lastWord = ref('');
+
+    const isTurnOver = computed(() => {
+      if (timeLeft.value <= 0 && timer_end.value !== null) {
+        return true;
+      }
+
+      const playersLeftToGuess = playerList.value.filter(player =>
+        player.username !== current_drawer.value && !player.found
+      );
+
+      if (playerList.value.length > 1 && playersLeftToGuess.length === 0) {
+        return true;
+      }
+      return false;
+    })
     
 
     onMounted(() => {
@@ -138,6 +156,12 @@
         if (newIsWC === true) postStartTurn();
     });
 
+    watch(isTurnOver, (gameOver) => {
+      if (gameOver && turn_started.value && isHost.value) {
+        postEndTurn();
+      }
+    });
+
     const getUserData = async () => {
         try {
             const response = await fetch('/api/users/me/');
@@ -184,14 +208,19 @@
           word.value = roomData.word;
           word_mask.value = roomData.word_mask;
           winners.value = roomData.winners;
-    
+          
           if (roomData.players && username.value) {
+            playerList.value = roomData.players;
             const player = roomData.players.find((p) => p.username === username.value);
             if (player) {
               score.value = player.score;
               found.value = player.found;
               player_index.value = player.order;
             }
+          }
+
+          if (roomData.turn_started) {
+            isWordChoose.value = true;
           }
         }
       } catch (error) {
@@ -244,7 +273,7 @@
             const response = await fetch(`/api/skribble/rooms/${roomCode.value}/guess/`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    guess: guessText.value
+                    guess: guessText
                 }),
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
@@ -290,10 +319,34 @@
             });
             if (response.ok) {
                 await getState();
+
+                showRoundEndSummary.value = false;
+                isWordChoose.value = false;
+                lastWord.value = '';
             }
         } catch (error) {
             console.error("Post replay error :", error);
         }
+    };
+
+    const postLeaveRoom = async () => {
+      try {
+        const response = await fetch('/api/skribble/rooms/leave/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-type' : 'application/json'
+          }
+        });
+        if (skribbleStore.socket) {
+          skribbleStore.socket.close();
+          skribbleStore.socket = null;
+        }
+        window.location.href = '/lobbyskbl';
+      } catch (error) {
+        console.error("Leave error :", error);
+        window.location.href = '/lobbyskbl';
+      }
     };
 
     const updateCountdown = () => {
@@ -307,7 +360,6 @@
         if (diffTime <= 0) {
             timeLeft.value = 0;
             clearInterval(countdownInterval);
-            console.log("Time passed");
         } else {
             timeLeft.value = diffTime;
         }
@@ -350,6 +402,7 @@
               tmpHistory.value = [];
               redrawLines();
               await getState();
+              window.location.href = `/skribbl?room=${roomCode.value}`;
             }
 
             if (message.type === "canvas.reset") {
@@ -359,19 +412,44 @@
             }
 
             if (message.type === "turn_started") {
+              showRoundEndSummary.value = false;
+              lastWord.value = '';
               await getState();
 
+              // isWordChoose.value = false;
+
+              nextTick(() => {
+                if (canvasRef.value) {
+                  canvasRef.value.width = width.value;
+                  canvasRef.value.height = height.value;
+
+                  vueCanvas.value = canvasRef.value.getContext("2d", { willReadFrequently: true });
+
+                  vueCanvas.value.lineCap = 'round';
+                  vueCanvas.value.lineJoin = 'round';
+                  vueCanvas.value.strokeStyle = penColor.value;
+                  vueCanvas.value.lineWidth = parseInt(penStroke.value);
+
+                  vueCanvas.value.fillStyle = '#ffffff';
+                  vueCanvas.value.fillRect(0, 0, width.value, height.value);
+                }
+              });
               clearInterval(countdownInterval);
               updateCountdown();
               countdownInterval = setInterval(updateCountdown, 1000);
-
-              isWordChoose.value = true;
             }
 
             if (message.type === "turn_ended") {
-              await getState();
               clearInterval(countdownInterval);
-              word.value = null;
+              showRoundEndSummary.value = true;
+              setTimeout(async () => {
+                await getState();
+                if (!game_finished.value) {
+                  await getWords();
+                  isWordChoose.value = false;
+                }
+                // isWordChoose.value = false;
+              }, 300);
             }
 
             if (message.type === "player_found") {
@@ -822,18 +900,28 @@
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full overflow-hidden">
         <div class="flex justify-center">
-            <div class="flex flex-row justify-center" v-if="isDrawer && !isWordChoose">
+            <div class="flex flex-row justify-center" v-if="isDrawer && !isWordChoose && !game_finished">
                 <template v-for="w in wordlist">
                     <button @click="word = w; isWordChoose = true;" class="p-2 bg-button-1-normal text-white rounded">
                         {{ w }}
                     </button>
                 </template>
             </div>
-            <div class="flex flex-row justify-center" v-if="!isDrawer && turn_started">
+            <div class="flex flex-row justify-center" v-if="!isDrawer && turn_started && !found">
               <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
                 {{ word_mask }}
+              </h1>
+            </div>
+            <div class="flex flex-row justify-center" v-if="isDrawer && turn_started && isWordChoose">
+              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
+                {{ word }}
+              </h1>
+            </div>
+            <div class="flex flex-row justify-center" v-if="found">
+              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
+                You guess it !
               </h1>
             </div>
         </div>
@@ -852,18 +940,17 @@
                 w-full h-full min-h-0
                 border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
                 <div class="bg-white">
-                    <p>{{ roomName }} || {{ drawer_index }} || {{ player_index }}</p>
-                    <p>{{ timer }} || {{ timer_end}} || isDrawer: {{ isDrawer }}</p>
-                    <p>Score:									{{ score }}</p>
-                    <p>Word:									{{ word }}</p>
-                    <p class="text-button-1-normal font-bold">{{ found ? 'You found the word !!' : ''  }}</p>
-                    <button class="p-2 bg-button-1-normal text-white rounded">
-                        Player Status : {{ isDrawer ? 'Drawer' : 'Guesser' }}
-                    </button>
+                    <div v-for="player in playerList" :key="player.user" class="flex justify-between p-2 border-b">
+                      <span>{{ player.username }} : {{ player.score }} pts</span>
+                      <span v-if="player.found" class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
+                          Guessed !
+                      </span>
+                    </div>
                 </div>
             </div>
             <!-- __________ CANVAS __________ -->
-            <canvas :style="cursorStyle" ref="canvasRef"
+            <canvas v-if="!showRoundEndSummary"
+                :style="cursorStyle" ref="canvasRef"
                 class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
                      border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg
                      w-full h-full min-h-0 block"
@@ -876,6 +963,41 @@
                 @touchend="stop"
                 @touchcancel="stop">
             </canvas>
+            <div v-else
+              class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
+                    border-5 border-solid border-button-1-normal bg-white rounded-lg p-6
+                    w-full h-full min-h-0 flex flex-col justify-center items-center text-center">
+              <template v-if="game_finished">
+                <h2 class="text-4xl font-black text-yellow-500 mb-4 animate-bounce">🏆 End Game ! 🏆</h2>
+                <div class="mb-6">
+                  <h3 class="text-xl font-bold text-gray-700">Winners :</h3>
+                  <p class="text-2xl font-black text-button-1-normal mt-2">
+                    {{ winners.join(', ') }} 🎉
+                  </p>
+                </div>
+                <button @click="postLeaveRoom" class="p-2 bg-button-1-normal text-white rounded">
+                  <p>Leave</p>
+                </button>
+                <button v-if="isHost" @click="postReplay" class="p-2 bg-button-1-normal text-white rounded">
+                  <p>Play Again</p>
+                </button>
+              </template>
+              <template v-else>
+                <h2>End of the round</h2>
+              </template>
+              <div class="w-full max-w-md bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-inner overflow-auto max-h-[60%]">
+                <h3 class="font-bold text-lg mb-3 text-left border-b pb-1">Scoreboard :</h3>
+                <ul class="text-left space-y-2">
+                    <li v-for="(player, idx) in [...playerList].sort((a,b) => b.score - a.score)" 
+                        :key="player.username"
+                        class="flex justify-between items-center p-2 rounded bg-white shadow-sm">
+                      <span class="font-medium text-gray-700">{{ idx + 1 }}. {{ player.username }}</span>
+                      <span class="font-black text-button-1-normal">{{ player.score }} pts</span>
+                    </li>
+                </ul>
+              </div>
+              <p v-if="!game_finished" class="text-sm text-gray-400 mt-6 italic">waiting next turn...</p>
+            </div>
             <!-- __________ CHAT __________ -->
             <div v-if="roomCode" class="order-3 row-start-2 lg:row-start-1
                 w-full h-full min-h-0
