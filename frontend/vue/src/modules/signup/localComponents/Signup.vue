@@ -74,6 +74,7 @@
             <p v-if="apiError.username">{{ apiError.username }}</p>
             <p v-else-if="apiError.email">{{ apiError.email[0] }}</p>
             <p v-else-if="apiError.password">{{ apiError.password }}</p>
+            <p v-else>{{ apiError.detail }}</p>
           </div>
           <div class="flex-center h-10 w-26 self-end mr-3">
             <div class="size-4"/>
@@ -275,7 +276,7 @@ const submit    = async () => {
     window.location.href  = nextPage();
   }
   catch (error) {
-    // console.error(error);
+    console.error(error);
   }
 }
 </script>
