@@ -1,11 +1,11 @@
 <template>
   <ul 
     class="overflow-auto max-h-60"
-    v-if="friendList?.friends?.length > 0"
+    v-if="friendList?.length > 0"
   >
     <li
       class="w-full flex items-center flex-col rounded-xl overflow-hidden my-1"
-      v-for="friend in friendList.friends"
+      v-for="friend in friendList"
       :key="friend.username"
     >
       <div
@@ -45,7 +45,7 @@
   <div
     class="text-text-main font-semibold w-full py-2 flex-center"
     v-else
-    @click="console.log(friendList.friends)"
+    @click="console.log(friendList)"
   >
     <p>No Friends ! :c</p>
   </div>
@@ -61,7 +61,8 @@ import default_cat                  from '@assets/default_cat.png';
 
 const userStore         = useUserStore();
 const { userInfos }     = storeToRefs(userStore);
-const friendList        = inject('FRIENDREQUESTS');
+const friends           = inject('FRIENDREQUESTS');
+const friendList        = computed(() => friends.value.friends);
 const currentTimestamp  = ref(Date.now());
 let   logStatusInterval = null;
 
@@ -88,6 +89,10 @@ const deleteFriend  = async (username) => {
       const apiResponse = await response.json();
       throw ("Friend request error: " + apiResponse.detail);  
     }
+    friends.value = {
+      ...friends.value,
+      friends: friends.value.friends.filter(w => w.username !== username)
+    } 
     userStore.removeFriend(username);
   }
   catch (e) {
