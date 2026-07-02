@@ -60,7 +60,7 @@
         <!-- Second Part: room log or empty box -->
         <div 
           v-if="openSecond"
-          class="bg-navbar-menu rounded-2xl p-5 flex flex-col h-full"
+          class="bg-lobby-room-bg rounded-2xl p-5 pb-2 md:pb-5 flex flex-col h-full text-text-main/70"
         >
           <template v-if="seeRoomInfo">
             <div class="flex items-center justify-between mb-4">
@@ -77,7 +77,7 @@
               <div
                 v-for="(user, index) in users"
                 :key="user"
-                class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-navbar"
+                class="flex items-center gap-2.5 px-2.5 py-2 rounded-full bg-navbar"
               >
                 <div class="size-7 rounded-full bg-title/15 flex-center text-xs font-medium">
                   {{ user.slice(0, 2).toUpperCase() }}
@@ -88,10 +88,10 @@
             </div>
 
             <div class="flex gap-2 mt-4 pt-4 border-t border-navbar-border">
-              <button @click="postLeaveRoom" class="flex-1 text-red-600 border border-red-600/40 rounded-full py-1.5">
+              <button @click="postLeaveRoom" class="flex-1 btn-base btn-primary">
                 <i class="ti ti-door-exit"></i> Leave room
               </button>
-              <button @click="postStartGame" class="flex-1 rounded-full py-1.5">
+              <button @click="postStartGame" class="flex-1 btn-base btn-secondary border border-text-main">
                 <i class="ti ti-player-play"></i> Start game
               </button>
             </div>
@@ -302,5 +302,32 @@ const postLeaveRoom = async () => {
 }
 .informations {
   @apply my-1 py-1 pl-3 h-10 text-text-main border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
+}
+.btn-base {
+  @apply px-4 py-2 md:px-6 rounded-full font-bold transition-all duration-300 shadow-xs;
+}
+.btn-primary {
+  @apply shadow-button-1-normal;
+  background-color: var(--color-button-1-normal);
+  color: var(--color-text-button-1);
+}
+.btn-primary:hover {
+  background-color: var(--color-button-1-hover);
+}
+.btn-primary:active {
+  @apply duration-100 px-5.5 py-1.5;
+  background-color: var(--color-button-1-active);
+}
+.btn-secondary {
+  @apply shadow-button-2-normal;
+  background-color: var(--color-button-2-variant);
+  color: var(--color-text-button-2);
+}
+.btn-secondary:hover {
+  background-color: var(--color-button-2-hover);
+}
+.btn-secondary:active {
+  @apply duration-100 px-5.5 py-1.5;
+  background-color: var(--color-button-2-active);
 }
 </style>
