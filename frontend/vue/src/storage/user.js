@@ -13,9 +13,14 @@ export const useUserStore = defineStore('user', () => {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(infos));
     }
 
+  function changeEmail(newEmail) {
+    userInfos.value.email = newEmail;
+    set(userInfos.value);
+  }
+
   function changeProfilePic(newProfilePic) {
     userInfos.value.profile_image = newProfilePic;
-    set(userInfos.value)
+    set(userInfos.value);
   }
 
   function clear() {
@@ -59,6 +64,7 @@ export const useUserStore = defineStore('user', () => {
     set,
     clear,
     fetchInfos,
+    changeEmail,
     removeFriend,
     initUserInfos,
     updateFriendlist,
