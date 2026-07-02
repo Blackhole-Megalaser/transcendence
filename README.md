@@ -103,7 +103,7 @@ In addition to their roles, everyone in the team is a developer.
 
 We decided to have a weekly meeting to review where we were at and agree on tasks for the following week.
 
-Our first target was to finish the project on the 31st of may, which would give us 5 weeks.
+Our first target was to finish the project on the 31st of may, which would give us 5 weeks. After this date we update our planned modules list to finish the 2nd or 3rd of July.
 
 We used a [google sheet](https://docs.google.com/spreadsheets/d/1-unfSmSeZFW78XxymSvcDQVJqaTeYh-l-Ek2GIyEvls/edit?gid=216360315) to agree which project modules we would implement, and roughly track who would be working on it.
 

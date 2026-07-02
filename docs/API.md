@@ -16,6 +16,7 @@ Possible Actions on **/api/users/**
 
 	POST /api/users/login/
 	Tries to log with the provided credentials
+	Payload: {"username":"userHere", "password":"topSecret"}
 
 	POST /api/users/signup/
 	Tries to signup with the provided credentials
@@ -30,6 +31,7 @@ Possible Actions on **/api/users/**
 
 	POST /api/users/me/change_email
 	Tries to change the email with the provided one if it is valid
+	Payload: {"email":"newmail@adress.com"}
 
 	GET /api/users/root/
 	Returns information specific to a user (here root as an exemple)
@@ -61,6 +63,12 @@ Possible Actions on **/api/users/**
 	Cost starts at 300 nyancoins, then increases by 10% for each cooldown upgrade already bought and each additional unit in the same request.
 	Returns updated tplace economy fields and nyancoins_spent.
 
+	GET /api/users/me/avatar/
+	Returns the avatar url
+
+	POST /api/users/me/avatar/
+	Update your avatar with the given image and send the new avatar url
+
 	GET /api/users/me/friends
 	Returns the friendlist and current pending friend requests
 
@@ -76,12 +84,26 @@ Possible Actions on **/api/users/**
 		- `accept` to accept a friend request
 		- `reject` to reject a friend request
 		- `remove_friend` to remove someone from your friendlist
+	Payload: {"action":"send", "password":"topSecret"}
+
+### WORDLIST API
+
+This route can be accessed without authentication.
+
+	GET /api/wordlists
+	Returns every wordlist, the list name and the associated words
+
 
 ### TPLACE API
 
+	GET /api/tplace/canvas/		[no auth required]
 
+	POST /api/tplace/giveme/	[requires to be admin]
+	Add the given number of nyancoins to the current (admin) user
 
 ### SKRIBBLE API
+
+#### SKRIBBLE ROOMS
 
 - `POST /api/skribble/rooms/`
   - Create a room and join it.
