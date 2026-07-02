@@ -203,6 +203,9 @@ class SkribbleRoom(models.Model):
     def cleanup_empty_rooms():
         SkribbleRoom.objects.filter(players__isnull=True).delete()
 
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
 
 class SkribbleRoomWord(models.Model):
     room = models.ForeignKey(SkribbleRoom, on_delete=CASCADE)
@@ -252,3 +255,6 @@ class SkribblePlayer(models.Model):
                 else:
                     self.order = max_order + 1
         return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.player.user.username} ({self.room.name})"
