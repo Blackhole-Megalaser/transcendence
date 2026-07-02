@@ -116,7 +116,7 @@
                 v-if="!gameStarted"
                 @click="postStartGame" 
                 class="flex-1 btn-base btn-secondary border border-text-main disabled:border-none"
-                :disabled="!isHost(username)"
+                :disabled="!isHost(username) || users.length < 2"
               >
                 Start game
               </button>
