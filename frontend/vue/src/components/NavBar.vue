@@ -37,7 +37,6 @@
             <div
               class="relative"
               v-if="getLoggedStatus"
-              @click="console.log(friendRequests)"
             >
               <ProfileButton
                 class="flex"

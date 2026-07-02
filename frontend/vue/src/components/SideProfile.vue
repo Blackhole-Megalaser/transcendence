@@ -10,10 +10,15 @@
       </button>
       <button
         @click="bar = 1"
-        class="size-10 cursor-pointer flex-center rounded-full "
+        class="size-10 relative cursor-pointer flex-center rounded-full "
         :class="selectWindow === 1 ? 'bg-sidebar border border-text-main' : ''"
       >
         <component :is="contacstIcon" class="size-10 stroke-text-main"/>
+        <component
+          :is="Notification"
+          class="absolute -top-0.5 -right-0.5 size-4 fill-red-600"
+          v-if="friendRequests.length > 0"
+        />
       </button>
       <button
         @click="bar = 2"
@@ -31,7 +36,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 
 import profileIcon              from '@assets/profile.svg';
 import contacstIcon             from '@assets/contacts.svg';
@@ -41,10 +46,14 @@ import BasicInformations        from './sideProfile/BasicInformations.vue';
 import Social                   from './sideProfile/Social.vue';
 import AddFriends               from './sideProfile/AddFriends.vue';
 
-const props         = defineProps({ open: Boolean });
-const dialog        = ref(null);
-const bar           = ref(0);
-const selectWindow  = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2));
+import Notification             from '@assets/notification.svg'
+
+const props           = defineProps({ open: Boolean });
+const dialog          = ref(null);
+const bar             = ref(0);
+const selectWindow    = computed(() => bar.value === 0 ? 0 : (bar.value === 1 ? 1 : 2));
+const friendData      = inject('FRIENDREQUESTS');
+const friendRequests  = computed(() => friendData.value.pending_friend_requests);
 
 watch(() => props.open, (val) => {
   val ? dialog.value.show() : dialog.value.close();
