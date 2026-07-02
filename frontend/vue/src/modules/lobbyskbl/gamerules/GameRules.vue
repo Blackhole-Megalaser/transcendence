@@ -48,6 +48,7 @@
             <div>Room Code: {{ roomCode }}</div>
             <div>Room Name: {{ roomName }}</div>
             <div>Game Started: {{ gameStarted }}</div>
+            <!-- input + button => trigger postConfigure -->
             <div>Users in lobby:</div>
           <div class="flex flex-row gap-4">
             <div v-for="(user, index) in users">
@@ -75,6 +76,9 @@ let inputRoomName = ref('');
 let inputRoomCode = ref('');
 let gameStarted   = ref(false);
 let seeRoomInfo   = ref(false);
+let host          = ref('');
+let isHost        = ref(false);
+// let inputConfig   = ref('');
 
 const skribbleStore = useSkribbleStore();
 const {
@@ -115,6 +119,8 @@ const getUserRoomInfo = async () => {
     const dataUser = await response.json();
     if (dataUser.skribble) {
       username.value = dataUser.username;
+    host.value = dataUser.host;
+    if (username.value === host.value) isHost = true;
       roomCode.value = dataUser.skribble.code;
       roomName.value = dataUser.skribble.name;
       gameStarted.value = dataUser.skribble.game_started;
@@ -199,6 +205,23 @@ const postLeaveRoom = async () => {
   const postStartGame = async () => {
   try {
     const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_game/`, {
+      method: 'POST',
+      body: JSON.stringify({
+        name: ''
+      }),
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-type' : 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error("Leave error :", error);
+  }
+};
+
+  const postConfigure = async () => {
+  try {
+    const response = await fetch(`/api/skribble/rooms/${roomCode.value}/configure/`, {
       method: 'POST',
       body: JSON.stringify({
         name: ''
