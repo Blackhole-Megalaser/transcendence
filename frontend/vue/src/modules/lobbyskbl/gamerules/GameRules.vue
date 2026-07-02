@@ -2,7 +2,7 @@
   <div class="flex-center h-full w-full">
     <div class="flex flex-col bg-navbar lg:rounded-4xl p-4 md:p-8 gap-4 w-full h-full lg:w-2xl lg:h-9/10">
       <div class="flex justify-center gap-4 w-full">
-        <h1 class="text-title font-bold text-4xl">~Game Rules~</h1>
+        <h1 class="text-title font-bold text-4xl">~Lobby~</h1>
       </div>
 
       <div class="h-px bg-navbar-border my-4 xl:my-0"></div>
@@ -40,20 +40,26 @@
             <p class="text-title font-bold text-xl mb-2">Join a room</p>
             <div class="flex gap-2">
               <input
-                v-model="inputRoomCode"
+                v-model="capitalRoomCode"
                 placeholder="Room code, ex: IJJJK"
                 class="informations flex-1"
                 :disabled="seeRoomInfo"
+                capitalize
               />
               <input
                 type="submit"
                 @click="postJoinRoom"
                 class="input"
-                :class="seeRoomInfo || inputRoomCode === '' ? '' : 'cursor-pointer'"
+                :class="seeRoomInfo || rawInputRoomCode === '' ? '' : 'cursor-pointer'"
                 value="JOIN"
-                :disabled="seeRoomInfo || inputRoomCode === ''"
+                :disabled="seeRoomInfo || rawInputRoomCode === ''"
               >
             </div>
+            <p 
+              v-if="roomCodeError"
+              class="text-red-600 w-full flex-center"
+            >
+            {{ roomCodeError.detail }}</p>
           </div>
         </div>
 
@@ -110,7 +116,7 @@
                 v-if="!gameStarted"
                 @click="postStartGame" 
                 class="flex-1 btn-base btn-secondary border border-text-main disabled:border-none"
-                :disabled="!isHost(username)"
+                :disabled="!isHost(username) || users.length < 2"
               >
                 Start game
               </button>
@@ -145,20 +151,28 @@ import { useSkribbleStore, getCookie }        from '@shared';
 
 const breakpoints   = useBreakpoints({ xl: 1280 });
 const isSmallScreen = breakpoints.smaller("xl");
-const roomCode  = ref('Default');
-const roomName  = ref('Default');
-const username  = ref('');
-const users     = ref([]);
-const rounds    = ref(3);
+const roomCode      = ref('Default');
+const roomName      = ref('Default');
+const username      = ref('');
+const users         = ref([]);
+const rounds        = ref(3);
+const roomCodeError = ref(null);
 
-const inputRoomName = ref('');
-const inputRoomCode = ref('');
-const gameStarted   = ref(false);
-const seeRoomInfo   = ref(false);
-const host          = ref('');
-const openFirst     = computed(() => !isSmallScreen.value || !seeRoomInfo.value);
-const openSecond    = computed(() => !isSmallScreen.value || seeRoomInfo.value);
-const isHost        = (u) => u !== '' && u === host.value;
+const inputRoomName     = ref('');
+const rawInputRoomCode  = ref('');
+const capitalizeAll     = (str) => str.toUpperCase();
+const capitalRoomCode   = computed({
+  get: () => rawInputRoomCode.value,
+  set: (val) => {
+    rawInputRoomCode.value = capitalizeAll(val);
+  }
+});
+const gameStarted       = ref(false);
+const seeRoomInfo       = ref(false);
+const host              = ref('');
+const openFirst         = computed(() => !isSmallScreen.value || !seeRoomInfo.value);
+const openSecond        = computed(() => !isSmallScreen.value || seeRoomInfo.value);
+const isHost            = (u) => u !== '' && u === host.value;
 // let inputConfig   = ref('');
 
 const skribbleStore = useSkribbleStore();
@@ -217,6 +231,7 @@ const getUserRoomInfo = async () => {
 };
 
 const postCreateRoom = async () => {
+  roomCodeError.value = null;
   try {
     const response = await fetch('/api/skribble/rooms/', {
       method: 'POST',
@@ -240,8 +255,9 @@ const postCreateRoom = async () => {
 };
 
 const postJoinRoom = async () => {
+  roomCodeError.value = null;
   try {
-    const response = await fetch(`/api/skribble/rooms/${inputRoomCode.value}/join/`, {
+    const response = await fetch(`/api/skribble/rooms/${rawInputRoomCode.value}/join/`, {
       method: 'POST',
       body: JSON.stringify({
         name: ''
@@ -252,10 +268,11 @@ const postJoinRoom = async () => {
       }
     });
     if (response.ok) {
-        inputRoomCode.value = '';
+        rawInputRoomCode.value = '';
         await getUserRoomInfo();
     }
     else
+      roomCodeError.value = await response.json();
       throw new Error("Couldn't join room");
   } catch (error) {
     console.log("Join error :", error);
@@ -332,7 +349,7 @@ const postStartGame = async () => {
   @apply duration-100 px-3.5 py-0.5;
 }
 .informations {
-  @apply my-1 py-1 pl-3 h-10 text-text-main border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
+  @apply my-1 py-1 px-3 h-10 text-text-main border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
 }
 .btn-base {
   @apply px-4 py-2 md:px-6 rounded-full font-bold transition-all duration-300 shadow-xs;
