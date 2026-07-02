@@ -119,6 +119,8 @@ Vue is made to be easy to learn and Django because it includes many functions li
 
 # Database Schema
 
+[![DB Schema](https://raw.githubusercontent.com/Blackhole-Megalaser/refs/heads/main/docs/db_diagram.svg)](https://raw.githubusercontent.com/Blackhole-Megalaser/refs/heads/main/docs/db_diagram.svg)
+
 We have the base User table made by Django internally featuring the user base information such as Username, email, staff status etc.
 
 ## User Profile
