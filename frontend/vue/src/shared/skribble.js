@@ -70,6 +70,7 @@ export const useSkribbleStore = defineStore('skribble', () => {
 		socket,
 		isConnected,
 		isConnecting,
+		connectionAttempt,
 		history,
 		tmpHistory,
 		currentCode,

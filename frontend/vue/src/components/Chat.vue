@@ -1,6 +1,27 @@
 <template>
   <section class="h-full text-text-main flex flex-col">
-    <ul class="w-full px-4 pt-2 md:pt-4 pb-2 flex-1 overflow-auto" id="chat-log">
+    <ul
+      v-if="compact"
+      class="w-full flex-1 overflow-auto px-2 py-2 space-y-1 text-sm"
+      id="chat-log"
+    >
+      <li
+        class="w-full min-w-0 rounded-md px-2 py-1 leading-snug"
+        :class="message.system ? systemMessageClass(message) : 'bg-transparent'"
+        :key="index"
+        v-for="( message, index ) in chatLog"
+      >
+        <span class="font-black" :class="message.system ? '' : 'text-title'">{{ message.author }}</span>
+        <span class="opacity-50 text-xs ml-1">{{ message.formatedDate }}</span>
+        <span class="mx-1 opacity-50">:</span>
+        <span class="break-words">{{ message.text }}</span>
+      </li>
+    </ul>
+    <ul
+      v-else
+      class="w-full flex-1 overflow-auto px-4 pt-2 md:pt-4 pb-2"
+      id="chat-log"
+    >
       <li
         class="w-full flex gap-4"
         :class="message.showAuthorInfos ? 'pt-2' : ''"
@@ -30,7 +51,7 @@
         </div>
       </li>
     </ul>
-    <div class="flex-center h-auto w-full px-4 py-2 gap-3 flex-none border-t border-text-main">
+    <div class="flex-center h-auto w-full gap-2 flex-none border-t border-text-main" :class="compact ? 'px-2 py-1.5' : 'px-4 py-2 gap-3'">
       <input class="border border-text-main rounded-full py-2 px-4 w-full"
         id="chat-message-input"
         v-model="messageInput"
@@ -66,6 +87,14 @@ export default {
     initialModuleName: {
       type: String,
       default: 'chat'
+    },
+    compact: {
+      type: Boolean,
+      default: false
+    },
+    messageInterceptor: {
+      type: Function,
+      default: null
     }
   },
   data() {
@@ -185,19 +214,26 @@ export default {
         this.appendMessage(data.message);
       }
     },
-    sendMessage() {
+    async sendMessage() {
       const message = this.messageInput.trim();
 
       if (!message || !this.chatSocket || this.chatSocket.readyState !== WebSocket.OPEN) {
          return;
       }
 
-      this.$emit('input_message', message);
+      let shouldSend = true;
+      if (this.messageInterceptor) {
+        shouldSend = await this.messageInterceptor(message) !== false;
+      } else {
+        this.$emit('input_message', message);
+      }
 
-      this.chatSocket.send(JSON.stringify({
+      if (shouldSend) {
+        this.chatSocket.send(JSON.stringify({
           message
         }));
-        this.messageInput = '';
+      }
+      this.messageInput = '';
       this.$nextTick(this.focusOnInput);
     },
     appendMessage(message) {
@@ -210,6 +246,11 @@ export default {
       this.chatLog.push(formattedMessage);
       this.$nextTick(this.scrollText);
     },
+    systemMessageClass(message) {
+      if (message.tone === 'success') return 'bg-green-100 text-green-700 font-bold';
+      if (message.tone === 'error') return 'bg-red-100 text-red-700 font-bold';
+      return 'bg-title/10 text-text-main font-bold';
+    },
 	  formatMessage(message) {
       const text            = message.text || message.message || '';
       const author          = message.author || 'anonymous';
@@ -221,8 +262,10 @@ export default {
       const isWithinMinutes = (timestamp - this.lastMessageInfos.Timestamp) < 5 * 60 * 1000;
       const showAuthorInfos = !isSameAuthor || !isWithinMinutes;
       const isConnected     = this.isConnected;
+      const system          = Boolean(message.system || message.type === 'system');
+      const tone            = message.tone || (system ? 'info' : null);
       this.lastMessageInfos = { Author: author, Timestamp: timestamp };
-      return { author, formatedDate, text, showAuthorInfos, profile_pic, isConnected};
+      return { author, formatedDate, text, showAuthorInfos, profile_pic, isConnected, system, tone};
 	  },
 	  scrollText() {
 	    const div = document.getElementById('chat-log');

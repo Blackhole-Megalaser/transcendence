@@ -80,7 +80,8 @@
               >
                 <p class="w-18">Rounds : </p>
                 <input 
-                  type="text" 
+                  type="number"
+                  min="3"
                   class="informations w-20"
                   placeholder="Def: 3"
                   v-model="rounds"
@@ -134,6 +135,14 @@
             <div class="flex-1 flex flex-col items-center justify-center text-center gap-2.5">
               <p class="text-sm font-medium">No room joined</p>
               <p class="text-xs text-text-muted max-w-56">Create a room or join one with a code to see who's here.</p>
+              <button
+                v-if="savedRoomCode"
+                @click="rejoinSavedRoom"
+                class="btn-base btn-secondary border border-text-main mt-2"
+              >
+                Rejoin last room {{ savedRoomCode }}
+              </button>
+              <p v-if="savedRoomError" class="text-red-600 text-xs max-w-64">{{ savedRoomError }}</p>
             </div>
           </template>
         </div>
@@ -157,6 +166,9 @@ const username      = ref('');
 const users         = ref([]);
 const rounds        = ref(3);
 const roomCodeError = ref(null);
+const savedRoomCode = ref('');
+const savedRoomError = ref('');
+const SKRIBBLE_SESSION_KEY = 'scribbl:lastRoom';
 
 const inputRoomName     = ref('');
 const rawInputRoomCode  = ref('');
@@ -182,12 +194,43 @@ const {
 } = storeToRefs(skribbleStore);
 
 onMounted(() => {
+  loadSavedRoom();
   getUserRoomInfo();
 });
 
 onUnmounted(() => {
-    
+  if (skribbleStore.socket) {
+    skribbleStore.socket.close();
+    skribbleStore.socket = null;
+  }
 });
+
+const loadSavedRoom = () => {
+  savedRoomError.value = '';
+  try {
+    const raw = localStorage.getItem(SKRIBBLE_SESSION_KEY);
+    if (!raw) {
+      savedRoomCode.value = '';
+      return;
+    }
+    const saved = JSON.parse(raw);
+    savedRoomCode.value = saved?.code || '';
+  } catch (_error) {
+    localStorage.removeItem(SKRIBBLE_SESSION_KEY);
+    savedRoomCode.value = '';
+  }
+};
+
+const rememberRoom = (code) => {
+  if (!code) return;
+  savedRoomCode.value = code;
+  localStorage.setItem(SKRIBBLE_SESSION_KEY, JSON.stringify({ code, savedAt: Date.now() }));
+};
+
+const forgetSavedRoom = () => {
+  savedRoomCode.value = '';
+  localStorage.removeItem(SKRIBBLE_SESSION_KEY);
+};
 
 const handleLobbyMessage = async (e) => {
   if (!e.data) return;
@@ -210,7 +253,7 @@ const handleLobbyMessage = async (e) => {
 const getUserRoomInfo = async () => {
   users.value = [];
   try {
-    const response = await fetch('/api/users/me');
+    const response = await fetch('/api/users/me/');
     if (!response.ok) throw new Error("Couldn't get User Room Infos");
     const dataUser = await response.json();
     if (dataUser.skribble) {
@@ -219,7 +262,9 @@ const getUserRoomInfo = async () => {
       roomCode.value = dataUser.skribble.code;
       roomName.value = dataUser.skribble.name;
       gameStarted.value = dataUser.skribble.game_started;
+      rounds.value = dataUser.skribble.max_rounds || 3;
       users.value = dataUser.skribble.players.map(element => element.username);
+      rememberRoom(roomCode.value);
       seeRoomInfo.value = true;
       skribbleStore.connectWebSocket(roomCode.value, handleLobbyMessage);
     } else {
@@ -271,11 +316,24 @@ const postJoinRoom = async () => {
         rawInputRoomCode.value = '';
         await getUserRoomInfo();
     }
-    else
+    else {
       roomCodeError.value = await response.json();
       throw new Error("Couldn't join room");
+    }
   } catch (error) {
     console.log("Join error :", error);
+  }
+};
+
+const rejoinSavedRoom = async () => {
+  savedRoomError.value = '';
+  loadSavedRoom();
+  if (!savedRoomCode.value) return;
+  rawInputRoomCode.value = savedRoomCode.value;
+  await postJoinRoom();
+  if (!seeRoomInfo.value) {
+    savedRoomError.value = 'Room unavailable or already in game; saved session was cleared.';
+    forgetSavedRoom();
   }
 };
 
@@ -297,6 +355,7 @@ const postLeaveRoom = async () => {
         skribbleStore.socket.close();
         skribbleStore.socket = null;
       }
+      forgetSavedRoom();
       users.value = [];
     }
     else  
@@ -310,8 +369,7 @@ const postConfigure = async () => {
   const response = await fetch(`/api/skribble/rooms/${roomCode.value}/configure/`, {
     method: 'POST',
     body: JSON.stringify({
-      // max_rounds: rounds.value 
-      name: ''
+      max_rounds: Math.max(3, Number.parseInt(rounds.value, 10) || 3)
     }),
     headers: {
       'X-CSRFToken': getCookie('csrftoken'),
@@ -331,9 +389,9 @@ const postStartGame = async () => {
         'Content-type' : 'application/json'
       }
     });
-    if (!status.ok) throw new Error("Couldn't start game");
+    if (!response.ok) throw new Error("Couldn't start game");
   } catch (error) {
-    console.log("Leave error :", error);
+    console.log("Start game error :", error);
   }
 };
 </script>

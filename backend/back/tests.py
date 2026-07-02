@@ -105,6 +105,34 @@ class SkribbleRoomApiTests(TestCase):
         self.assertEqual(room.max_rounds, 4)
         self.assertEqual(room.host, self.host_user.userprofile)
 
+    def test_host_migration_can_start_game(self):
+        code = self.create_room("Migrating host")
+        self.join_guest(code)
+
+        response = self.host.post("/api/skribble/rooms/leave/", {}, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        room = SkribbleRoom.objects.get(code=code)
+        self.assertEqual(room.host, self.guest_user.userprofile)
+
+        response = self.guest.get(f"/api/skribble/rooms/{code}/state/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["is_host"])
+        self.assertEqual(response.data["host"], "guest")
+
+        third_user = User.objects.create_user(username="third", password="pass")
+        third = APIClient()
+        third.force_login(third_user)
+        response = third.post(f"/api/skribble/rooms/{code}/join/", {}, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        response = self.guest.post(
+            f"/api/skribble/rooms/{code}/start_game/", {}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        room.refresh_from_db()
+        self.assertTrue(room.game_started)
+
     def test_guess_scores_and_masks_word_for_guessers(self):
         code = self.create_room()
         self.join_guest(code)

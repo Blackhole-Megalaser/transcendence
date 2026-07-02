@@ -43,7 +43,7 @@
               </li>
             </ul>
           </div>
-          <a href="/skribbl" class="mt-auto pt-6 w-full flex justify-center">
+          <a href="/lobbyskbl" class="mt-auto pt-6 w-full flex justify-center">
             <ButtonLogin>Play now !</ButtonLogin>
           </a>
         </div>

@@ -89,6 +89,17 @@
     const playerList = ref([]);
     const showRoundEndSummary = ref(false);
     const lastWord = ref('');
+    const chatRef = ref(null);
+    const reconnectNotice = ref(false);
+    const SKRIBBLE_SESSION_KEY = 'scribbl:lastRoom';
+
+    const sortedPlayers = computed(() => [...playerList.value].sort((a, b) => b.score - a.score));
+    const wordBannerText = computed(() => {
+      if (isDrawer.value && turn_started.value && isWordChoose.value) return word.value;
+      if (found.value) return 'You guessed it !';
+      if (!isDrawer.value && turn_started.value) return word_mask.value;
+      return '';
+    });
 
     const isTurnOver = computed(() => {
       if (timeLeft.value <= 0 && timer_end.value !== null) {
@@ -124,11 +135,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomFromUrl = urlParams.get('room');
         if (!roomFromUrl) {
-            alert("Error: No room specified! Go back to lobby.");
-            window.location.href = 'lobbyskbl';
+            window.location.href = '/lobbyskbl';
             return;
         }
         roomCode.value = roomFromUrl;
+        rememberRoom(roomCode.value);
 
         skribbleStore.connectWebSocket(roomCode.value, handleSocketMessage);
         if (skribbleStore.socket) {
@@ -152,10 +163,6 @@
         clearInterval(countdownInterval);
     });
 
-    watch(isWordChoose, (newIsWC) => {
-        if (newIsWC === true) postStartTurn();
-    });
-
     watch(isTurnOver, (gameOver) => {
       if (gameOver && turn_started.value && isHost.value) {
         postEndTurn();
@@ -167,10 +174,12 @@
             const response = await fetch('/api/users/me/');
             const dataUser = await response.json();
             if (!dataUser.skribble) {
+                forgetRoom();
                 window.location.href = "/lobbyskbl";
                 return;
             }
             if (roomCode.value !== dataUser.skribble.code) {
+                forgetRoom();
                 window.location.href = "/lobbyskbl";
                 return;
             }
@@ -182,10 +191,38 @@
         }
     };
 
+    const rememberRoom = (code) => {
+      if (!code) return;
+      localStorage.setItem(SKRIBBLE_SESSION_KEY, JSON.stringify({ code, savedAt: Date.now() }));
+    };
+
+    const forgetRoom = () => {
+      localStorage.removeItem(SKRIBBLE_SESSION_KEY);
+    };
+
+    const addSystemChat = (text, tone = 'success') => {
+      chatRef.value?.appendMessage?.({
+        author: 'Scribbl.cat',
+        text,
+        created_at: new Date().toISOString(),
+        system: true,
+        tone,
+      });
+    };
+
+    const replayDisabled = computed(() => isHost.value && sortedPlayers.value.length < 2);
+
     const getState = async () => {
       try {
         const response = await fetch(`/api/skribble/rooms/${roomCode.value}/state/`);
-        if (response.ok) {
+        if (!response.ok) {
+          if ([401, 404].includes(response.status)) {
+            forgetRoom();
+            window.location.href = '/lobbyskbl';
+          }
+          return;
+        }
+        {
           const roomData = await response.json();
           
           roomCode.value = roomData.code;
@@ -220,8 +257,10 @@
           }
 
 
-          if (roomData.turn_started) {
-            isWordChoose.value = true;
+          isWordChoose.value = Boolean(roomData.turn_started && roomData.word);
+          if (!roomData.turn_started) {
+            timeLeft.value = 0;
+            clearInterval(countdownInterval);
           }
         }
       } catch (error) {
@@ -230,8 +269,13 @@
     }
       
     const getWords = async () => {
+        if (!isDrawer.value || !game_started.value || game_finished.value || turn_started.value) {
+            wordlist.value = [];
+            return;
+        }
+
         try {
-            const response = await fetch(`/api/skribble/rooms/${roomCode.value}/select_word`);
+            const response = await fetch(`/api/skribble/rooms/${roomCode.value}/select_word/`);
             const dataWords = await response.json();
             if (response.ok) {
               wordlist.value = dataWords.words;
@@ -241,7 +285,15 @@
         }
     };
 
+    const chooseWord = (selectedWord) => {
+        word.value = selectedWord;
+        isWordChoose.value = true;
+        postStartTurn();
+    };
+
     const postStartTurn = async () => {
+        if (!isDrawer.value || turn_started.value || !word.value) return;
+
         try {
             const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_turn/`, {
                 method: 'POST',
@@ -270,6 +322,8 @@
     const postGuess = async (guessText) => {
       message1.value = guessText;
 
+      if (!turn_started.value || isDrawer.value) return true;
+
       try {
             const response = await fetch(`/api/skribble/rooms/${roomCode.value}/guess/`, {
                 method: 'POST',
@@ -281,12 +335,19 @@
                     'Content-type' : 'application/json'
                 }
             });
+            const result = await response.json().catch(() => null);
             if (response.ok) {
                 await getState();
+                if (result?.correct === true) {
+                  addSystemChat(`${username.value} has guessed the word !`, 'success');
+                  return false;
+                }
+                return true;
             }
         } catch (error) {
             console.error("Post word to guess error :", error);
         }
+        return true;
     };
 
     const postEndTurn = async () => {
@@ -339,6 +400,7 @@
             'Content-type' : 'application/json'
           }
         });
+        forgetRoom();
         if (skribbleStore.socket) {
           skribbleStore.socket.close();
           skribbleStore.socket = null;
@@ -372,6 +434,8 @@
             if (skribbleStore.socket) {
                 skribbleStore.socket.onmessage = handleSocketMessage;
             }
+            reconnectNotice.value = true;
+            getState();
 
             clearInterval(intervalId);
 
@@ -396,6 +460,9 @@
 
             if (message.type === "state_changed") {
               await getState();
+              if (isDrawer.value && game_started.value && !turn_started.value && !game_finished.value) {
+                await getWords();
+              }
             }
 
             if (message.type === "game_restarted") {
@@ -413,6 +480,7 @@
             }
 
             if (message.type === "turn_started") {
+              reconnectNotice.value = false;
               showRoundEndSummary.value = false;
               lastWord.value = '';
               await getState();
@@ -454,8 +522,10 @@
             }
 
             if (message.type === "player_found") {
+              if (message.username !== username.value) {
+                addSystemChat(`${message.username} has guessed the word !`, 'success');
+              }
               await getState();
-              clearInterval(countdownInterval);
             }
 
              if (message.type === "game_finished") {
@@ -642,6 +712,8 @@
     };
 
     const start = (event) => {
+        if (!isDrawer.value || !turn_started.value || game_finished.value || showRoundEndSummary.value) return;
+
         reposition(event);
 
         if (isBucket.value) {
@@ -873,6 +945,8 @@
     };
 
     const fill = (startX, startY) => {
+        if (!isDrawer.value || !turn_started.value || game_finished.value || showRoundEndSummary.value) return;
+
         const ctx = vueCanvas.value;
         const currentWidth = width.value;
         const currentHeight = height.value;
@@ -901,115 +975,106 @@
 </script>
 
 <template>
-    <div class="w-full h-full overflow-hidden">
-        <div class="flex justify-center">
-            <div class="flex flex-row justify-center" v-if="isDrawer && !isWordChoose && !game_finished">
-                <template v-for="w in wordlist">
-                    <button @click="word = w; isWordChoose = true;" class="p-2 bg-button-1-normal text-white rounded">
-                        {{ w }}
-                    </button>
-                </template>
-            </div>
-            <div class="flex flex-row justify-center" v-if="!isDrawer && turn_started && !found">
-              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
-                {{ word_mask }}
-              </h1>
-            </div>
-            <div class="flex flex-row justify-center" v-if="isDrawer && turn_started && isWordChoose">
-              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
-                {{ word }}
-              </h1>
-            </div>
-            <div class="flex flex-row justify-center" v-if="found">
-              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
-                You guess it !
-              </h1>
-            </div>
-        </div>
-        <div class="flex justify-center">
-            <div class="flex flex-row justify-center" v-if="timeLeft !== 0">
-                <h1 class="text-2xl font-bold">
-                    {{ timeLeft }}
-                </h1>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-[3fr_1fr_1fr] lg:grid-rows-[1fr_0.30fr]
-            gap-2 w-full h-full max-w-full max-h-full p-4
-            bg-bg-main">
-            <!-- __________ SCORES __________ -->
-            <div class="order-2 lg:order-1 row-start-2 lg:row-start-1 
-                w-full h-full min-h-0
-                border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
-                <div class="bg-white">
-                    <div v-for="player in playerList" :key="player.user" class="flex justify-between p-2 border-b">
-                      <span>{{ player.username }} : {{ player.score }} pts</span>
-                      <span v-if="player.found" class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
-                          Guessed !
-                      </span>
+    <div class="scribbl-page w-full h-full overflow-hidden bg-bg-main p-2 sm:p-3 lg:p-4">
+        <div class="scribbl-shell relative grid gap-2 lg:gap-3 w-full h-full min-h-0">
+            <aside class="score-panel panel-card min-h-0 overflow-hidden">
+                <div class="panel-title">Round {{ round_counter }} / {{ round_max }}</div>
+                <div class="score-list overflow-y-auto">
+                    <div v-for="(player, idx) in sortedPlayers" :key="player.username" class="score-row">
+                      <span class="rank">#{{ idx + 1 }}</span>
+                      <span class="player-name truncate">{{ player.username }}</span>
+                      <span v-if="player.is_host" title="Host">👑</span>
+                      <span v-if="player.is_drawer" title="Drawing">✏</span>
+                      <span v-if="player.found" class="guessed-pill">Guessed</span>
+                      <strong>{{ player.score }} pts</strong>
                     </div>
                 </div>
-            </div>
-            <!-- __________ CANVAS __________ -->
-            <canvas v-if="!showRoundEndSummary"
-                :style="cursorStyle" ref="canvasRef"
-                class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
-                     border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg
-                     w-full h-full min-h-0 block"
-                @mousedown="start"
-                @mousemove="draw"
-                @mouseup="stop"
-                @mouseleave="stop"
-                @touchstart.prevent="start"
-                @touchmove.prevent="draw"
-                @touchend="stop"
-                @touchcancel="stop">
-            </canvas>
-            <div v-else
-              class="order-1 lg:order-2 col-span-2 lg:col-span-2 row-start-1
-                    border-5 border-solid border-button-1-normal bg-white rounded-lg p-6
-                    w-full h-full min-h-0 flex flex-col justify-center items-center text-center">
-              <template v-if="game_finished">
-                <h2 class="text-4xl font-black text-yellow-500 mb-4 animate-bounce">🏆 End Game ! 🏆</h2>
-                <div class="mb-6">
-                  <h3 class="text-xl font-bold text-gray-700">Winners :</h3>
-                  <p class="text-2xl font-black text-button-1-normal mt-2">
-                    {{ winners.join(', ') }} 🎉
-                  </p>
+                <button @click="postLeaveRoom" class="leave-btn">Leave</button>
+            </aside>
+
+            <main class="canvas-panel panel-card relative min-h-0 overflow-hidden">
+                <div v-if="wordBannerText" class="word-banner pointer-events-none">
+                  <span class="word-chip">{{ wordBannerText }}</span>
+                  <span v-if="timeLeft !== 0" class="timer-chip">{{ timeLeft }}s</span>
                 </div>
-                <button @click="postLeaveRoom" class="p-2 bg-button-1-normal text-white rounded">
-                  <p>Leave</p>
-                </button>
-                <button v-if="isHost" @click="postReplay" class="p-2 bg-button-1-normal text-white rounded">
-                  <p>Play Again</p>
-                </button>
-              </template>
-              <template v-else>
-                <h2>End of the round</h2>
-              </template>
-              <div class="w-full max-w-md bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-inner overflow-auto max-h-[60%]">
-                <h3 class="font-bold text-lg mb-3 text-left border-b pb-1">Scoreboard :</h3>
-                <ul class="text-left space-y-2">
-                    <li v-for="(player, idx) in [...playerList].sort((a,b) => b.score - a.score)" 
-                        :key="player.username"
-                        class="flex justify-between items-center p-2 rounded bg-white shadow-sm">
-                      <span class="font-medium text-gray-700">{{ idx + 1 }}. {{ player.username }}</span>
-                      <span class="font-black text-button-1-normal">{{ player.score }} pts</span>
-                    </li>
-                </ul>
-              </div>
-              <p v-if="!game_finished" class="text-sm text-gray-400 mt-6 italic">waiting next turn...</p>
-            </div>
-            <!-- __________ CHAT __________ -->
-            <div v-if="roomCode" class="order-3 row-start-2 lg:row-start-1
-                w-full h-full min-h-0
-                border-5 border-solid border-button-1-normal bg-white overflow-hidden rounded-lg">
+                <div v-else-if="timeLeft !== 0" class="word-banner pointer-events-none">
+                  <span class="timer-chip">{{ timeLeft }}s</span>
+                </div>
+                <div v-if="reconnectNotice && !isConnected" class="connection-pill">Reconnecting...</div>
+
+                <canvas
+                    :style="cursorStyle" ref="canvasRef"
+                    class="scribbl-canvas bg-white w-full h-full min-h-0 block"
+                    @mousedown="start"
+                    @mousemove="draw"
+                    @mouseup="stop"
+                    @mouseleave="stop"
+                    @touchstart.prevent="start"
+                    @touchmove.prevent="draw"
+                    @touchend="stop"
+                    @touchcancel="stop">
+                </canvas>
+
+                <Transition name="pop-select">
+                  <div v-if="isDrawer && !isWordChoose && !game_finished && wordlist.length" class="modal-layer">
+                    <div class="word-select-card">
+                      <p class="eyebrow">Your turn</p>
+                      <h2>Choose a word to draw</h2>
+                      <div class="word-choice-grid">
+                        <button v-for="w in wordlist" :key="w" @click="chooseWord(w)" class="word-choice-btn">
+                          {{ w }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </Transition>
+
+                <Transition name="fade-pop">
+                  <div v-if="game_finished" class="modal-layer end-layer">
+                    <div class="end-card">
+                      <div class="winner-crown">🏆</div>
+                      <p class="eyebrow">Game finished</p>
+                      <h2>{{ winners.length > 1 ? 'Winners' : 'Winner' }}: {{ winners.join(', ') || 'Nobody' }}</h2>
+                      <div class="ranking-box">
+                        <div v-for="(player, idx) in sortedPlayers" :key="player.username" class="ranking-row" :class="idx === 0 ? 'first' : ''">
+                          <span>{{ idx + 1 }}</span>
+                          <strong>{{ player.username }}</strong>
+                          <em>{{ player.score }} pts</em>
+                        </div>
+                      </div>
+                      <div class="end-actions">
+                        <button @click="postLeaveRoom" class="end-btn secondary">Leave</button>
+                        <button v-if="isHost" @click="postReplay" :disabled="replayDisabled" class="end-btn primary">
+                          Play again
+                        </button>
+                      </div>
+                      <p v-if="replayDisabled" class="text-xs text-text-muted mt-2">Need at least 2 players to replay.</p>
+                    </div>
+                  </div>
+                </Transition>
+
+                <Transition name="fade-pop">
+                  <div v-if="showRoundEndSummary && !game_finished" class="round-summary">
+                    <div class="round-card">
+                      <h2>End of the round</h2>
+                      <p>Next drawer is getting ready...</p>
+                    </div>
+                  </div>
+                </Transition>
+            </main>
+
+            <aside v-if="roomCode" class="chat-panel panel-card min-h-0 overflow-hidden">
                 <Chat
+                    ref="chatRef"
                     initialModuleName="skribble"
                     v-bind:initialRoomName="roomCode"
                     v-bind:initialHistoryFetch="false"
-                    @input_message="postGuess"
+                    :message-interceptor="postGuess"
+                    compact
                 />
-            </div>
+            </aside>
+
+            <section v-if="isDrawer" class="tools-panel grid grid-cols-2 gap-2 min-h-0">
             <!-- __________ COLORS __________ -->
             <div v-if="isDrawer"
                 :style="[cursorStyle, {backgroundColor: penColor}]" 
@@ -1228,17 +1293,66 @@
                     <!-- <input type="range" min="4" max="20" step="2" 
                     class="col-start-1 col-end-5 w-full h-25 bg-neutral-quaternary rounded-full appearance-none cursor-pointer"> -->
             </div>
-
+            </section>
         </div>
     </div>
-        
-    
 </template>
 
-<style>
-    .bucket-cursor {
-        cursor: 
-            url("bucket.png"), auto;
-
-    }
+<style scoped>
+.bucket-cursor { cursor: url("bucket.png"), auto; }
+.scribbl-shell { grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2.8fr) minmax(210px, 1fr); grid-template-rows: minmax(0, 1fr) clamp(4.25rem, 11vh, 6.25rem); grid-template-areas: "scores canvas chat" "scores tools chat"; }
+.score-panel { grid-area: scores; }
+.canvas-panel { grid-area: canvas; }
+.chat-panel { grid-area: chat; }
+.tools-panel { grid-area: tools; height: clamp(4.25rem, 11vh, 6.25rem); max-height: clamp(4.25rem, 11vh, 6.25rem); align-self: start; overflow: hidden; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.tools-panel > div { height: 100%; min-width: 0; min-height: 0; border-width: 3px; border-radius: 1rem; overflow: hidden; }
+.tools-panel > div:first-of-type { grid-column: 1 / 2 !important; grid-row: 1 / 2 !important; order: 0 !important; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
+.tools-panel > div:first-of-type > button { width: 100%; min-width: 0; }
+.tools-panel > div:nth-of-type(2) { grid-column: 2 / 3 !important; grid-row: 1 / 2 !important; order: 0 !important; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tools-panel button { min-width: 0; min-height: 0; }
+.tools-panel svg { width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
+.panel-card { border: 5px solid var(--color-button-1-normal); border-radius: 1rem; background: rgba(255, 255, 255, 0.96); box-shadow: 0 10px 0 rgba(0,0,0,.08), 0 18px 30px rgba(0,0,0,.12); }
+.panel-title { padding: .75rem; font-weight: 900; color: var(--color-title); border-bottom: 1px solid rgba(0,0,0,.1); }
+.score-list { max-height: calc(100% - 6rem); }
+.score-row { display:flex; align-items:center; gap:.4rem; padding:.55rem .65rem; border-bottom:1px solid rgba(0,0,0,.08); font-size:.9rem; }
+.rank { color: var(--color-text-muted); font-weight: 800; }
+.player-name { flex: 1; }
+.guessed-pill { background:#22c55e; color:white; font-size:.65rem; font-weight:900; border-radius:999px; padding:.1rem .35rem; }
+.leave-btn { margin:.6rem; width:calc(100% - 1.2rem); border-radius:999px; padding:.5rem; font-weight:900; background:var(--color-button-1-normal); color:var(--color-text-button-1); }
+.scribbl-canvas { border-radius:.7rem; touch-action:none; }
+.word-banner { position:absolute; z-index:5; top:.65rem; left:50%; transform:translateX(-50%); display:flex; gap:.5rem; align-items:center; max-width:92%; }
+.word-chip, .timer-chip, .connection-pill { border:3px solid var(--color-button-1-normal); background:rgba(255,255,255,.9); color:var(--color-text-main); border-radius:999px; padding:.45rem .9rem; font-weight:900; box-shadow:0 5px 0 rgba(0,0,0,.12); }
+.word-chip { font-family:monospace; font-size:clamp(1.1rem, 3vw, 2rem); letter-spacing:.16em; text-align:center; overflow:hidden; text-overflow:ellipsis; }
+.timer-chip { color:#ef4444; }
+.connection-pill { position:absolute; z-index:6; right:.7rem; top:.7rem; font-size:.8rem; }
+.modal-layer { position:absolute; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; padding:1rem; background:rgba(14, 8, 20, .34); backdrop-filter: blur(2px); }
+.word-select-card, .end-card, .round-card { background:rgba(255,255,255,.96); border:5px solid var(--color-button-1-normal); border-radius:1.5rem; padding:clamp(1rem, 3vw, 2rem); text-align:center; box-shadow:0 12px 0 rgba(0,0,0,.16), 0 24px 50px rgba(0,0,0,.25); max-width:42rem; width:min(92vw, 42rem); }
+.eyebrow { text-transform:uppercase; letter-spacing:.18em; color:var(--color-title); font-weight:900; font-size:.75rem; }
+.word-select-card h2, .end-card h2, .round-card h2 { font-size:clamp(1.5rem, 4vw, 2.4rem); font-weight:1000; margin:.3rem 0 1rem; color:var(--color-text-main); }
+.word-choice-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:.8rem; }
+.word-choice-btn { background:var(--color-button-1-normal); color:var(--color-text-button-1); border-radius:1rem; padding:1rem .75rem; font-size:clamp(1rem, 2.5vw, 1.35rem); font-weight:1000; box-shadow:0 7px 0 rgba(0,0,0,.18); transition:transform .15s ease, filter .15s ease; }
+.word-choice-btn:hover { transform:translateY(-3px) rotate(-1deg); filter:brightness(1.06); }
+.word-choice-btn:active { transform:translateY(4px); box-shadow:0 3px 0 rgba(0,0,0,.18); }
+.end-layer { background:rgba(0,0,0,.58); }
+.winner-crown { font-size:3rem; animation:bob 1.2s ease-in-out infinite; }
+.ranking-box { background:rgba(0,0,0,.04); border-radius:1rem; padding:.5rem; max-height:38vh; overflow:auto; }
+.ranking-row { display:grid; grid-template-columns:2rem 1fr auto; gap:.75rem; align-items:center; padding:.65rem .8rem; border-radius:.8rem; margin:.35rem 0; background:white; text-align:left; }
+.ranking-row.first { background:linear-gradient(90deg, #fef3c7, #fff); border:2px solid #f59e0b; }
+.ranking-row em { font-style:normal; color:var(--color-button-1-normal); font-weight:900; }
+.end-actions { display:flex; justify-content:center; gap:.75rem; margin-top:1rem; flex-wrap:wrap; }
+.end-btn { border-radius:999px; padding:.7rem 1.2rem; font-weight:1000; min-width:8rem; }
+.end-btn.primary { background:var(--color-button-1-normal); color:var(--color-text-button-1); }
+.end-btn.secondary { background:var(--color-button-2-variant); color:var(--color-text-button-2); }
+.end-btn:disabled { opacity:.45; cursor:not-allowed; }
+.round-summary { position:absolute; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; pointer-events:none; background:rgba(255,255,255,.1); }
+.color-dot { min-height:2.1rem; border-radius:.8rem; border:3px solid rgba(0,0,0,.12); box-shadow:inset 0 0 0 2px rgba(255,255,255,.45); }
+.color-dot.active, .tool-btn.active { outline:3px solid var(--color-title); transform:scale(.95); }
+.tool-btn { border-radius:.75rem; background:var(--color-button-2-variant); color:var(--color-text-button-2); font-weight:900; min-height:2.1rem; padding:.25rem; }
+.tool-btn:hover:not(:disabled) { filter:brightness(1.05); }
+.pop-select-enter-active, .pop-select-leave-active, .fade-pop-enter-active, .fade-pop-leave-active { transition:all .22s ease; }
+.pop-select-enter-from, .pop-select-leave-to, .fade-pop-enter-from, .fade-pop-leave-to { opacity:0; transform:scale(.92) translateY(16px); }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+@media (max-width: 1023px) { .scribbl-page { overflow:auto; } .scribbl-shell { min-height:100%; grid-template-columns:1fr; grid-template-rows:auto minmax(52vh, 1fr) minmax(8.5rem, 22vh) clamp(4rem, 10vh, 5.5rem); grid-template-areas:"scores" "canvas" "chat" "tools"; } .score-panel { display:flex; align-items:center; gap:.5rem; padding:.35rem; } .panel-title { border:0; padding:.4rem; white-space:nowrap; } .score-list { display:flex; gap:.4rem; overflow-x:auto; max-height:none; flex:1; } .score-row { min-width:10rem; border:1px solid rgba(0,0,0,.08); border-radius:.8rem; background:white; } .leave-btn { width:auto; margin:0; padding:.45rem .8rem; } .tools-panel { height:clamp(4rem, 10vh, 5.5rem); max-height:clamp(4rem, 10vh, 5.5rem); grid-template-columns:minmax(0, 1fr) minmax(0, 1.45fr); } }
+@media (max-width: 640px) { .scribbl-shell { grid-template-rows:auto minmax(48vh, 1fr) minmax(8rem, 20vh) 4.25rem; } .panel-card { border-width:3px; border-radius:.8rem; } .word-choice-grid { grid-template-columns:1fr; } .word-chip { letter-spacing:.08em; font-size:1rem; } .chat-panel { min-height:8rem; } .tools-panel { height:4.25rem; max-height:4.25rem; grid-template-columns:minmax(0, 1fr) minmax(0, 1.55fr); gap:.35rem; } .tools-panel > div { border-width:2px; border-radius:.8rem; } }
+@media (orientation: landscape) and (max-height: 520px) { .scribbl-shell { grid-template-columns:minmax(120px,.7fr) minmax(0,2.4fr) minmax(180px,1fr); grid-template-rows:minmax(0,1fr) 3.6rem; grid-template-areas:"scores canvas chat" "tools tools tools"; } .score-panel { display:block; } .leave-btn { width:calc(100% - 1.2rem); margin:.6rem; } .chat-panel { min-height:0; } .tools-panel { height:3.6rem; max-height:3.6rem; grid-template-columns:minmax(0, 1fr) minmax(0, 2fr); justify-self:center; width:min(100%, 46rem); } .tools-panel > div { border-width:2px; } .word-select-card, .end-card { max-height:92vh; overflow:auto; } }
 </style>
