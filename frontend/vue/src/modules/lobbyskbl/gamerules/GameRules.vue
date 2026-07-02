@@ -40,10 +40,11 @@
             <p class="text-title font-bold text-xl mb-2">Join a room</p>
             <div class="flex gap-2">
               <input
-                v-model="inputRoomCode"
+                v-model="capitalRoomCode"
                 placeholder="Room code, ex: IJJJK"
                 class="informations flex-1"
                 :disabled="seeRoomInfo"
+                capitalize
               />
               <input
                 type="submit"
@@ -151,14 +152,21 @@ const username  = ref('');
 const users     = ref([]);
 const rounds    = ref(3);
 
-const inputRoomName = ref('');
-const inputRoomCode = ref('');
-const gameStarted   = ref(false);
-const seeRoomInfo   = ref(false);
-const host          = ref('');
-const openFirst     = computed(() => !isSmallScreen.value || !seeRoomInfo.value);
-const openSecond    = computed(() => !isSmallScreen.value || seeRoomInfo.value);
-const isHost        = (u) => u !== '' && u === host.value;
+const inputRoomName     = ref('');
+const rawInputRoomCode  = ref('');
+const capitalizeAll     = (str) => str.toUpperCase();
+const capitalRoomCode   = computed({
+  get: () => rawInputRoomCode.value,
+  set: (val) => {
+    rawInputRoomCode.value = capitalizeAll(val);
+  }
+});
+const gameStarted       = ref(false);
+const seeRoomInfo       = ref(false);
+const host              = ref('');
+const openFirst         = computed(() => !isSmallScreen.value || !seeRoomInfo.value);
+const openSecond        = computed(() => !isSmallScreen.value || seeRoomInfo.value);
+const isHost            = (u) => u !== '' && u === host.value;
 // let inputConfig   = ref('');
 
 const skribbleStore = useSkribbleStore();
@@ -335,7 +343,7 @@ const postStartGame = async () => {
   @apply duration-100 px-3.5 py-0.5;
 }
 .informations {
-  @apply my-1 py-1 pl-3 h-10 text-text-main border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
+  @apply my-1 py-1 px-3 h-10 text-text-main border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
 }
 .btn-base {
   @apply px-4 py-2 md:px-6 rounded-full font-bold transition-all duration-300 shadow-xs;
