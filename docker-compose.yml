@@ -34,7 +34,7 @@ services:
     networks:
       - ft_cat-network
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request; print(urllib.request.urlopen('http://localhost:8000').read().decode())\""]
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read().decode())\""]
       interval: 1s
       timeout: 1s
       retries: 180
