@@ -75,14 +75,14 @@ class UserProfile(models.Model):
     regeneration_delay = models.DurationField(default=datetime.timedelta(minutes=1))
     next_regeneration = models.DateTimeField(default=timezone.now)
     unlocked_colors = models.ManyToManyField(Color)
-    unlocked_wordlists = models.ManyToManyField(WordList)
+    unlocked_wordlists = models.ManyToManyField(WordList, blank=True)
     # List of actual friends, who accepted the request
-    friends = models.ManyToManyField("UserProfile", symmetrical=True)
+    friends = models.ManyToManyField("UserProfile", symmetrical=True, blank=True)
     # Sent friend requests, not accepted nor rejected
     # self is the sender, foreign is the receiver who can accept or reject
     # on reject, simply remove from this list
     # on accept, move to friends
-    pending_friend_requests = models.ManyToManyField("UserProfile")
+    pending_friend_requests = models.ManyToManyField("UserProfile", blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
