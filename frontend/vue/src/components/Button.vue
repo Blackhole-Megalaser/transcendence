@@ -1,5 +1,6 @@
 <template>
   <button
+    class="cursor-pointer"
     :class="[`btn-base-${side}`,`btn-${variant}`]"
     @click="$emit('changeStatus')"
   >
