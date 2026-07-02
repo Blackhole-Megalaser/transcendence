@@ -69,7 +69,7 @@
                 <p class="text-xl font-mono font-medium">{{ roomCode }}</p>
               </div>
               <div v-if="gameStarted" class="flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
-                <i class="ti ti-player-play"></i> In progress
+                In progress
               </div>
             </div>
 
@@ -83,23 +83,26 @@
                   {{ user.slice(0, 2).toUpperCase() }}
                 </div>
                 <span class="text-sm flex-1">{{ user }}</span>
-                <i v-if="index === 0" class="ti ti-crown text-amber-500" title="Host"></i>
+                <p v-if="isHost(user)" class="pr-1" title="Host">👑</p>
               </div>
             </div>
 
             <div class="flex gap-2 mt-4 pt-4 border-t border-navbar-border">
               <button @click="postLeaveRoom" class="flex-1 btn-base btn-primary">
-                <i class="ti ti-door-exit"></i> Leave room
+                Leave room
               </button>
-              <button @click="postStartGame" class="flex-1 btn-base btn-secondary border border-text-main">
-                <i class="ti ti-player-play"></i> Start game
+              <button 
+                @click="postStartGame" 
+                class="flex-1 btn-base btn-secondary border border-text-main disabled:border-none"
+                :disabled="!isHost(username)"
+              >
+                Start game
               </button>
             </div>
           </template>
 
           <template v-else>
             <div class="flex-1 flex flex-col items-center justify-center text-center gap-2.5">
-              <i class="ti ti-pencil text-2xl text-text-muted"></i>
               <p class="text-sm font-medium">No room joined</p>
               <p class="text-xs text-text-muted max-w-56">Create a room or join one with a code to see who's here.</p>
             </div>
@@ -130,8 +133,8 @@ const gameStarted   = ref(false);
 const seeRoomInfo   = ref(false);
 const host          = ref('');
 const openFirst     = computed(() => !isSmallScreen.value || !seeRoomInfo.value);
-const openSecond    = computed(() => !isSmallScreen.value || seeRoomInfo.value)
-const isHost        = computed(() => username.value !== '' && username.value === host.value);
+const openSecond    = computed(() => !isSmallScreen.value || seeRoomInfo.value);
+const isHost        = (u) => u !== '' && u === host.value;
 // let inputConfig   = ref('');
 
 const skribbleStore = useSkribbleStore();
@@ -311,23 +314,29 @@ const postLeaveRoom = async () => {
   background-color: var(--color-button-1-normal);
   color: var(--color-text-button-1);
 }
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: var(--color-button-1-hover);
 }
-.btn-primary:active {
+.btn-primary:active:not(:disabled) {
   @apply duration-100 px-5.5 py-1.5;
   background-color: var(--color-button-1-active);
+}
+.btn-primary:disabled {
+  background-color: var(--color-button-1-disable);
 }
 .btn-secondary {
   @apply shadow-button-2-normal;
   background-color: var(--color-button-2-variant);
   color: var(--color-text-button-2);
 }
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background-color: var(--color-button-2-hover);
 }
-.btn-secondary:active {
+.btn-secondary:active:not(:disabled) {
   @apply duration-100 px-5.5 py-1.5;
   background-color: var(--color-button-2-active);
+}
+.btn-secondary:disabled {
+  background-color: var(--color-button-2-disable);
 }
 </style>
