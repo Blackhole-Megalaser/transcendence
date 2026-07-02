@@ -209,9 +209,6 @@ const postLeaveRoom = async () => {
   try {
     const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_game/`, {
       method: 'POST',
-      body: JSON.stringify({
-        name: ''
-      }),
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
         'Content-type' : 'application/json'

@@ -32,8 +32,7 @@
 
     const skribbleStore = useSkribbleStore();
 
-    const { isDrawer,
-            history,
+    const { history,
             tmpHistory,
             isConnected,
             isConnecting,
@@ -57,26 +56,37 @@
     let drawer_index	= ref(null);
     let player_index	= ref(null);
     let round_counter	= ref(0);
-    const round_max		= 3;
+    const round_max		= ref(3);
     let round_started	= ref(false);
     let word_history	= [];
     let timeLeft		= ref(0);
-    let timer			= ref(null);
     let timer_end		= ref(null);
-    let created_at		= ref(null);
     let countdownInterval = null;
 
     //	SkribblPlayer
 
     let username		= ref('');
     let score			= ref(0);
-    let found			= ref(false);
 
     let message1		= ref('');
     let nextWord		= ref(0);
 
     let isWordChoose	= ref(false);
 
+    // Game State
+    const host = ref('');
+    const isHost = ref(false);
+    const isDrawer = ref(false);
+    const current_drawer = ref('');
+    const game_started = ref(false);
+    const game_finished = ref(false);
+    const turn_started = ref(false);
+    const word_mask = ref('');
+    const winners = ref([]);
+    const timer_seconds = ref(0);
+    const remaining_seconds = ref(0);
+    const found = ref(false);
+    
 
     onMounted(() => {
         window.addEventListener('keydown', handleKeyDown);
@@ -109,7 +119,6 @@
         
         intervalId = setInterval(refreshDelay, currentDelay);
         getUserData();
-        getSkribblData();
     });
 
     onUnmounted(() => {
@@ -142,41 +151,61 @@
                 return;
             }
             username.value = dataUser.username;
-            if (dataUser.score) score.value = dataUser.score;
+            await getState();
+            await getWords();
         } catch (error) {
             console.error("Recuperation error :", error);
         }
     };
 
-    const getSkribblData = async () => {
-        try {
-            const response = await fetch('/api/users/me/');
-            const dataUser = await response.json();
-            if (!dataUser.skribble) {
-                window.location.href = "/lobbyskbl";
-                return;
+    const getState = async () => {
+      try {
+        const response = await fetch(`/api/skribble/rooms/${roomCode.value}/state/`);
+        if (response.ok) {
+          const roomData = await response.json();
+          
+          roomCode.value = roomData.code;
+          roomName.value = roomData.name;
+          host.value = roomData.host;
+          isHost.value = roomData.is_host;
+          
+          isDrawer.value = roomData.is_drawer; 
+          
+          current_drawer.value = roomData.current_drawer;
+          round_counter.value = roomData.round_counter;
+          round_max.value = roomData.max_rounds;
+          game_started.value = roomData.game_started;
+          game_finished.value = roomData.game_finished;
+          turn_started.value = roomData.turn_started;
+          drawer_index.value = roomData.current_player_index;
+          timer_seconds.value = roomData.timer_seconds;
+          timer_end.value = roomData.timer_end;
+          remaining_seconds.value = roomData.remaining_seconds;
+          word.value = roomData.word;
+          word_mask.value = roomData.word_mask;
+          winners.value = roomData.winners;
+    
+          if (roomData.players && username.value) {
+            const player = roomData.players.find((p) => p.username === username.value);
+            if (player) {
+              score.value = player.score;
+              found.value = player.found;
+              player_index.value = player.order;
             }
-            if (roomCode.value !== dataUser.skribble.code) {
-                window.location.href = "/lobbyskbl";
-                return;
-            }
-            const player = dataUser.skribble.players.find((player) => player.username === username.value)
-            if (player) player_index.value = player.order;
-            drawer_index.value = dataUser.skribble.current_player_index;
-            roomName.value = dataUser.skribble.name;
-            isDrawer.value = (drawer_index.value === player_index.value);
-            if (isDrawer.value) getWords();
-        } catch (error) {
-            console.error("Recuperation skribbl data error :", error);
+          }
         }
+      } catch (error) {
+        console.error("Get state of game error :", error);
+      }
     }
-
+      
     const getWords = async () => {
         try {
             const response = await fetch(`/api/skribble/rooms/${roomCode.value}/select_word`);
             const dataWords = await response.json();
-            
-            wordlist.value = dataWords.words;
+            if (response.ok) {
+              wordlist.value = dataWords.words;
+            }
         } catch (error) {
             console.error("Recuperation words error :", error);
         }
@@ -197,21 +226,75 @@
             if (response.ok) {
                 const roomData = await response.json();
 
-                timer.value = roomData.timer;
                 timer_end.value = roomData.timer_end;
-                created_at.value = roomData.created_at;
 
                 clearInterval(countdownInterval);
                 updateCountdown();
                 countdownInterval = setInterval(updateCountdown, 1000);
-
             }
         } catch (error) {
             console.error("Post word to start error :", error);
         }
     };
 
-    
+    const postGuess = async (guessText) => {
+      message1.value = guessText;
+
+      try {
+            const response = await fetch(`/api/skribble/rooms/${roomCode.value}/guess/`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    guess: guessText.value
+                }),
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-type' : 'application/json'
+                }
+            });
+            if (response.ok) {
+                await getState();
+            }
+        } catch (error) {
+            console.error("Post word to guess error :", error);
+        }
+    };
+
+    const postEndTurn = async () => {
+        try {
+            const response = await fetch(`/api/skribble/rooms/${roomCode.value}/end_turn/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-type' : 'application/json'
+                }
+            });
+            if (response.ok) {
+                await getState();
+            }
+        } catch (error) {
+            console.error("Post end turn error :", error);
+        }
+    };
+
+    const postReplay = async () => {
+        try {
+            const response = await fetch(`/api/skribble/rooms/${roomCode.value}/replay/`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    max_rounds: round_max.value
+                }),
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-type' : 'application/json'
+                }
+            });
+            if (response.ok) {
+                await getState();
+            }
+        } catch (error) {
+            console.error("Post replay error :", error);
+        }
+    };
 
     const updateCountdown = () => {
         if (!timer_end.value) return;
@@ -248,12 +331,59 @@
         }
     };
 
-    const handleSocketMessage = (e) => {
-        if (!e.data || isDrawer.value) return;
+    const handleSocketMessage = async (e) => {
+        if (!e.data) return;
         
         try {
             const message = JSON.parse(e.data);
-    
+
+            if (message.type === "update_players") {
+              await getState();
+            }
+
+            if (message.type === "state_changed") {
+              await getState();
+            }
+
+            if (message.type === "game_restarted") {
+              history.value = [{ type: 'fill', x: 0, y: 0, color: '#ffffff' }];
+              tmpHistory.value = [];
+              redrawLines();
+              await getState();
+            }
+
+            if (message.type === "canvas.reset") {
+              history.value = [{ type: 'fill', x: 0, y: 0, color: '#ffffff' }];
+              tmpHistory.value = [];
+              redrawLines();
+            }
+
+            if (message.type === "turn_started") {
+              await getState();
+
+              clearInterval(countdownInterval);
+              updateCountdown();
+              countdownInterval = setInterval(updateCountdown, 1000);
+
+              isWordChoose.value = true;
+            }
+
+            if (message.type === "turn_ended") {
+              await getState();
+              clearInterval(countdownInterval);
+              word.value = null;
+            }
+
+            if (message.type === "player_found") {
+              await getState();
+              clearInterval(countdownInterval);
+            }
+
+             if (message.type === "game_finished") {
+              await getState();
+              clearInterval(countdownInterval);
+            }
+
             if (message.type === "canvas.init" && message.history) {
                 if (!isDrawer.value) {
                     history.value = message.history;
@@ -264,6 +394,7 @@
             }
             
             if (message.type === "canvas.update" && message.payload) {
+                if (isDrawer.value) return;
                 const received = message.payload;
     
                 if (received.type === 'clear') {
@@ -332,7 +463,7 @@
         } catch (err) {
             console.error("Erreur de lecture du flux de dessin:", err);
         }
-    }
+    };
 
     const handleKeyDown = (event) => {
         if (!isDrawer.value) return;
@@ -700,6 +831,11 @@
                     </button>
                 </template>
             </div>
+            <div class="flex flex-row justify-center" v-if="!isDrawer && turn_started">
+              <h1 class="text-3xl font-mono tracking-widest text-center my-4 select-none">
+                {{ word_mask }}
+              </h1>
+            </div>
         </div>
         <div class="flex justify-center">
             <div class="flex flex-row justify-center" v-if="timeLeft !== 0">
@@ -717,10 +853,10 @@
                 border-5 border-solid border-button-1-normal bg-white rounded-lg overflow-hidden">
                 <div class="bg-white">
                     <p>{{ roomName }} || {{ drawer_index }} || {{ player_index }}</p>
-                    <p>{{ timer }} || {{ timer_end}} || {{ created_at }}</p>
+                    <p>{{ timer }} || {{ timer_end}} || isDrawer: {{ isDrawer }}</p>
                     <p>Score:									{{ score }}</p>
                     <p>Word:									{{ word }}</p>
-                    <p>{{ !isDrawer && message1 === word ? 'You Win' : ''  }}</p>
+                    <p class="text-button-1-normal font-bold">{{ found ? 'You found the word !!' : ''  }}</p>
                     <button class="p-2 bg-button-1-normal text-white rounded">
                         Player Status : {{ isDrawer ? 'Drawer' : 'Guesser' }}
                     </button>
@@ -748,7 +884,7 @@
                     initialModuleName="skribble"
                     v-bind:initialRoomName="roomCode"
                     v-bind:initialHistoryFetch="false"
-                    @input_message="message1 = $event"
+                    @input_message="postGuess"
                 />
             </div>
             <!-- __________ COLORS __________ -->

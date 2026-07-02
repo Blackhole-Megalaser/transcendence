@@ -9,7 +9,6 @@ export const useSkribbleStore = defineStore('skribble', () => {
 
 	const history = ref([]);
 	const tmpHistory = ref([]);
-	const isDrawer = ref(false);
 
 	const currentCode = ref(null);
 
@@ -73,7 +72,6 @@ export const useSkribbleStore = defineStore('skribble', () => {
 		isConnecting,
 		history,
 		tmpHistory,
-		isDrawer,
 		currentCode,
 		connectWebSocket,
 		sendAction
