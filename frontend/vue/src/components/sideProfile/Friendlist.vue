@@ -10,8 +10,8 @@
     >
       <div
         class="flex items-center gap-4 w-full z-10 cursor-pointer px-4 py-2 hover:bg-button-2-active"
-        @click="friend.isOpen = !friend.isOpen"
-        :class="friend.isOpen ? 'bg-button-2-active' : ''"
+        @click="toggleOpen(friend.username)"
+        :class="isOpen(friend.username) ? 'bg-button-2-active' : ''"
       >
         <div class="relative">
           <div class="relative z-11 size-10 rounded-full overflow-hidden cursor-pointer">
@@ -29,14 +29,14 @@
       </div>
       <div
         class="grid transition-all duration-300 ease-in-out w-full bg-button-sidebar-1-hover"
-        :class="friend.isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        :class="isOpen(friend.username) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
         <div
           class="font-semibold overflow-hidden flex items-center w-full transition-all duration-300 ease-in-out cursor-pointer"
           >
           <button
             class="px-4 cursor-pointer text-text-main w-full flex items-center justify-center text-center hover:bg-button-sidebar-2-active"
-            :class="friend.isOpen ? 'py-2' : 'py-0'"
+            :class="isOpen(friend.username) ? 'py-2' : 'py-0'"
             @click="deleteFriend(friend.username)"
           >Delete Friend</button>
         </div>
@@ -63,7 +63,9 @@ import default_cat                  from '@assets/default_cat.png';
 const userStore         = useUserStore();
 const { userInfos }     = storeToRefs(userStore);
 const friends           = inject('FRIENDREQUESTS');
-const friendList        = computed(() => friends.value.friends);
+const friendList        = computed(() => [...friends.value.friends].sort((a, b) => a.username.localeCompare(b.username)));
+const openFriends        = ref(new Set());
+const isOpen            = (username) => openFriends.value.has(username);
 const currentTimestamp  = ref(Date.now());
 let   logStatusInterval = null;
 
@@ -71,6 +73,16 @@ const isLogged        = (lastActivityTimeISO) => {
   if (!lastActivityTimeISO) return (false);
   const lateTimestamp    = Date.parse(lastActivityTimeISO);
   return (currentTimestamp.value - lateTimestamp <= 4 * 60 * 1000);
+}
+
+const toggleOpen  = (username) => {
+  const nextOpen  = new Set(openFriends.value);
+  if (nextOpen.has(username)) {
+    nextOpen.delete(username);
+  } else {
+    nextOpen.add(username);
+  }
+  openFriends.value = nextOpen;
 }
 
 const deleteFriend  = async (username) => {
