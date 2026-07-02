@@ -12,7 +12,6 @@ router.register(r"wordlists", views.WordListViewSet, basename="wordlist")
 router.register(r"skribble/rooms", views.SkribbleRoomViewSet, basename="room")
 
 urlpatterns = [
-    path("", views.index, name="index"),
     path("api/", include(router.urls)),
     path("api/users/<str:user>/tplace/", views.TplaceView.as_view()),
     path("api/users/<str:user>/nyancoins/", views.NyancoinsView.as_view()),
@@ -31,11 +30,8 @@ urlpatterns = [
         views.TplaceRegenerationDelayUpgradeView.as_view(),
     ),
     path("api/tplace/canvas/", views.CanvasView.as_view()),
-    path("api-auth/signup", views.signup),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("accounts/profile/", views.profile, name="profile"),
-    path("accounts/signup", views.signup, name="signup"),
-    path("accounts/modify", views.account_modify, name="account_modify"),
+    path("health", views.health),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
