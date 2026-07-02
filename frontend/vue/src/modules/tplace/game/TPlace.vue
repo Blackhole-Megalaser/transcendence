@@ -643,7 +643,7 @@ async function confirmUpgradePurchase() {
 
 		upgradeModalType.value = null
 	} catch (error) {
-		console.error(error)
+		console.log(error)
 		upgradeError.value = error.message || 'Upgrade purchase failed'
 	} finally {
 		isBuyingUpgrade.value = false

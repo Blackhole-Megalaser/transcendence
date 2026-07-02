@@ -68,8 +68,23 @@
                 <p class="text-xs text-text-muted uppercase tracking-wide">Room code</p>
                 <p class="text-xl font-mono font-medium">{{ roomCode }}</p>
               </div>
-              <div v-if="gameStarted" class="flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
-                In progress
+              <div 
+                v-if="!gameStarted && isHost(username)"
+                class="flex items-center gap-1"
+              >
+                <p class="w-18">Rounds : </p>
+                <input 
+                  type="text" 
+                  class="informations w-20"
+                  placeholder="Def: 3"
+                  v-model="rounds"
+                >
+              </div>
+              <div
+                v-else-if="gameStarted" 
+                class="flex items-center gap-1.5 bg-green-100 text-red-500 text-xs font-medium px-2.5 py-1 rounded-full"
+              >
+                Game Started
               </div>
             </div>
 
@@ -91,13 +106,21 @@
               <button @click="postLeaveRoom" class="flex-1 btn-base btn-primary">
                 Leave room
               </button>
-              <button 
+              <button
+                v-if="!gameStarted"
                 @click="postStartGame" 
                 class="flex-1 btn-base btn-secondary border border-text-main disabled:border-none"
                 :disabled="!isHost(username)"
               >
                 Start game
               </button>
+              <a
+                v-else
+                :href="`/skribbl?room=${roomCode}`" 
+                class="flex-1 btn-base btn-secondary border border-text-main"
+              >
+                Join room
+            </a>
             </div>
           </template>
 
@@ -126,6 +149,7 @@ const roomCode  = ref('Default');
 const roomName  = ref('Default');
 const username  = ref('');
 const users     = ref([]);
+const rounds    = ref(3);
 
 const inputRoomName = ref('');
 const inputRoomCode = ref('');
@@ -165,7 +189,7 @@ const handleLobbyMessage = async (e) => {
     }
 
   } catch (error) {
-    console.error("Error lobby websocket:", error);
+    console.log("Error lobby websocket:", error);
   }
 };
 
@@ -173,6 +197,7 @@ const getUserRoomInfo = async () => {
   users.value = [];
   try {
     const response = await fetch('/api/users/me');
+    if (!response.ok) throw new Error("Couldn't get User Room Infos");
     const dataUser = await response.json();
     if (dataUser.skribble) {
       username.value = dataUser.username;
@@ -187,7 +212,7 @@ const getUserRoomInfo = async () => {
       seeRoomInfo.value = false;
     }
   } catch (error) {
-    console.error("Recuperation error :", error);
+    console.log("Recuperation error :", error);
   }
 };
 
@@ -207,8 +232,10 @@ const postCreateRoom = async () => {
         inputRoomName.value = '';
         await getUserRoomInfo();
     }
+    else 
+      throw new Error("Couldn't create room");
   } catch (error) {
-    console.error("Creation error :", error);
+    console.log("Creation error :", error);
   }
 };
 
@@ -228,8 +255,10 @@ const postJoinRoom = async () => {
         inputRoomCode.value = '';
         await getUserRoomInfo();
     }
+    else
+      throw new Error("Couldn't join room");
   } catch (error) {
-    console.error("Join error :", error);
+    console.log("Join error :", error);
   }
 };
 
@@ -253,13 +282,31 @@ const postLeaveRoom = async () => {
       }
       users.value = [];
     }
+    else  
+      throw new Error("Couldn't leave room");
   } catch (error) {
-    console.error("Leave error :", error);
+    console.log("Leave error :", error);
   }
 };
 
-  const postStartGame = async () => {
+const postConfigure = async () => {
+  const response = await fetch(`/api/skribble/rooms/${roomCode.value}/configure/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      // max_rounds: rounds.value 
+      name: ''
+    }),
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-type' : 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error("Couldn't configure game");
+};
+
+const postStartGame = async () => {
   try {
+    await postConfigure();
     const response = await fetch(`/api/skribble/rooms/${roomCode.value}/start_game/`, {
       method: 'POST',
       body: JSON.stringify({
@@ -270,25 +317,9 @@ const postLeaveRoom = async () => {
         'Content-type' : 'application/json'
       }
     });
+    if (!status.ok) throw new Error("Couldn't start game");
   } catch (error) {
-    console.error("Leave error :", error);
-  }
-};
-
-  const postConfigure = async () => {
-  try {
-    const response = await fetch(`/api/skribble/rooms/${roomCode.value}/configure/`, {
-      method: 'POST',
-      body: JSON.stringify({
-        name: ''
-      }),
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-        'Content-type' : 'application/json'
-      }
-    });
-  } catch (error) {
-    console.error("Leave error :", error);
+    console.log("Leave error :", error);
   }
 };
 </script>
