@@ -20,7 +20,7 @@ export async function fetchFriendlist() {
     return result.friends;
   }
   catch {
-    console.error('Friend fetching failed: ', error);
+    console.log('Friend fetching failed: ', error);
     return [];
   }
 }
@@ -37,7 +37,7 @@ export async function fetchFriends() {
     };
   }
   catch (error) {
-    console.error('Friend request fetching failed: ', error);
+    console.log('Friend request fetching failed: ', error);
     return { status: 'error' };
   }
 }

@@ -16,8 +16,8 @@ services:
       interval: 1s
       timeout: 1s
       retries: 180
-    ports:
-      - "5444:5432"
+    # ports:
+    #   - "5444:5432"
     command: ["postgres", "-c", "log_statement=all"]
 
   back:
@@ -31,8 +31,6 @@ services:
       - ./volumes/backend-data:/media
     expose:
       - "8000"
-    ports:
-      - "8000:8000"
     networks:
       - ft_cat-network
     healthcheck:
@@ -54,6 +52,8 @@ services:
     build: ./frontend
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - ./volumes/backend-data:/media:ro
     ports:
       - "${EXTERNAL_PORT}:443"
     networks:

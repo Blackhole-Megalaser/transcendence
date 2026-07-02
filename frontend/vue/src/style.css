@@ -93,17 +93,18 @@
   --color-text-button-1 :   var(--color-pink-pastel-50);
   --color-text-button-2 :   var(--color-pink-pastel-900);
 
-  /* Buton 1 */
+  /* Button 1 */
   --color-button-1-normal:  var(--color-pink-pastel-300);
   --color-button-1-hover:   var(--color-pink-pastel-400);
   --color-button-1-active:  var(--color-pink-pastel-500);
   --color-button-1-disable: var(--color-pink-pastel-100);
 
-  /* Buton 2 */
+  /* Button 2 */
   --color-button-2-normal:  var(--color-lavender-pastel-200);
   --color-button-2-hover:   var(--color-lavender-pastel-300);
   --color-button-2-active:  var(--color-lavender-pastel-200);
   --color-button-2-disable: var(--color-lavender-pastel-150);
+  --color-button-2-variant: var(--color-lavender-pastel-150);
 
 
   --color-theme-button:           var(--color-lavender-pastel-200);
@@ -118,6 +119,7 @@
   --color-input-bg:         var(--color-pink-pastel-100);
   --color-input-bg-active:  var(--color-pink-pastel-150);
 
+  --color-lobby-room-bg:    var(--color-lavender-pastel-200);
 }
 
 [data-theme="dark"] {
@@ -157,17 +159,18 @@
   --color-text-button-1:    var(--color-obsidian-50);
   --color-text-button-2:    var(--color-obsidian-200);
 
-  /* Bouton 1 */
+  /* Button 1 */
   --color-button-1-normal:  var(--color-crimson-800);
   --color-button-1-hover:   var(--color-crimson-500);
   --color-button-1-active:  var(--color-crimson-700);
   --color-button-1-disable: var(--color-crimson-900);
 
-  /* Bouton 2 */
+  /* Button 2 */
   --color-button-2-normal:  var(--color-obsidian-700);
   --color-button-2-hover:   var(--color-obsidian-600);
   --color-button-2-active:  var(--color-obsidian-950);
   --color-button-2-disable: var(--color-obsidian-950);
+  --color-button-2-variant: var(--color-obsidian-700);
 
   /* Theme toggle */
   --color-theme-button:         var(--color-obsidian-500);
@@ -180,6 +183,9 @@
   --color-input-text:           var(--color-obsidian-500);
   --color-input-bg:             var(--color-obsidian-800);
   --color-input-bg-active:      var(--color-obsidian-800);
+
+
+  --color-lobby-room-bg:      var(--color-crimson-950);
 }
 
 body {

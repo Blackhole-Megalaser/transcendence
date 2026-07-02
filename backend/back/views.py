@@ -199,12 +199,10 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer_class=SignupRequestSerializer,
     )
     def signup(self, request):
-        logging.info("here we are %s", request)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        logging.info("data valid %s", validated_data)
         username = validated_data["username"]
         password = validated_data["password1"]
 
@@ -350,6 +348,12 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
                     status=HTTP_403_FORBIDDEN,
                 )
 
+            if profile.user.username == target_user.user.username:
+                return Response(
+                    {"detail": "You can't friend yourself!"},
+                    status=HTTP_403_FORBIDDEN,
+                )
+
             target_user.pending_friend_requests.add(profile)
             return Response(
                 {"detail": "Friend request sent."},
@@ -435,6 +439,7 @@ class TplaceMaxPixelsUpgradeView(APIView):
 
             profile.nyancoins -= total_cost
             profile.max_placable_pixels += quantity
+            profile.next_regeneration = timezone.now() + profile.regeneration_delay
             profile.save(update_fields=["nyancoins", "max_placable_pixels"])
 
         return get_tplace_upgrade_response(profile, total_cost)

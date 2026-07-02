@@ -178,7 +178,7 @@
             await getState();
             await getWords();
         } catch (error) {
-            console.error("Recuperation error :", error);
+            console.log("Recuperation error :", error);
         }
     };
 
@@ -219,6 +219,7 @@
             }
           }
 
+
           if (roomData.turn_started) {
             isWordChoose.value = true;
           }
@@ -236,7 +237,7 @@
               wordlist.value = dataWords.words;
             }
         } catch (error) {
-            console.error("Recuperation words error :", error);
+            console.log("Recuperation words error :", error);
         }
     };
 
@@ -262,7 +263,7 @@
                 countdownInterval = setInterval(updateCountdown, 1000);
             }
         } catch (error) {
-            console.error("Post word to start error :", error);
+            console.log("Post word to start error :", error);
         }
     };
 
@@ -539,7 +540,7 @@
                 tmpHistory.value = [];
             }
         } catch (err) {
-            console.error("Erreur de lecture du flux de dessin:", err);
+            console.log("Erreur de lecture du flux de dessin:", err);
         }
     };
 

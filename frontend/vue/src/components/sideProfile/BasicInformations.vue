@@ -1,6 +1,6 @@
 <template>
   <div class="w-full flex-center flex-col">
-    <div class="group relative size-20 rounded-full overflow-hidden cursor-pointer">
+    <div class="group relative size-20 rounded-full overflow-hidden">
       <div 
         class="absolute inset-0 bg-cover bg-center"
         :style="{ backgroundImage: `url(${profilePic})` }"
@@ -11,7 +11,7 @@
       <br class="xs:hidden"> {{ username }} !</h2>
   </div>
   <hr>
-  <div class="flex flex-col gap-2 my-2">
+  <div class="flex flex-col gap-2 my-2 cursor-pointer">
     <a href="profile" class="h-10 flex-center">
       <Button>See profile page</Button>
     </a>
@@ -24,7 +24,7 @@
         @click="reAuth"
       >Change user</Button>
     </div>
-    <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0">
+    <div class="h-10 w-full xs:w-1/2 flex-center mt-2 xs:mt-0 cursor-pointer">
       <Button
         variant="secondary"
         side="right"
@@ -76,7 +76,7 @@ const logout  = async (reload) => {
       return true;
   }
   catch (error) {
-    console.error(error.message);
+    console.log(error.message);
     return false;
   }
 }

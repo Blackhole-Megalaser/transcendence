@@ -17,7 +17,7 @@
           <div class="relative z-11 size-10 rounded-full overflow-hidden cursor-pointer">
             <div 
               class="absolute inset-0 bg-cover bg-center"
-              :style="{ backgroundImage: `url(${friend.profile_image})` }"
+              :style="{ backgroundImage: `url(${friend.profile_image ?? default_cat})` }"
             />
           </div>
           <div
@@ -61,7 +61,7 @@ import default_cat                  from '@assets/default_cat.png';
 
 const userStore         = useUserStore();
 const { userInfos }     = storeToRefs(userStore);
-const friends           = inject('FRIENDREQUESTS');
+const friends           = inject('FRIENDREQUESTS', ref({ friends: [], pending_friend_requests: [] }));
 const friendList        = computed(() => [...friends.value.friends].sort((a, b) => a.username.localeCompare(b.username)));
 const openFriends        = ref(new Set());
 const isOpen            = (username) => openFriends.value.has(username);
@@ -108,7 +108,7 @@ const deleteFriend  = async (username) => {
     userStore.removeFriend(username);
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
   }
 }
 

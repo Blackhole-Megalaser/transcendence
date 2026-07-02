@@ -114,7 +114,7 @@
         <div 
           v-for="friend in userInfos.friendlist"
           :key="friend.username"
-          class="group relative size-12 rounded-full overflow-hidden cursor-pointer border border-text-main/10"
+          class="group relative size-12 rounded-full overflow-hidden border border-text-main/10"
           :title="friend.username"
         >
           <div 
@@ -181,7 +181,7 @@ const changeProfilePicture = async () => {
     newImage.value = null;
   }
   catch (e) {
-    console.error(e.message);
+    console.log(e.message);
   }
 }
 
@@ -211,7 +211,7 @@ const changeEmail = async () => {
     toggleModifyEmail();
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
   }
 }
 
@@ -224,7 +224,7 @@ const getGameInfos  = async () => {
       return await response.json();
     }
     catch (error) {
-      console.error(error.message);
+      console.log(error.message);
       return null;
     }
   }

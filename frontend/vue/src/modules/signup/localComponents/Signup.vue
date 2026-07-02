@@ -276,7 +276,7 @@ const submit    = async () => {
     window.location.href  = nextPage();
   }
   catch (error) {
-    console.error(error);
+    console.log(error);
   }
 }
 </script>

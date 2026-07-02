@@ -3,10 +3,10 @@
     <section class="text-text-main w-full flex-col flex gap-8 lg:gap-12 p-8 md:max-xl:pb-0 lg:pt-24!">
       
       <div class="justify-center gap-4 text-center">
-        <h2>Welcome to FT CAT!</h2>
+        <h2>Welcome to FT_CAT!</h2>
         <p class="lg:max-w-2/3 mx-auto text-center opacity-90">
-          FT CAT, or ft_transcendence, is a 42 collaborative project started in late April by a group of five 42 students.
-          It features a multiplayer game (Skribbl.cat), an interactive pixel art canvas (Tplace), and custom chat rooms!
+          FT_CAT, or ft_transcendence, is a 42 collaborative project started in late April 2026 by a group of five amazing 42 students.
+          It features a multiplayer game (Skribbl.cat), a collaborative pixel art canvas (Tplace), and custom chat rooms !
         </p>
       </div>
 
@@ -22,32 +22,24 @@
             <ul class="w-full my-3 lg:pl-2 xl:pl-4">
               <li>
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">100</span> points given to the 1st guesser</span>
+                <span><span class="font-bold text-title">200</span> points given to the 1st guesser</span>
               </li>
               <li>
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">75</span> points given to the 2nd one</span>
-              </li>
-              <li>
-                <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">50</span> points given to the 3rd one</span>
-              </li>
-              <li>
-                <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">25</span> points for everyone after</span>
+                <span>Then points given to the next guessers decreases over time</span>
               </li>
             </ul>
             <p class="text-justify w-full">
-              Meanwhile, drawer points depend on the other players' success:
+              Meanwhile, drawer points depend on the other players' speed (and success of course):
             </p>
             <ul class="w-full my-3 lg:pl-2 xl:pl-4">
               <li>
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">50</span> points if at least one player guesses right</span>
+                <span><span class="font-bold text-title">~70</span> points if a player guesses ultra fast</span>
               </li>
               <li>
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span><span class="font-bold text-title">75</span> points if everyone clears the drawing</span>
+                <span>Then points given to the drawer decreases over time and if nobody guesses right, no points are given</span>
               </li>
             </ul>
           </div>
@@ -60,7 +52,7 @@
           <h3>Tplace</h3>
           <div class="w-full flex-1">
             <p class="text-justify">
-              Love the concept of placing pixels with friends and creating cool artwork as a community? Transcendence's Place, alias Tplace, is the perfect match for you!
+              Love the concept of placing pixels with friends to create cool artwork as a community ? Transcendence's Place, alias Tplace, is the perfect match for you !
             </p>
             <ul class="w-full my-4 lg:pl-2 xl:pl-4">
               <li class="mb-2">
@@ -69,11 +61,11 @@
               </li>
               <li class="mb-2">
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span>Earn FT CAT's official currency : <span class="font-bold text-title">Nyan Coins</span> as you place pixels.</span>
+                <span>Earn FT_CAT's official currency : <span class="font-bold text-title">NyanCoins</span> for each pixel you place !</span>
               </li>
               <li>
                 <span class="size-1.5 rounded-full bg-title shrink-0"></span>
-                <span>Spend your coins to upgrade your max <span class="font-bold text-title">pixel capacity</span> and unlock shiny new colors!</span>
+                <span>Spend your coins to upgrade your max <span class="font-bold text-title">pixel capacity</span> and reduce your cooldown to recover your pixels faster !</span>
               </li>
             </ul>
           </div>
