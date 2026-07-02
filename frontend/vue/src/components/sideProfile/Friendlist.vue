@@ -61,7 +61,7 @@ import default_cat                  from '@assets/default_cat.png';
 
 const userStore         = useUserStore();
 const { userInfos }     = storeToRefs(userStore);
-const friends           = inject('FRIENDREQUESTS');
+const friends           = inject('FRIENDREQUESTS', ref({ friends: [], pending_friend_requests: [] }));
 const friendList        = computed(() => [...friends.value.friends].sort((a, b) => a.username.localeCompare(b.username)));
 const openFriends        = ref(new Set());
 const isOpen            = (username) => openFriends.value.has(username);

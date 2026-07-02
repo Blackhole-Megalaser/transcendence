@@ -50,7 +50,7 @@ import check                      from '@assets/check-mark.svg'
 
 
 const UserStore       = useUserStore();
-const friendData      = inject('FRIENDREQUESTS');
+const friendData      = inject('FRIENDREQUESTS', ref({ friends: [], pending_friend_requests: [] }));
 const friendRequests  = computed(() => friendData.value.pending_friend_requests);
 
 const handleFriendRequest = async (friend, method) => {
