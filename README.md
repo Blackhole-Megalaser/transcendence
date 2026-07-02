@@ -330,6 +330,34 @@ The project features:
 - Devops modules for (2) points
 - Modules of choices for (3) points
 
+| Module Name                                                        | Status | Points | Bonus | Validated |
+| :----------------------------------------------------------------- | :----- | :----- | :---- | :-------- |
+| **Web Modules**                                                    |        |        |       |           |
+| Use a framework for both frontend and backend                      | Major  | 2      |       |           |
+| Use a frontend framework                                           | Minor  | 1      | Bonus |           |
+| Use a backend framework                                            | Minor  | 1      | Bonus |           |
+| Implement realtime features using WebSockets or similar technology | Major  | 2      |       |           |
+| Allow users to interact with other users                           | Major  | 2      |       |           |
+| Use an ORM for the database                                        | Minor  | 1      |       |           |
+| Real-time collaborative features                                   | Minor  | 1      |       |           |
+| Custom-made design system with reusable components                 | Minor  | 1      | Bonus |           |
+| **Accessibility and Internationalization Modules**                 |        |        |       |           |
+| Support for additional browsers                                    | Minor  | 1      |       |           |
+| **User Management Modules**                                        |        |        |       |           |
+| Standard user management and authentication                        | Major  | 2      |       |           |
+| Advanced permissions system                                        | Major  | 2      |       |           |
+| **Gaming and User Experience Modules**                             |        |        |       |           |
+| Implement a complete web-based game                                | Major  | 2      |       |           |
+| Remote players (Real-time gameplay on separate computers)          | Major  | 2      |       |           |
+| Multiplayer game (More than 2 players)                             | Major  | 2      |       |           |
+| Implement spectator mode for games                                 | Minor  | 1      | Bonus |           |
+| **Devops Modules**                                                 |        |        |       |           |
+| Backend as microservices                                           | Major  | 2      | Bonus |           |
+| **Modules of Choice**                                              |        |        |       |           |
+| Custom module: Currency system (Nyancoins/Gamification)            | Major  | 2      | Bonus |           |
+| CI pipeline implementation                                         | Minor  | 1      | Bonus |           |
+| **Total Points**                                                   |        | 28     |       |           |
+
 ## Web modules (starting on subject page 12)
 
 ### Major: Use a framework for both the frontend and backend
@@ -366,7 +394,7 @@ This module is necessary to implement our collaborative drawing tools properly.
 
 ### Major: Allow users to interact with other users
 
-- A **chat** system (send/receive messages between users and rooms).
+- A **chat** system (send/receive messages between users).
 - A **profile** system (view user information, avatars and status).
 - A **friend** system (add/remove friends, see friends list, manage requests).
 
