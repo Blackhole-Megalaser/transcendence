@@ -17,7 +17,7 @@
           <div class="relative z-11 size-10 rounded-full overflow-hidden cursor-pointer">
             <div 
               class="absolute inset-0 bg-cover bg-center"
-              :style="{ backgroundImage: `url(${friend.profile_image})` }"
+              :style="{ backgroundImage: `url(${friend.profile_image ?? default_cat})` }"
             />
           </div>
           <div
