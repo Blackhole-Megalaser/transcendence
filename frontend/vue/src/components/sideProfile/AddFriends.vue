@@ -8,7 +8,7 @@
         v-model="model"
         placeholder="Ex: Baguette42"
       >
-      <div class="absolute flex-center inset-y-2 right-1 w-18 h-10">
+      <div class="absolute flex-center inset-y-2 right-1.25 w-18 h-10.5">
         <input
           type="submit"
           class="input"
@@ -71,6 +71,6 @@ const sendRequest = async () => {
   @apply duration-100 px-3.5 py-0.5;
 }
 .informations {
-  @apply my-2 py-2 pl-4 pr-21 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
+  @apply my-2 py-2 h-10.5 pl-4 pr-21 border border-input-text rounded-full bg-input-bg focus:bg-input-bg-active focus:outline-none focus:ring-2 focus:ring-title
 }
 </style>
