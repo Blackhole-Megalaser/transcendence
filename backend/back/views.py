@@ -348,6 +348,12 @@ class FriendsRequestView(NestedUserProfileBase, APIView):
                     status=HTTP_403_FORBIDDEN,
                 )
 
+            if profile.user.username == target_user.user.username:
+                return Response(
+                    {"detail": "You can't friend yourself!"},
+                    status=HTTP_403_FORBIDDEN,
+                )
+
             target_user.pending_friend_requests.add(profile)
             return Response(
                 {"detail": "Friend request sent."},
