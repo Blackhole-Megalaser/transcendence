@@ -168,13 +168,14 @@ The project feature a pictionnary-like game (skribl.io like), a collaborative ca
 
 # Modules
 
-**All of our modules listed below amount for a total of 23pts**
+**All of our modules listed below amount for a total of 26pts**
 
 - Web modules for (9) points
 - Accessibility and Internationalization modules for (1) points
 - User Management modules for (4) points
 - Gaming and user experience modules for (7) points
 - Devops modules for (2) points
+- Modules of choices for (3) points
 
 
 ## Web modules (starting on subject page 12)
@@ -355,11 +356,42 @@ The front and the back communicate through Django REST api.
 
 **Everyone** worked on this.
 
+## Modules of choice (starting on subject page 20)
+
+### Major: Implement a custom module that is not listed above.
+- The module must be substantial and demonstrate technical complexity.
+- You must provide proper justification in your README.md explaining:<br>
+&ensp;∗ Why you chose this module.<br>
+&ensp;∗ What technical challenges it addresses.<br>
+&ensp;∗ How it adds value to your project.<br>
+&ensp;∗ Why it deserves Major module status (2 points).<br>
+- Taking shortcuts or implementing trivial features will result in rejection.
+- Be creative and think outside the box.
+- The module should be relevant to your project context.
+
+We choose to add this module for the /t/place, as we introduced a whole entire system of currency, you get nyancoins when placing pixels.
+
+Those coins can be used to upgrade your maximum amount of placeable pixels and/or the time to regenerate one charge. This bring a part of gamification *(not the gamification module)* on top of a canvas with many features.
+
+The /t/place currently doesn't fit the second game module because it doesn't bring a way to win but it took as much work as our skribble game.
+
+**tlair** worked on this module.
+
+### Minor: Same as the major module but smaller in scope and less complex.
+- Must still demonstrate technical skill and creativity.
+- Should add meaningful value to your project.
+- Requires justification in README.md (similar to Major, but for 1 point).
+
+During this projet kcolin added a CI pipeline (Continuous Integration) compose of a few github actions, notably:
+- A format check for python files using Ruff
+- A linter check for python files using Ruff
+- A django integrity check using a Docker on github side
+- A docker container integrity check using a Docker on github side
+
+**kcolin** worked on this module.
+
+
 # Individual Contributions
-
-TODO: each time you do something, be it code or management related, add it to this part of the readme!
-
-NB: I added some initial contributions from what I could remember, feel free to add/modify
 
 ## tlair
 
