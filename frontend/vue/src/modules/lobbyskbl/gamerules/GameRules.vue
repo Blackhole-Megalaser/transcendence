@@ -48,6 +48,8 @@
             <div>Room Code: {{ roomCode }}</div>
             <div>Room Name: {{ roomName }}</div>
             <div>Game Started: {{ gameStarted }}</div>
+            <div>Host: {{ host }}</div>
+            <div>isHost: {{ isHost }}</div>
             <!-- input + button => trigger postConfigure -->
             <div>Users in lobby:</div>
           <div class="flex flex-row gap-4">
@@ -63,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { storeToRefs }                        from 'pinia';							
 import { useSkribbleStore, getCookie }        from '@shared';							
 
@@ -77,7 +79,9 @@ let inputRoomCode = ref('');
 let gameStarted   = ref(false);
 let seeRoomInfo   = ref(false);
 let host          = ref('');
-let isHost        = ref(false);
+let isHost        = computed(() => {
+  return username.value !== '' && username.value === host.value;
+});
 // let inputConfig   = ref('');
 
 const skribbleStore = useSkribbleStore();
@@ -119,8 +123,7 @@ const getUserRoomInfo = async () => {
     const dataUser = await response.json();
     if (dataUser.skribble) {
       username.value = dataUser.username;
-    host.value = dataUser.host;
-    if (username.value === host.value) isHost = true;
+      host.value = dataUser.host;
       roomCode.value = dataUser.skribble.code;
       roomName.value = dataUser.skribble.name;
       gameStarted.value = dataUser.skribble.game_started;
@@ -140,7 +143,7 @@ const postCreateRoom = async () => {
     const response = await fetch('/api/skribble/rooms/', {
       method: 'POST',
       body: JSON.stringify({
-        name: inputRoomName.value
+        name: inputRoomName.value,
       }),
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
