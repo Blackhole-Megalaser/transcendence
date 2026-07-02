@@ -44,9 +44,8 @@
     </li>
   </ul>
   <div
+  v-else
     class="text-text-main font-semibold w-full py-2 flex-center"
-    v-else
-    @click="console.log(friendList)"
   >
     <p>No Friends ! :c</p>
   </div>
