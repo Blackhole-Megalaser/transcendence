@@ -34,11 +34,21 @@
             <ThemeToggle />
           </div>
           <div class="flex items-center justify-end">
-            <ProfileButton
+            <div
+              class="relative"
               v-if="getLoggedStatus"
-              class="flex"
-              @click="$emit('showProfile')"
-            />
+              @click="console.log(friendRequests)"
+            >
+              <ProfileButton
+                class="flex"
+                @click="$emit('showProfile')"
+              />
+              <component
+                :is="Notification"
+                class="absolute -top-0.5 -right-0.5 size-4 fill-red-600"
+                v-if="friendRequests.length > 0"
+              />
+            </div>
             <div v-else class="flex">
               <a :href="`login${URI}`" class="h-10 sm:w-28 flex-center">
                 <ButtonLogIn>
@@ -74,8 +84,8 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, ref } from 'vue';
-import { storeToRefs }                  from 'pinia';
+import { computed, inject, onBeforeMount, ref } from 'vue';
+import { storeToRefs }                          from 'pinia';
 
 import { useThemeStore, useUserStore } 	from '@storage';
 
@@ -85,6 +95,7 @@ import ThemeButton 			from './ThemeButton.vue';
 import ThemeToggle 			from './ThemeToggle.vue';
 
 import cross 				    from '@assets/cross-svgrepo-com.svg'
+import Notification     from '@assets/notification.svg'
 import cute_paw 			  from '@assets/cute_paw.svg?component';
 import mean_paw 			  from '@assets/mean_paw.svg?component';
 import ft_cat 				  from '@assets/ft_cat.png';
@@ -98,6 +109,8 @@ const userStore           = useUserStore();
 const { getLoggedStatus } = storeToRefs(userStore);
 const currentURI          = window.location.href.slice(window.location.origin.length).replace('?', '&');
 const URI                 = currentURI !== '/' ? `?next=${currentURI}` : '';
+const friendData          = inject('FRIENDREQUESTS');
+const friendRequests      = computed(() => friendData.value.pending_friend_requests);
 
 const nextPage            = () => {
   let nextURL   = new URLSearchParams(window.location.search).get('next') ?? '/';

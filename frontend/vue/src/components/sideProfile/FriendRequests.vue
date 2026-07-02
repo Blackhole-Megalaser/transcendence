@@ -3,7 +3,7 @@
     <li
       class="w-full flex items-center flex-col rounded-xl overflow-hidden my-1 group"
       :key="friend.username"
-      v-for="friend in FriendRequests"
+      v-for="friend in friendRequests"
       >
       <div
         class="flex items-center flex:none gap-4 w-full z-10 px-4 py-2 hover:bg-button-2-active"
@@ -21,12 +21,12 @@
           <component 
             :is="check" 
             class="size-4 cursor-pointer"
-            @click="handleFriendRequest(friend.username, 'accept')"
+            @click="handleFriendRequest(friend, 'accept')"
           />
           <component 
             :is="cross" 
             class="size-4 fill-red-600 cursor-pointer"
-            @click="handleFriendRequest(friend.username, 'reject')"  
+            @click="handleFriendRequest(friend, 'reject')"  
           />
         </div>
       </div>
@@ -34,7 +34,7 @@
   </ul>
   <div
     class="text-text-main font-semibold w-full py-2 flex-center"
-    v-if="FriendRequests.length === 0"
+    v-if="friendRequests.length === 0"
   >
     <p>No incoming Friend Requests !</p>
   </div>
@@ -49,10 +49,11 @@ import cross                      from '@assets/wrong_cross.svg'
 import check                      from '@assets/check-mark.svg'
 
 
-const UserStore       = useUserStore()
-const FriendRequests  = inject('FRIENDREQUESTS').value.pending_friend_requests;
+const UserStore       = useUserStore();
+const friendData      = inject('FRIENDREQUESTS');
+const friendRequests  = computed(() => friendData.value.pending_friend_requests);
 
-const handleFriendRequest = async (username, method) => {
+const handleFriendRequest = async (friend, method) => {
   try {
     const response  = await fetch('/api/users/me/friends_request/', {
       method: 'POST',
@@ -61,7 +62,7 @@ const handleFriendRequest = async (username, method) => {
         'Content-type': 'application/json'
        },
       body: JSON.stringify({
-        username: username,
+        username: friend.username,
         action: method
       })
     })
@@ -69,10 +70,14 @@ const handleFriendRequest = async (username, method) => {
       const apiResponse = await response.json();
       throw ("Friend request error: " + apiResponse.detail);  
     }
-    FriendRequests.value = FriendRequests.value.filter((w) => w.username !== username);
-    if (method === 'accept') {
+    friendData.value = {
+      pending_friend_requests: friendData.value.pending_friend_requests.filter(w => w.username !== friend.username),
+      friends: method === 'accept' 
+      ? [...friendData.value.friends, friend] 
+      : friendData.value.friends
+    };
+    if (method === 'accept')
       UserStore.updateFriendlist();
-    }
   }
   catch (e) {
     console.error(e);
