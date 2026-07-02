@@ -54,6 +54,8 @@ services:
     build: ./frontend
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - ./volumes/backend-data:/media:ro
     ports:
       - "${EXTERNAL_PORT}:443"
     networks:
