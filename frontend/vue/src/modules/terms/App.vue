@@ -4,7 +4,7 @@
       <h2 class="text-title text-3xl sm:text-5xl font-bold mb-8 self-center">Terms of Services</h2>
       <span class="my-12">
         <span class="important">Effective Date: May 26, 2026</span><br>
-        Website: Ft_cat (https://localhost:1443)<br>
+        Website: ft_cat (https://ft.lien.cat)<br>
         <span class="text-title text-2xl font-bold">Welcome to Ft_cat !</span><br>
         This website is an <span class="important">academic school project</span> developed for <span class="important">educational purposes only</span>. By accessing or using our local service, you agree to comply with and be bound by these Terms of Service. <span class="important">If you do not agree, please do not create an account or use the site.</span>
       </span>
