@@ -77,8 +77,7 @@ The default port used is **1443**, you can change that in the **EXTERNAL_PORT** 
 Useful local endpoints:
 
 - Frontend: `https://localhost:1443/`
-- Backend API through Nginx: `https://localhost:1443/api/`
-- Backend container port: `http://localhost:8000/`
+- Backend API through Nginx: `https://localhost:1443/api/` (set DEBUG=True in `.env` for a better experience)
 
 The official FT_CAT instance is accessible for everyone at https://ft.lien.cat
 
@@ -93,7 +92,9 @@ The official FT_CAT instance is accessible for everyone at https://ft.lien.cat
 - Pinia documentation - https://pinia.vuejs.org/
 - Font Awesome documentation - https://fontawesome.com/
 
-**AI was used to generate some graphical assets in this project.**
+## AI Usage
+
+AI was used to generate some graphical assets in this project, as a search engine, and to find some toy examples on how to use various django-rest-framework features.
 
 # Team Information
 
