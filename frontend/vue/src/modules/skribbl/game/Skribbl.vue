@@ -30,6 +30,9 @@
         { r: 255, g: 255, b: 255, hex: '#ffffff'}  // White
     ];
 
+	let pixelDrawed = null;
+	let lastCoord = { x: 0, y: 0 };
+
     const skribbleStore = useSkribbleStore();
 
     const { history,
@@ -131,6 +134,7 @@
             color: '#ffffff'
         }];
         tmpHistory.value = [];
+		pixelDrawed = new Uint8Array(width.value * height.value);
         
         const urlParams = new URLSearchParams(window.location.search);
         const roomFromUrl = urlParams.get('room');
@@ -486,6 +490,16 @@
               await getState();
 
               // isWordChoose.value = false;
+			  history.value = [{ 
+				  type: 'fill', 
+				  x: 0, 
+				  y: 0, 
+				  color: '#ffffff' 
+			  }];
+			  tmpHistory.value = [];
+			  if (pixelDrawed) {
+				pixelDrawed.fill(0);
+			  }
 
               nextTick(() => {
                 if (canvasRef.value) {
@@ -724,6 +738,11 @@
 
         drawId.value = Date.now();
 
+		lastCoord.x = coord.value.x;
+    	lastCoord.y = coord.value.y;
+
+		recordBrushThickness(lastCoord.x, lastCoord.y, penStroke.value);
+
         currentPath = {
             id: drawId.value,
             type: 'paint',
@@ -737,39 +756,44 @@
     };
 
     const draw = (event) => {
-    if (!isDrawing.value || !isDrawer.value) return;
+		if (!isDrawing.value || !isDrawer.value) return;
+	
+		const ctx = vueCanvas.value;
+		ctx.beginPath();
+		ctx.lineWidth = parseInt(penStroke.value);
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		ctx.strokeStyle = penColor.value;
+		ctx.moveTo(coord.value.x, coord.value.y);
+		reposition(event);
+		ctx.lineTo(coord.value.x, coord.value.y);
+		ctx.stroke();
 
-    const ctx = vueCanvas.value;
-    ctx.beginPath();
-    ctx.lineWidth = parseInt(penStroke.value);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = penColor.value;
-    ctx.moveTo(coord.value.x, coord.value.y);
-    reposition(event);
-    ctx.lineTo(coord.value.x, coord.value.y);
-    ctx.stroke();
+		recordLinePixels(lastCoord.x, lastCoord.y, coord.value.x, coord.value.y);
 
-    if (currentPath) {
-        const newPoint = { 
-            x: coord.value.x / width.value, 
-            y: coord.value.y / height.value 
-        };
-
-        currentPath.points.push(newPoint);
-
-        skribbleStore.sendAction({
-            action: 'send_drawing',
-            payload: {
-                id: drawId.value,
-                type: 'paint',
-                color: penColor.value,
-                stroke: penStroke.value,
-                points: [newPoint]
-            }
-        });
-    }
-};
+		lastCoord.x = coord.value.x;
+    	lastCoord.y = coord.value.y;
+	
+		if (currentPath) {
+			const newPoint = { 
+				x: coord.value.x / width.value, 
+				y: coord.value.y / height.value 
+			};
+	
+			currentPath.points.push(newPoint);
+	
+			skribbleStore.sendAction({
+				action: 'send_drawing',
+				payload: {
+					id: drawId.value,
+					type: 'paint',
+					color: penColor.value,
+					stroke: penStroke.value,
+					points: [newPoint]
+				}
+			});
+		}
+	};
 
     const stop = () => {
         isDrawing.value = false;
@@ -783,8 +807,10 @@
     };
 
     const clear = () => {
-        const ctx = vueCanvas.value;
+		const ctx = vueCanvas.value;
         if (!ctx) return;
+
+		pixelDrawed.fill(0);
 
         ctx.clearRect(0, 0, width.value, height.value);
         ctx.fillStyle = '#ffffff';
@@ -823,6 +849,10 @@
         const currentWidth = width.value;
         const currentHeight = height.value;
 
+		if (pixelDrawed) {
+			pixelDrawed.fill(0);
+		}
+
         ctx.clearRect(0, 0, currentWidth, currentHeight);
 
         history.value.forEach(action => {
@@ -838,8 +868,19 @@
                 ctx.strokeStyle = action.color;
 
                 ctx.moveTo(action.points[0].x * currentWidth, action.points[0].y * currentHeight);
+
+				recordBrushThickness(action.points[0].x * currentWidth, action.points[0].y * currentHeight, baseStroke);
+
                 for (let i = 1; i < action.points.length; i++) {
+					const prevPoint = action.points[i - 1];
+                	const currPoint = action.points[i];
+
                     ctx.lineTo(action.points[i].x * currentWidth, action.points[i].y * currentHeight);
+
+					recordLinePixels(
+						prevPoint.x * currentWidth, prevPoint.y * currentHeight,
+						currPoint.x * currentWidth, currPoint.y * currentHeight
+					);
                 }
                 ctx.stroke();
             }
@@ -857,6 +898,61 @@
         });
     };
 
+	const recordBrushThickness = (cx, cy, strokeThickness) => {
+		const radius = Math.floor(parseInt(strokeThickness) / 2);
+		if (radius <= 0) {
+			if (cx >= 0 && cx < width.value && cy >= 0 && cy < height.value) {
+				pixelDrawed[Math.floor(cy) * width.value + Math.floor(cx)] = 1;
+			}
+			return;
+		}
+	
+		const startX = Math.max(0, Math.floor(cx - radius));
+		const endX = Math.min(width.value - 1, Math.floor(cx + radius));
+		const startY = Math.max(0, Math.floor(cy - radius));
+		const endY = Math.min(height.value - 1, Math.floor(cy + radius));
+	
+		for (let y = startY; y <= endY; y++) {
+			for (let x = startX; x <= endX; x++) {
+				const dx = x - cx;
+				const dy = y - cy;
+				if (dx * dx + dy * dy <= radius * radius) {
+					pixelDrawed[y * width.value + x] = 1;
+				}
+			}
+		}
+	};
+		
+	const recordLinePixels = (x0, y0, x1, y1) => {
+		x0 = Math.floor(x0);
+		y0 = Math.floor(y0);
+		x1 = Math.floor(x1);
+		y1 = Math.floor(y1);
+	
+		const dx = Math.abs(x1 - x0);
+		const dy = Math.abs(y1 - y0);
+		const sx = x0 < x1 ? 1 : -1;
+		const sy = y0 < y1 ? 1 : -1;
+		let err = dx - dy;
+	
+		while (true) {
+
+			recordBrushThickness(x0, y0, penStroke.value);
+	
+			if (x0 === x1 && y0 === y1) break;
+			
+			const e2 = 2 * err;
+			if (e2 > -dy) {
+				err -= dy;
+				x0 += sx;
+			}
+			if (e2 < dx) {
+				err += dx;
+				y0 += sy;
+			}
+		}
+	};
+		
     const runFillSilentlyOnContext = (ctx, currentWidth, currentHeight, startX, startY, targetColor) => {
         if (startX < 0 || startX >= currentWidth || startY < 0 || startY >= currentHeight) return;
 
@@ -883,6 +979,13 @@
             const g = data[pos + 1];
             const b = data[pos + 2];
             const a = data[pos + 3];
+
+			if (pixelDrawed[y * width.value + x] === 1) {
+				const isSameAsFill = (r === fillR && g === fillG && b === fillB);
+        		const isSameAsStart = (r === startR && g === startG && b === startB);
+
+				if (!isSameAsFill && !isSameAsStart) return false;
+			}
 
             if (startA < 10) {
                 return a < 230;
@@ -917,6 +1020,7 @@
                 data[pos + 3] = 255;
 
                 visited[y * currentWidth + x] = 1;
+				pixelDrawed[y * width.value + x] = 0;
 
                 if (y > 0) {
                     if (match(x, y - 1) && !visited[(y - 1) * currentWidth + x]) { 
