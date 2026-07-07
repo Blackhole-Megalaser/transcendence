@@ -886,15 +886,15 @@
 
             if (startA < 10) {
                 return a < 230;
-            } else {
-                for (let i = 0; i < paletteBorder.length; i++) {
-                    const c = paletteBorder[i];
-                    if (c.r === r && c.g === g && c.b === b) {
-                        return false;
-                    }
-                }
-                return true;
             }
+
+			const tolerance = 40;
+
+			const diffR = Math.abs(r - startR);
+			const diffG = Math.abs(g - startG);
+			const diffB = Math.abs(b - startB);
+
+			return (diffR <= tolerance && diffG <= tolerance && diffB <= tolerance && a > 10);
         };
 
         while (pixelStack.length > 0) {
