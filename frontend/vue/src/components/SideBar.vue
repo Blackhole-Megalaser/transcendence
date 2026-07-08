@@ -58,11 +58,15 @@
           </li>
         </ul>
       </section>
-      <footer class="flex-none text-xs underline text-sidebar-footer">
+      <footer class="flex-none text-xs text-sidebar-footer">
         <hr>
-        <a href="terms">Terms of service</a>
+        <p class="mb-2 leading-tight">
+          Last repo update:<br>
+          2026-07-08 11:28 CEST
+        </p>
+        <a href="terms" class="underline">Terms of service</a>
         <br>
-        <a href="privacy">Privacy policy</a>
+        <a href="privacy" class="underline">Privacy policy</a>
       </footer>
     </aside>
   </div>
